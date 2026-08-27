@@ -1,0 +1,42 @@
+version: 0.1-draft
+transport:
+  protocol: modbus-tcp
+  port: 1502
+  unit_id: 1
+  addressing: pdu-zero-based
+canonical_sign:
+  positive_power: discharge
+  negative_power: charge
+registers:
+  holding:
+    - {address: 0, name: command.sequence, type: uint16, scale: 1, access: rw}
+    - {address: 1, name: command.requested_power_kw, type: int16, scale: 10, access: rw}
+    - {address: 2, name: command.enable, type: uint16, scale: 1, access: rw}
+    - {address: 3, name: command.ems_heartbeat, type: uint16, scale: 1, access: rw}
+  input:
+    - {address: 0, name: power.actual_kw, type: int16, scale: 10, access: r}
+    - {address: 1, name: battery.soc_pct, type: uint16, scale: 10, access: r}
+    - {address: 2, name: battery.soh_pct, type: uint16, scale: 1, access: r}
+    - {address: 3, name: battery.voltage_v, type: uint16, scale: 10, access: r}
+    - {address: 4, name: battery.current_a, type: int16, scale: 10, access: r}
+    - {address: 5, name: limits.max_charge_kw, type: uint16, scale: 10, access: r}
+    - {address: 6, name: limits.max_discharge_kw, type: uint16, scale: 10, access: r}
+    - {address: 7, name: battery.status_code, type: uint16, scale: 1, access: r}
+    - {address: 8, name: battery.alarm_bits, type: uint16, scale: 1, access: r}
+    - {address: 9, name: edge.quality_bits, type: uint16, scale: 1, access: r}
+    - {address: 10, name: edge.state, type: uint16, scale: 1, access: r}
+    - {address: 11, name: command.applied_power_kw, type: int16, scale: 10, access: r}
+quality_bits:
+  0: vendor_comms_ok
+  1: bms_limits_valid
+  2: ems_connected
+  3: heartbeat_ok
+  4: no_active_fault
+edge_states:
+  0: boot
+  1: waiting_for_comms
+  2: waiting_for_bms_limits
+  3: ready
+  4: safe_mode
+  5: fault
+

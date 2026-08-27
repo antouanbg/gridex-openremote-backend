@@ -1,0 +1,29 @@
+model: STE-261L
+document: BCQ controller Modbus communication V2.0
+document_date: 2025-09-08
+transport: {protocol: modbus-tcp, port: 3200, unit_id: 1}
+addressing: vendor-document-addresses
+registers:
+  holding:
+    pcs_power_on: {address: 5003, type: int16, scale: 1, access: rw}
+    pcs_active_power_setpoint_kw: {address: 5005, type: int16, scale: 10, access: rw}
+    pcs_soc_upper_limit_pct: {address: 5007, type: int16, scale: 1, access: rw}
+    pcs_soc_lower_limit_pct: {address: 5008, type: int16, scale: 1, access: rw}
+    heartbeat_seconds: {address: 5301, type: int16, scale: 1, access: rw}
+    heartbeat_enable: {address: 5302, type: int16, scale: 1, access: rw}
+  input:
+    pcs_active_power_kw: {address: 9, type: int16, scale: 10, access: r}
+    pcs_status: {address: 16, type: int16, scale: 1, access: r}
+    bms_current_a: {address: 101, type: int16, scale: 10, access: r}
+    bms_soc_pct: {address: 102, type: int16, scale: 10, access: r}
+    bms_soh_pct: {address: 103, type: int16, scale: 1, access: r}
+    bms_voltage_v: {address: 104, type: int16, scale: 10, access: r}
+    bms_status: {address: 105, type: int16, scale: 1, access: r}
+    bms_alarm_bits: {address: 126, type: uint16, scale: 1, access: r}
+    bms_max_charge_kw: {address: 127, type: int16, scale: 10, access: r}
+    bms_max_discharge_kw: {address: 128, type: int16, scale: 10, access: r}
+notes:
+  - Register numbering must be verified on the physical unit as PDU zero-based versus vendor display numbering.
+  - Canonical GrideX power is positive for discharge and negative for charge.
+  - Writes remain disabled until sign, offset, byte order and BMS limits are confirmed during commissioning.
+

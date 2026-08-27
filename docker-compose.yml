@@ -1,0 +1,60 @@
+name: gridex-openremote
+
+volumes:
+  proxy-data:
+  manager-data:
+  postgresql-data:
+
+services:
+  proxy:
+    image: openremote/proxy:${PROXY_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      manager:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "${OR_SSL_PORT:-443}:443"
+      - "8883:8883"
+    volumes:
+      - proxy-data:/deployment
+    environment:
+      DOMAINNAME: ${OR_HOSTNAME:-localhost}
+
+  postgresql:
+    image: openremote/postgresql:${POSTGRESQL_VERSION:-latest-slim}
+    restart: unless-stopped
+    shm_size: 128mb
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - manager-data:/storage
+
+  keycloak:
+    image: openremote/keycloak:${KEYCLOAK_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ./deployment:/deployment
+    environment:
+      KEYCLOAK_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD}
+      KC_HOSTNAME: ${OR_HOSTNAME:-localhost}
+      KC_HOSTNAME_PORT: ${OR_SSL_PORT:--1}
+
+  manager:
+    image: openremote/manager:${MANAGER_VERSION:-latest}
+    restart: unless-stopped
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      OR_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD}
+      OR_HOSTNAME: ${OR_HOSTNAME:-localhost}
+      OR_SSL_PORT: ${OR_SSL_PORT:--1}
+      OR_DEV_MODE: "false"
+      OR_METRICS_ENABLED: "true"
+    volumes:
+      - manager-data:/storage
+      - ./deployment:/deployment
+

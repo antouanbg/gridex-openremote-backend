@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gridex.tech/schemas/energy-asset.schema.json",
+  "title": "GrideX canonical BESS asset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["assetId", "timestamp", "quality", "battery", "power"],
+  "properties": {
+    "assetId": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "quality": {"enum": ["GOOD", "STALE", "INVALID", "FAULT"]},
+    "battery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["socPct", "sohPct", "maxChargeKw", "maxDischargeKw", "limitsValid"],
+      "properties": {
+        "socPct": {"type": "number", "minimum": 0, "maximum": 100},
+        "sohPct": {"type": "number", "minimum": 0, "maximum": 100},
+        "voltageV": {"type": "number"},
+        "currentA": {"type": "number"},
+        "maxChargeKw": {"type": "number", "minimum": 0},
+        "maxDischargeKw": {"type": "number", "minimum": 0},
+        "limitsValid": {"type": "boolean"},
+        "statusCode": {"type": "integer"},
+        "alarmBits": {"type": "integer", "minimum": 0}
+      }
+    },
+    "power": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actualKw", "requestedKw", "appliedKw"],
+      "properties": {
+        "actualKw": {"type": "number", "description": "Positive is discharge/export from BESS; negative is charge."},
+        "requestedKw": {"type": "number"},
+        "appliedKw": {"type": "number"},
+        "siteLoadKw": {"type": "number"},
+        "contractLimitKw": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}
+
