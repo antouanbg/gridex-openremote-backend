@@ -22,7 +22,8 @@
         "maxDischargeKw": {"type": "number", "minimum": 0},
         "limitsValid": {"type": "boolean"},
         "statusCode": {"type": "integer"},
-        "alarmBits": {"type": "integer", "minimum": 0}
+        "systemFlags": {"type": "integer", "minimum": 0},
+        "controlReady": {"type": "boolean"}
       }
     },
     "power": {
@@ -39,4 +40,3 @@
     }
   }
 }
-

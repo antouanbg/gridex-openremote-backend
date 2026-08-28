@@ -1,29 +1,67 @@
 model: STE-261L
+controller: BCQ
 document: BCQ controller Modbus communication V2.0
 document_date: 2025-09-08
 transport: {protocol: modbus-tcp, port: 3200, unit_id: 1}
-addressing: vendor-document-addresses
+addressing: direct-vendor-register-number
+canonical_sign: {positive_power: discharge, negative_power: charge}
 registers:
+  coil:
+    pcs_fault: {address: 1, access: r, normal: 0, fault: 1}
+    pcs_off_grid: {address: 2, access: r, on_grid: 0, off_grid: 1}
+    pcs_warning: {address: 3, access: r, normal: 0, warning: 1}
+    pcs_communication_fault: {address: 4, access: r, normal: 0, fault: 1}
+    bms_alarm: {address: 183, access: r, normal: 0, alarm: 1}
+    bms_fault: {address: 184, access: r, normal: 0, fault: 1}
+    bms_communication_fault: {address: 185, access: r, normal: 0, fault: 1}
   holding:
-    pcs_power_on: {address: 5003, type: int16, scale: 1, access: rw}
-    pcs_active_power_setpoint_kw: {address: 5005, type: int16, scale: 10, access: rw}
-    pcs_soc_upper_limit_pct: {address: 5007, type: int16, scale: 1, access: rw}
-    pcs_soc_lower_limit_pct: {address: 5008, type: int16, scale: 1, access: rw}
-    heartbeat_seconds: {address: 5301, type: int16, scale: 1, access: rw}
-    heartbeat_enable: {address: 5302, type: int16, scale: 1, access: rw}
+    pcs_grid_mode: {address: 5001, type: int16, scale: 1, access: r, required: 0}
+    pcs_work_mode: {address: 5002, type: int16, scale: 1, access: r, required: 1}
+    pcs_power_on: {address: 5003, type: int16, scale: 1, access: r, required: 1}
+    pcs_active_power_setpoint_kw: {address: 5005, type: int16, scale: 10, access: edge-rw}
+    pcs_reactive_power_setpoint_kvar: {address: 5006, type: int16, scale: 10, access: edge-rw}
+    pcs_soc_upper_limit_pct: {address: 5007, type: int16, scale: 1, access: commissioning-rw}
+    pcs_soc_lower_limit_pct: {address: 5008, type: int16, scale: 1, access: commissioning-rw}
+    heartbeat_seconds: {address: 5301, type: int16, scale: 1, access: edge-rw}
+    heartbeat_enable: {address: 5302, type: int16, scale: 1, access: edge-rw}
   input:
     pcs_active_power_kw: {address: 9, type: int16, scale: 10, access: r}
+    pcs_reactive_power_kvar: {address: 10, type: int16, scale: 10, access: r}
+    pcs_frequency_hz: {address: 13, type: int16, scale: 100, access: r}
     pcs_status: {address: 16, type: int16, scale: 1, access: r}
     bms_current_a: {address: 101, type: int16, scale: 10, access: r}
     bms_soc_pct: {address: 102, type: int16, scale: 10, access: r}
     bms_soh_pct: {address: 103, type: int16, scale: 1, access: r}
     bms_voltage_v: {address: 104, type: int16, scale: 10, access: r}
     bms_status: {address: 105, type: int16, scale: 1, access: r}
-    bms_alarm_bits: {address: 126, type: uint16, scale: 1, access: r}
+    bms_accumulated_charge_kwh: {address: 122, words: 2, type: int32, scale: 10, access: r}
+    bms_accumulated_discharge_kwh: {address: 124, words: 2, type: int32, scale: 10, access: r}
+    bms_system_flags: {address: 126, type: uint16, scale: 1, access: r}
     bms_max_charge_kw: {address: 127, type: int16, scale: 10, access: r}
     bms_max_discharge_kw: {address: 128, type: int16, scale: 10, access: r}
+    bms_daily_charge_kwh: {address: 129, type: int16, scale: 10, access: r}
+    bms_daily_discharge_kwh: {address: 130, type: int16, scale: 10, access: r}
+bms_system_flag_bits:
+  0: charge_prohibited
+  1: discharge_prohibited
+  2: alarm
+  3: fully_charged
+  4: fully_discharged
+control_contract:
+  owner: gridex-edge-gateway
+  prerequisites:
+    - holding_5003_equals_1
+    - holding_5001_equals_0
+    - holding_5002_equals_1
+    - no_pcs_fault
+    - no_pcs_communication_fault
+    - no_bms_fault
+    - no_bms_communication_fault
+    - bms_limits_127_128_valid
+  heartbeat: {enable_register: 5302, timeout_register: 5301, timeout_seconds: 60, refresh_before_seconds: 50, configured_refresh_seconds: 35}
+  protected_registers_not_modified_automatically: [5001, 5002]
 notes:
-  - Register numbering must be verified on the physical unit as PDU zero-based versus vendor display numbering.
+  - Addresses are used exactly as printed by the vendor; no +1 or -1 offset is applied.
   - Canonical GrideX power is positive for discharge and negative for charge.
-  - Writes remain disabled until sign, offset, byte order and BMS limits are confirmed during commissioning.
-
+  - OpenRemote sends desired power only to the Edge Gateway; it does not write vendor registers directly.
+  - On-site readback and a limited-power commissioning test remain mandatory before production writes are unlocked.

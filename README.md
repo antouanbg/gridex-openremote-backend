@@ -34,5 +34,4 @@ GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
 
 ## Граница на отговорност
 
-OpenRemote държи стратегията, прогнозите, графиците, историята, алармите, ролите и API за клиентските приложения. Edge държи device drivers, vendor sign/scale/offset, heartbeat, BMS envelope, software fuse и fail-safe.
-
+OpenRemote държи стратегията, прогнозите, графиците, историята, алармите, ролите и API за клиентските приложения. Edge държи device drivers, vendor адресиране/sign/scale, heartbeat, BMS envelope, software fuse и fail-safe.
