@@ -26,6 +26,9 @@ registers:
     - {address: 9, name: edge.quality_bits, type: uint16, scale: 1, access: r}
     - {address: 10, name: edge.state, type: uint16, scale: 1, access: r}
     - {address: 11, name: command.applied_power_kw, type: int16, scale: 10, access: r}
+    - {address: 12, name: edge.control_ready, type: uint16, scale: 1, access: r}
+    - {address: 13, name: limits.configured_max_charge_kw, type: uint16, scale: 10, access: r}
+    - {address: 14, name: limits.configured_max_discharge_kw, type: uint16, scale: 10, access: r}
 quality_bits:
   0: vendor_comms_ok
   1: bms_limits_valid

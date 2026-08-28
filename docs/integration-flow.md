@@ -19,6 +19,8 @@ Organisation
 
 `GrideX Strategy.requestedPowerKw` е желаната стойност от арбитража, day-ahead графика или ръчния оператор. `GrideX Control.appliedPowerKw` е стойността след Edge safety envelope.
 
+Началният asset tree и точните връзки към normalized Edge картата са описани в `config/ste261l-asset-blueprint.yaml`. Това е source-of-truth за бъдещия OpenRemote setup extension; deployment-specific IDs и IP адресът на Edge се задават при инсталацията.
+
 ## Commissioning gate
 
 Командите са забранени, докато едновременно не са изпълнени:
@@ -32,6 +34,7 @@ Organisation
 7. Локалният PCS heartbeat е активен и наблюдаван.
 8. PCS е включен (`5003=1`), grid-tied (`5001=0`) и в current-source/PQ режим (`5002=1`).
 9. PCS/BMS fault и communication fault флаговете са чисти.
+10. Ако са зададени операторски PCS caps, те са неотрицателни и не могат да увеличат BMS лимитите.
 
 ## OpenRemote agent links
 

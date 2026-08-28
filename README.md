@@ -23,6 +23,8 @@ GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
 - `contracts/energy-asset.schema.json` - каноничен модел между UI, OpenRemote и Edge.
 - `config/edge-register-map.yaml` - northbound Modbus TCP карта на Edge Gateway.
 - `config/sunstorage-pro-261.yaml` - потвърдените vendor регистри, използвани от първия драйвер.
+- `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
+- `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 
 ## Стартиране

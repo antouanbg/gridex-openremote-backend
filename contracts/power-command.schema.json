@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gridex.tech/schemas/power-command.schema.json",
+  "title": "GrideX requested power command",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sequence", "timestamp", "requestedPowerKw", "enable", "source"],
+  "properties": {
+    "sequence": {"type": "integer", "minimum": 0},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "requestedPowerKw": {
+      "type": "number",
+      "minimum": -3276.8,
+      "maximum": 3276.7,
+      "description": "Positive discharge; negative charge. Edge applies the live safety envelope."
+    },
+    "enable": {"type": "boolean"},
+    "source": {"enum": ["automatic", "schedule", "operator", "safe-mode"]},
+    "mode": {"type": "string"},
+    "reason": {"type": "string", "maxLength": 256},
+    "ttlSeconds": {"type": "integer", "minimum": 1, "maximum": 60, "default": 15}
+  }
+}

@@ -49,6 +49,10 @@ bms_system_flag_bits:
   4: fully_discharged
 control_contract:
   owner: gridex-edge-gateway
+  configured_caps:
+    max_charge_kw: null
+    max_discharge_kw: null
+    rule: may_only_reduce_live_bms_limits
   prerequisites:
     - holding_5003_equals_1
     - holding_5001_equals_0

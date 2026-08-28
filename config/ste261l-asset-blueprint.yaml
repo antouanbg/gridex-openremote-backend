@@ -1,0 +1,64 @@
+version: 1
+purpose: GrideX OpenRemote setup blueprint for the first STE-261L site
+asset_tree:
+  - id: organisation
+    type: Organisation
+    children:
+      - id: site
+        type: Site
+        children:
+          - id: pcc_meter
+            type: ElectricityMeter
+          - id: ste261l
+            type: ElectricityBattery
+            children:
+              - {id: pcs, type: PowerConverter}
+              - {id: bms, type: BatteryManagementSystem}
+              - {id: thermal, type: ThermalManagement}
+              - {id: safety_io, type: SafetySystem}
+          - id: strategy
+            type: EnergyStrategy
+          - id: control
+            type: EnergyControl
+
+attributes:
+  ste261l:
+    actualPowerKw: {type: number, source: edge.input.0, history: true, unit: kW}
+    socPct: {type: number, source: edge.input.1, history: true, unit: "%"}
+    sohPct: {type: number, source: edge.input.2, history: true, unit: "%"}
+    voltageV: {type: number, source: edge.input.3, history: true, unit: V}
+    currentA: {type: number, source: edge.input.4, history: true, unit: A}
+    maxChargeKw: {type: number, source: edge.input.5, history: true, unit: kW}
+    maxDischargeKw: {type: number, source: edge.input.6, history: true, unit: kW}
+    statusCode: {type: integer, source: edge.input.7, history: true}
+    systemFlags: {type: integer, source: edge.input.8, history: true}
+  control:
+    requestedPowerKw: {type: number, target: edge.holding.1, writable_by: [strategy, operator], unit: kW}
+    enable: {type: boolean, target: edge.holding.2, writable_by: [operator]}
+    emsHeartbeat: {type: integer, target: edge.holding.3, writable_by: [system]}
+    appliedPowerKw: {type: number, source: edge.input.11, history: true, unit: kW}
+    controlReady: {type: boolean, source: edge.input.12, history: true}
+    configuredMaxChargeKw: {type: number, source: edge.input.13, history: true, unit: kW}
+    configuredMaxDischargeKw: {type: number, source: edge.input.14, history: true, unit: kW}
+  strategy:
+    mode: {type: string, values: [automatic, price_arbitrage, self_consumption, zero_export, peak_shaving, manual]}
+    targetSocPct: {type: number, range: [0, 100], unit: "%"}
+    threeDayPvForecastKwh: {type: number_array, history: true, unit: kWh}
+    dayAheadPriceEurMwh: {type: number_array, history: true, unit: EUR/MWh}
+    loadForecastKw: {type: number_array, history: true, unit: kW}
+    blockExportAtNegativePrice: {type: boolean, default: true}
+
+agent:
+  type: ModbusTcpAgent
+  endpoint: GRIDEX_EDGE_OT_IP
+  port: 1502
+  unit_id: 1
+  request_interval_ms: 1000
+  addressing: pdu-zero-based
+
+command_policy:
+  - OpenRemote writes only the normalized Edge holding registers.
+  - OpenRemote never writes STE-261L registers 5001, 5002, 5005, 5006, 5301 or 5302 directly.
+  - Edge is authoritative for BMS limits, configured caps, software fuse, heartbeat and safe-state.
+  - requestedPowerKw is positive for discharge and negative for charge.
+  - A stale EMS heartbeat causes Edge to apply zero power.
