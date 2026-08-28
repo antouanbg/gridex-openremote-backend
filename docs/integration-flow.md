@@ -40,6 +40,23 @@ Organisation
 
 Създава се Modbus TCP Agent към Edge Gateway, не към SunStorage. Атрибутите използват `INPUT` или `HOLDING` според `edge-register-map.yaml`, unit ID `1` и request interval минимум 1000 ms. Историята се включва за мощност, SOC, SOH, лимити, quality и приложена команда. Прогнозните редове се пазят като predicted datapoints в Strategy asset.
 
+## Meter, EVSE и inverter нодове
+
+ROCK Pi E обхожда всички конфигурирани MBUS адреси непрекъснато по RS485.
+Нормализираното копие на всеки нод се намира в отделен input-register слот от
+`0x0100`, със stride 16 и максимум 32 нода. Това копие се използва от локалните
+защити и като резервен облачен източник.
+
+Когато нодът има интернет, LilyGo T-CAN485 публикува същата телеметрия директно
+към OpenRemote Manager по MQTTS 8883. Директните атрибути и Edge копието не
+трябва да пишат в един и същи атрибут. MQTT обновява `actualPowerKw`, а Modbus
+Agent обновява `edgeActualPowerKw`; правило за freshness избира ефективната
+стойност. Така няма надписване и системата продължава при отпадане на единия
+път. Точният договор е в `config/mqtt-node-telemetry.yaml`.
+
+MQTT връзката на ESP32 е само за телеметрия. Командите остават по пътя
+OpenRemote -> Edge Modbus TCP -> safety envelope -> конкретен драйвер.
+
 ## API към клиентския интерфейс
 
 GrideX UI използва OpenRemote HTTPS REST API за текущите asset стойности и WebSocket/event stream за live телеметрия. UI няма credentials или route към vendor PCS. Всички write операции са role-based и се записват в command history.

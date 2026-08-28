@@ -9,6 +9,12 @@ asset_tree:
         children:
           - id: pcc_meter
             type: ElectricityMeter
+          - id: mbus_nodes
+            type: GroupAsset
+            children:
+              - {id: meter_node_1, type: ElectricityMeter}
+              - {id: evse_node_1, type: ElectricityCharger}
+              - {id: inverter_node_1, type: PowerConverter}
           - id: ste261l
             type: ElectricityBattery
             children:
@@ -47,6 +53,19 @@ attributes:
     dayAheadPriceEurMwh: {type: number_array, history: true, unit: EUR/MWh}
     loadForecastKw: {type: number_array, history: true, unit: kW}
     blockExportAtNegativePrice: {type: boolean, default: true}
+  node_template:
+    online: {type: boolean, source: direct-mqtt, history: true}
+    actualPowerKw: {type: number, source: direct-mqtt, history: true, unit: kW}
+    energyWh: {type: integer, source: direct-mqtt, history: true, unit: Wh}
+    deviceState: {type: integer, source: direct-mqtt, history: true}
+    alarmBits: {type: integer, source: direct-mqtt, history: true}
+    quality: {type: integer, source: direct-mqtt, history: true}
+    heartbeat: {type: integer, source: direct-mqtt, history: false}
+    edgeNodeOnline: {type: boolean, source: edge.node_slot.online, history: true}
+    edgeActualPowerKw: {type: number, source: edge.node_slot.power, history: true, unit: kW}
+    edgeEnergyWh: {type: integer, source: edge.node_slot.energy, history: true, unit: Wh}
+    edgeSampleAgeSeconds: {type: integer, source: edge.node_slot.age, history: false, unit: s}
+    effectivePowerKw: {type: number, source: freshness-arbitration-rule, history: true, unit: kW}
 
 agent:
   type: ModbusTcpAgent

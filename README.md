@@ -18,6 +18,11 @@ GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
 
 Edge northbound endpoint вече е реализиран като Modbus TCP server на порт `1502`, unit ID `1`, с read функции FC03/04 и write функции FC06/16. OpenRemote обновява EMS heartbeat през 10 секунди; Edge timeout е 15 секунди.
 
+Meter/EVSE/inverter нодовете имат двоен telemetry path: ROCK Pi E ги polling-ва
+постоянно по RS485 и ги предоставя в node slots на същия Modbus endpoint, а
+ESP32 може паралелно да пише директно в собствения си OpenRemote Asset по MQTTS
+8883. Управлението никога не минава директно през ESP32 облачната връзка.
+
 ## Съдържание
 
 - `docker-compose.yml` - локален OpenRemote stack по официалната контейнерна архитектура.
@@ -26,6 +31,7 @@ Edge northbound endpoint вече е реализиран като Modbus TCP se
 - `config/edge-register-map.yaml` - northbound Modbus TCP карта на Edge Gateway.
 - `config/sunstorage-pro-261.yaml` - потвърдените vendor регистри, използвани от първия драйвер.
 - `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
+- `config/mqtt-node-telemetry.yaml` - директният MQTTS договор, security и Edge fallback.
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 

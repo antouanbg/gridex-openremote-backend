@@ -1,0 +1,37 @@
+version: 1
+purpose: Direct ESP32 node telemetry to a private-cloud OpenRemote Manager
+transport:
+  protocol: mqtt
+  tls: required
+  port: 8883
+  broker: OpenRemote Manager
+authentication:
+  username: "{realm}:{service_user}"
+  password: "{service_user_secret}"
+  client_id: "gridex-{site_id}-{node_uid}"
+  client_id_must_be_unique: true
+  production_recommendation: unique restricted service user or X.509 auto-provisioning per node
+publish_topic: "{realm}/{client_id}/writeattributevalue/{attribute_name}/{asset_id}"
+attributes:
+  online: {type: boolean, history: true, source: mqtt-last-will-and-connect}
+  actualPowerKw: {type: number, unit: kW, history: true, source: direct-mqtt}
+  energyWh: {type: integer, unit: Wh, history: true, source: direct-mqtt}
+  deviceState: {type: integer, history: true, source: direct-mqtt}
+  alarmBits: {type: integer, history: true, source: direct-mqtt}
+  quality: {type: integer, history: true, source: direct-mqtt}
+  heartbeat: {type: integer, history: false, source: direct-mqtt}
+edge_fallback_attributes:
+  edgeActualPowerKw: {source: edge-node-slot-offset-7}
+  edgeEnergyWh: {source: edge-node-slot-offsets-8-and-9}
+  edgeNodeOnline: {source: edge-node-slot-offset-0}
+  edgeSampleAgeSeconds: {source: edge-node-slot-offset-12}
+source_arbitration:
+  preferred: direct-mqtt
+  fallback: edge-modbus-node-slot
+  rule: use direct values while online is true and the direct datapoint is fresh; otherwise use the Edge copy
+security:
+  - Do not expose TCP 1883.
+  - Validate the broker certificate against the provisioned CA certificate.
+  - Grant each node write access only to its own asset telemetry attributes.
+  - Never accept safety-critical power commands on the ESP32 MQTT connection.
+  - Keep Edge Modbus TCP 1502 restricted to the OpenRemote host or private VPN.

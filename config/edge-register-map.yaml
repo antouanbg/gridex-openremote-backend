@@ -53,3 +53,23 @@ write_order:
 timing:
   ems_heartbeat_refresh_seconds: 10
   edge_command_timeout_seconds: 15
+node_slots:
+  base_address: 256
+  stride: 16
+  count: 32
+  source: continuous-rs485-mbus-polling
+  registers:
+    - {offset: 0, name: online, type: uint16, scale: 1}
+    - {offset: 1, name: mbus_address, type: uint16, scale: 1}
+    - {offset: 2, name: node_type, type: uint16, scale: 1}
+    - {offset: 3, name: node_state, type: uint16, scale: 1}
+    - {offset: 4, name: driver_id, type: uint16, scale: 1}
+    - {offset: 5, name: quality, type: uint16, scale: 1}
+    - {offset: 6, name: heartbeat, type: uint16, scale: 1}
+    - {offset: 7, name: edge_actual_power_kw, type: int16, scale: 10}
+    - {offset: 8, name: edge_energy_wh_high, type: uint16, scale: 1}
+    - {offset: 9, name: edge_energy_wh_low, type: uint16, scale: 1}
+    - {offset: 10, name: device_state, type: uint16, scale: 1}
+    - {offset: 11, name: alarm_bits, type: uint16, scale: 1}
+    - {offset: 12, name: age_seconds, type: uint16, scale: 1}
+    - {offset: 13, name: direct_cloud_connected, type: uint16, scale: 1}
