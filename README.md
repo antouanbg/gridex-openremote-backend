@@ -2,6 +2,8 @@
 
 Отделен deployment и интеграционен договор за OpenRemote. Уеб интерфейсът и C++ Edge Gateway не са част от този код.
 
+Проектът е open source и се разпространява под MIT License.
+
 ## Първа интеграция: SunStorage Pro 261 / STE-261L
 
 Референтният протокол описва Modbus TCP endpoint на порт `3200`, unit ID `1`. OpenRemote не пише директно към vendor регистрите. Командният път е:
