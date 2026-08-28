@@ -16,6 +16,8 @@ GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
 
 Така прогнозата и пазарната стратегия могат да поискат мощност, но само Edge Gateway може да приложи команда към PCS след валидиране на BMS лимитите.
 
+Edge northbound endpoint вече е реализиран като Modbus TCP server на порт `1502`, unit ID `1`, с read функции FC03/04 и write функции FC06/16. OpenRemote обновява EMS heartbeat през 10 секунди; Edge timeout е 15 секунди.
+
 ## Съдържание
 
 - `docker-compose.yml` - локален OpenRemote stack по официалната контейнерна архитектура.

@@ -62,3 +62,5 @@ command_policy:
   - Edge is authoritative for BMS limits, configured caps, software fuse, heartbeat and safe-state.
   - requestedPowerKw is positive for discharge and negative for charge.
   - A stale EMS heartbeat causes Edge to apply zero power.
+  - OpenRemote updates requested power and enable before incrementing command sequence.
+  - OpenRemote refreshes emsHeartbeat at least every 10 seconds; Edge timeout is 15 seconds.

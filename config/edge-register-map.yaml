@@ -45,3 +45,11 @@ edge_states:
   5: fault
   6: commissioning_locked
   7: waiting_for_pcs_ready
+write_order:
+  - command.requested_power_kw
+  - command.enable
+  - command.ems_heartbeat
+  - command.sequence_last
+timing:
+  ems_heartbeat_refresh_seconds: 10
+  edge_command_timeout_seconds: 15
