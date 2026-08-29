@@ -22,7 +22,11 @@
         "maxDischargeKw": {"type": "number", "minimum": 0},
         "limitsValid": {"type": "boolean"},
         "statusCode": {"type": "integer"},
+        "pcsStatusCode": {"type": "integer"},
         "systemFlags": {"type": "integer", "minimum": 0},
+        "socUpperLimitPct": {"type": "number", "minimum": 0, "maximum": 100},
+        "socLowerLimitPct": {"type": "number", "minimum": 0, "maximum": 100},
+        "extendedTelemetryValid": {"type": "boolean"},
         "controlReady": {"type": "boolean"}
       }
     },
@@ -34,8 +38,31 @@
         "actualKw": {"type": "number", "description": "Positive is discharge/export from BESS; negative is charge."},
         "requestedKw": {"type": "number"},
         "appliedKw": {"type": "number"},
+        "commandedKw": {"type": "number"},
+        "dcKw": {"type": "number"},
+        "reactiveKvar": {"type": "number"},
+        "frequencyHz": {"type": "number"},
         "siteLoadKw": {"type": "number"},
         "contractLimitKw": {"type": "number", "minimum": 0}
+      }
+    },
+    "energy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accumulatedChargeKwh": {"type": "number", "minimum": 0},
+        "accumulatedDischargeKwh": {"type": "number", "minimum": 0},
+        "dailyChargeKwh": {"type": "number", "minimum": 0},
+        "dailyDischargeKwh": {"type": "number", "minimum": 0}
+      }
+    },
+    "alarms": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pcsWarning": {"type": "boolean"},
+        "bmsAlarm": {"type": "boolean"},
+        "summaryBits": {"type": "integer", "minimum": 0}
       }
     }
   }

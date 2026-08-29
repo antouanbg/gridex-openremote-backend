@@ -38,6 +38,19 @@ attributes:
     maxDischargeKw: {type: number, source: edge.input.6, history: true, unit: kW}
     statusCode: {type: integer, source: edge.input.7, history: true}
     systemFlags: {type: integer, source: edge.input.8, history: true}
+    dcPowerKw: {type: number, source: edge.input.15, history: true, unit: kW}
+    commandedPowerKw: {type: number, source: edge.input.16, history: true, unit: kW}
+    pcsStatus: {type: integer, source: edge.input.17, history: true}
+    reactivePowerKvar: {type: number, source: edge.input.18, history: true, unit: kVAr}
+    accumulatedChargeKwh: {type: number, source: edge.input.19+20, transform: uint32-x10, history: true, unit: kWh}
+    accumulatedDischargeKwh: {type: number, source: edge.input.21+22, transform: uint32-x10, history: true, unit: kWh}
+    dailyChargeKwh: {type: number, source: edge.input.23, history: true, unit: kWh}
+    dailyDischargeKwh: {type: number, source: edge.input.24, history: true, unit: kWh}
+    alarmBits: {type: integer, source: edge.input.25, history: true}
+    frequencyHz: {type: number, source: edge.input.28, history: true, unit: Hz}
+    socUpperLimitPct: {type: number, source: edge.input.29, history: true, unit: "%"}
+    socLowerLimitPct: {type: number, source: edge.input.30, history: true, unit: "%"}
+    extendedTelemetryValid: {type: boolean, source: edge.input.31, history: true}
   control:
     requestedPowerKw: {type: number, target: edge.holding.1, writable_by: [strategy, operator], unit: kW}
     enable: {type: boolean, target: edge.holding.2, writable_by: [operator]}
@@ -46,6 +59,15 @@ attributes:
     controlReady: {type: boolean, source: edge.input.12, history: true}
     configuredMaxChargeKw: {type: number, source: edge.input.13, history: true, unit: kW}
     configuredMaxDischargeKw: {type: number, source: edge.input.14, history: true, unit: kW}
+    requestedRunState: {type: boolean, target: edge.holding.6, writable_by: [operator, admin]}
+    requestedReactivePowerKvar: {type: number, target: edge.holding.7, writable_by: [operator, admin], unit: kVAr}
+    requestedSocUpperPct: {type: number, target: edge.holding.8, writable_by: [operator, admin], range: [1, 100], unit: "%"}
+    requestedSocLowerPct: {type: number, target: edge.holding.9, writable_by: [operator, admin], range: [0, 99], unit: "%"}
+    operatorActionMask: {type: integer, target: edge.holding.5, writable_by: [protected_rule]}
+    operatorApplyKey: {type: integer, target: edge.holding.10, writable_by: [protected_rule], hidden: true}
+    operatorSequence: {type: integer, target: edge.holding.4, writable_by: [protected_rule], write_last: true}
+    lastOperatorSequence: {type: integer, source: edge.input.26, history: true}
+    lastOperatorResult: {type: integer, source: edge.input.27, history: true}
   strategy:
     mode: {type: string, values: [automatic, price_arbitrage, self_consumption, zero_export, peak_shaving, manual]}
     targetSocPct: {type: number, range: [0, 100], unit: "%"}
@@ -83,3 +105,6 @@ command_policy:
   - A stale EMS heartbeat causes Edge to apply zero power.
   - OpenRemote updates requested power and enable before incrementing command sequence.
   - OpenRemote refreshes emsHeartbeat at least every 10 seconds; Edge timeout is 15 seconds.
+  - Start/stop, reactive power and SOC limits are operator-only actions and never originate from the automatic price strategy.
+  - The protected operator rule writes action fields and apply key before incrementing operator sequence last.
+  - A stop action writes active power 0 before writing vendor register 5003=0.

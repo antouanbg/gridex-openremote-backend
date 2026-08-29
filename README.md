@@ -33,6 +33,7 @@ ESP32 може паралелно да пише директно в собств
 - `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
 - `config/mqtt-node-telemetry.yaml` - директният MQTTS договор, security и Edge fallback.
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
+- `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 
 ## Стартиране

@@ -13,6 +13,13 @@ registers:
     - {address: 1, name: command.requested_power_kw, type: int16, scale: 10, access: rw}
     - {address: 2, name: command.enable, type: uint16, scale: 1, access: rw}
     - {address: 3, name: command.ems_heartbeat, type: uint16, scale: 1, access: rw}
+    - {address: 4, name: operator.sequence, type: uint16, scale: 1, access: operator-rw}
+    - {address: 5, name: operator.action_mask, type: uint16, scale: 1, access: operator-rw}
+    - {address: 6, name: operator.requested_run_state, type: uint16, scale: 1, access: operator-rw}
+    - {address: 7, name: operator.requested_reactive_power_kvar, type: int16, scale: 10, access: operator-rw}
+    - {address: 8, name: operator.requested_soc_upper_pct, type: uint16, scale: 1, access: operator-rw}
+    - {address: 9, name: operator.requested_soc_lower_pct, type: uint16, scale: 1, access: operator-rw}
+    - {address: 10, name: operator.apply_key, type: uint16, scale: 1, access: operator-rw, required_value: 42330}
   input:
     - {address: 0, name: power.actual_kw, type: int16, scale: 10, access: r}
     - {address: 1, name: battery.soc_pct, type: uint16, scale: 10, access: r}
@@ -29,6 +36,23 @@ registers:
     - {address: 12, name: edge.control_ready, type: uint16, scale: 1, access: r}
     - {address: 13, name: limits.configured_max_charge_kw, type: uint16, scale: 10, access: r}
     - {address: 14, name: limits.configured_max_discharge_kw, type: uint16, scale: 10, access: r}
+    - {address: 15, name: power.dc_kw, type: int16, scale: 10, access: r}
+    - {address: 16, name: power.commanded_kw, type: int16, scale: 10, access: r}
+    - {address: 17, name: pcs.status, type: uint16, scale: 1, access: r}
+    - {address: 18, name: power.reactive_kvar, type: int16, scale: 10, access: r}
+    - {address: 19, name: energy.accumulated_charge_kwh_x10_high, type: uint16, scale: 1, access: r}
+    - {address: 20, name: energy.accumulated_charge_kwh_x10_low, type: uint16, scale: 1, access: r}
+    - {address: 21, name: energy.accumulated_discharge_kwh_x10_high, type: uint16, scale: 1, access: r}
+    - {address: 22, name: energy.accumulated_discharge_kwh_x10_low, type: uint16, scale: 1, access: r}
+    - {address: 23, name: energy.daily_charge_kwh, type: uint16, scale: 10, access: r}
+    - {address: 24, name: energy.daily_discharge_kwh, type: uint16, scale: 10, access: r}
+    - {address: 25, name: alarms.summary_bits, type: uint16, scale: 1, access: r}
+    - {address: 26, name: operator.last_sequence, type: uint16, scale: 1, access: r}
+    - {address: 27, name: operator.last_result, type: uint16, scale: 1, access: r}
+    - {address: 28, name: pcs.frequency_hz, type: uint16, scale: 100, access: r}
+    - {address: 29, name: limits.soc_upper_pct, type: uint16, scale: 1, access: r}
+    - {address: 30, name: limits.soc_lower_pct, type: uint16, scale: 1, access: r}
+    - {address: 31, name: edge.extended_telemetry_valid, type: uint16, scale: 1, access: r}
 quality_bits:
   0: vendor_comms_ok
   1: bms_limits_valid
@@ -36,6 +60,7 @@ quality_bits:
   3: heartbeat_ok
   4: no_active_fault
   5: pcs_control_ready
+  6: extended_telemetry_valid
 edge_states:
   0: boot
   1: waiting_for_comms
@@ -50,6 +75,24 @@ write_order:
   - command.enable
   - command.ems_heartbeat
   - command.sequence_last
+operator_write_order:
+  - operator.action_mask
+  - operator.requested_run_state
+  - operator.requested_reactive_power_kvar
+  - operator.requested_soc_upper_pct
+  - operator.requested_soc_lower_pct
+  - operator.apply_key
+  - operator.sequence_last
+operator_action_mask:
+  0: run_state
+  1: reactive_power
+  2: soc_limits
+operator_result_codes:
+  0: no_operation
+  1: success
+  2: invalid_apply_key
+  3: invalid_request
+  4: safety_or_driver_rejection
 timing:
   ems_heartbeat_refresh_seconds: 10
   edge_command_timeout_seconds: 15

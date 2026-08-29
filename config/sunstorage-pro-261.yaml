@@ -17,11 +17,11 @@ registers:
   holding:
     pcs_grid_mode: {address: 5001, type: int16, scale: 1, access: r, required: 0}
     pcs_work_mode: {address: 5002, type: int16, scale: 1, access: r, required: 1}
-    pcs_power_on: {address: 5003, type: int16, scale: 1, access: r, required: 1}
+    pcs_power_on: {address: 5003, type: int16, scale: 1, access: edge-operator-rw, required_for_power_command: 1}
     pcs_active_power_setpoint_kw: {address: 5005, type: int16, scale: 10, access: edge-rw}
     pcs_reactive_power_setpoint_kvar: {address: 5006, type: int16, scale: 10, access: edge-rw}
-    pcs_soc_upper_limit_pct: {address: 5007, type: int16, scale: 1, access: commissioning-rw}
-    pcs_soc_lower_limit_pct: {address: 5008, type: int16, scale: 1, access: commissioning-rw}
+    pcs_soc_upper_limit_pct: {address: 5007, type: int16, scale: 1, access: edge-operator-rw}
+    pcs_soc_lower_limit_pct: {address: 5008, type: int16, scale: 1, access: edge-operator-rw}
     heartbeat_seconds: {address: 5301, type: int16, scale: 1, access: edge-rw}
     heartbeat_enable: {address: 5302, type: int16, scale: 1, access: edge-rw}
   input:
@@ -34,8 +34,8 @@ registers:
     bms_soh_pct: {address: 103, type: int16, scale: 1, access: r}
     bms_voltage_v: {address: 104, type: int16, scale: 10, access: r}
     bms_status: {address: 105, type: int16, scale: 1, access: r}
-    bms_accumulated_charge_kwh: {address: 122, words: 2, type: int32, scale: 10, access: r}
-    bms_accumulated_discharge_kwh: {address: 124, words: 2, type: int32, scale: 10, access: r}
+    bms_accumulated_charge_kwh: {address: 122, words: 2, type: int32, scale: 10, access: r, configured_word_order: high-low, onsite_confirmation_required: true}
+    bms_accumulated_discharge_kwh: {address: 124, words: 2, type: int32, scale: 10, access: r, configured_word_order: high-low, onsite_confirmation_required: true}
     bms_system_flags: {address: 126, type: uint16, scale: 1, access: r}
     bms_max_charge_kw: {address: 127, type: int16, scale: 10, access: r}
     bms_max_discharge_kw: {address: 128, type: int16, scale: 10, access: r}
@@ -64,8 +64,11 @@ control_contract:
     - bms_limits_127_128_valid
   heartbeat: {enable_register: 5302, timeout_register: 5301, timeout_seconds: 60, refresh_before_seconds: 50, configured_refresh_seconds: 35}
   protected_registers_not_modified_automatically: [5001, 5002]
+  operator_only_registers: [5003, 5006, 5007, 5008]
+  operator_apply_key: 0xA55A
 notes:
   - Addresses are used exactly as printed by the vendor; no +1 or -1 offset is applied.
   - Canonical GrideX power is positive for discharge and negative for charge.
   - OpenRemote sends desired power only to the Edge Gateway; it does not write vendor registers directly.
   - On-site readback and a limited-power commissioning test remain mandatory before production writes are unlocked.
+  - The vendor table declares registers 122/124 as Int32 but does not state word order; production decoding remains invalid until the two-word order is confirmed on site.
