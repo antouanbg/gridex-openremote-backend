@@ -52,11 +52,14 @@ attributes:
     socLowerLimitPct: {type: number, source: edge.input.30, history: true, unit: "%"}
     extendedTelemetryValid: {type: boolean, source: edge.input.31, history: true}
   control:
+    powerCommand: {type: json, writable_by: [gridex_api], processed_by: protected_power_command_rule}
+    commandSequence: {type: integer, target: edge.holding.0, writable_by: [protected_rule], write_last: true}
     requestedPowerKw: {type: number, target: edge.holding.1, writable_by: [strategy, operator], unit: kW}
     enable: {type: boolean, target: edge.holding.2, writable_by: [operator]}
     emsHeartbeat: {type: integer, target: edge.holding.3, writable_by: [system]}
     appliedPowerKw: {type: number, source: edge.input.11, history: true, unit: kW}
     controlReady: {type: boolean, source: edge.input.12, history: true}
+    limitsValid: {type: boolean, source: edge.input.9.bit1, history: true}
     configuredMaxChargeKw: {type: number, source: edge.input.13, history: true, unit: kW}
     configuredMaxDischargeKw: {type: number, source: edge.input.14, history: true, unit: kW}
     requestedRunState: {type: boolean, target: edge.holding.6, writable_by: [operator, admin]}

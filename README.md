@@ -35,6 +35,8 @@ ESP32 може паралелно да пише директно в собств
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
+- `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
+- `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
 
 ## Стартиране
 
@@ -42,6 +44,8 @@ ESP32 може паралелно да пише директно в собств
 2. Стартирайте `docker compose up -d`.
 3. Отворете `https://localhost` и създайте Modbus TCP Agent към IP адреса на GrideX Edge, порт `1502`, unit ID `1`.
 4. Свържете атрибутите по `config/edge-register-map.yaml`.
+
+GridEx API се публикува зад TLS reverse proxy като `api.gridex.tech`. По подразбиране командните записи са заключени; `GRIDEX_WRITES_ENABLED=true` се задава едва след успешно commissioning.
 
 За production контейнерните версии трябва да бъдат заключени до конкретен тестван tag. `latest` е оставен само за първоначалния локален прототип.
 

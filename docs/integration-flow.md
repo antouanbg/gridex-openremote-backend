@@ -79,7 +79,9 @@ OpenRemote -> Edge Modbus TCP -> safety envelope -> конкретен драй�
 
 ## API към клиентския интерфейс
 
-GrideX UI използва OpenRemote HTTPS REST API за текущите asset стойности и WebSocket/event stream за live телеметрия. UI няма credentials или route към vendor PCS. Всички write операции са role-based и се записват в command history.
+GrideX UI не се свързва директно към OpenRemote. Браузърът използва GridEx API/BFF по HTTPS, а адаптерът преобразува OpenRemote Assets и Attributes към стабилния GridEx frontend договор. За live телеметрия GridEx API държи OpenRemote WebSocket subscription и предоставя един филтриран поток към портала. UI няма service-user secret, MQTT credentials или route към vendor PCS. Всички write операции са role-based и се записват в command history.
+
+Пълната граница, endpoint-ите, runtime режимите и deployment hostnames са описани в `docs/frontend-openremote-architecture.md`.
 
 ## Стратегия и пазарна логика
 
