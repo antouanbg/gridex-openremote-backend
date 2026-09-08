@@ -1,0 +1,44 @@
+{
+  "_warning": "PLACEHOLDERS ONLY. Populate outside Git, package directory and Docker build context. Never store private keys here.",
+  "schema_version": "4.0",
+  "backend": {
+    "public_endpoint": "<BACKEND_PUBLIC_ENDPOINT>",
+    "windows_lan_ip": "<WIN11_LAN_IP>",
+    "windows_uplink_alias": "<WIN11_UPLINK_ALIAS>",
+    "vpn_ip": "<BACKEND_VPN_IP>",
+    "vpn_service": "WireGuardTunnel$gridex",
+    "vpn_transport_udp_port": 51820,
+    "public_key": "<BACKEND_PUBLIC_KEY>",
+    "tls_hostname": "<EMS_TLS_HOSTNAME>",
+    "api_hostname": "<API_HOSTNAME>",
+    "web_exposure_approved": false,
+    "private_secret_store_reference": "<LOCAL_SECRET_STORE_REFERENCE>"
+  },
+  "sites": [
+    {
+      "site_id": "<SITE_ID>",
+      "router_model": "<ROUTER_MODEL>",
+      "router_firmware": "<ROUTER_FIRMWARE>",
+      "router_public_key": "<SITE_ROUTER_PUBLIC_KEY>",
+      "router_vpn_ip": "<SITE_ROUTER_VPN_IP>",
+      "control_cidr": "<SITE_CONTROL_CIDR>",
+      "telemetry_cidr": "<SITE_TELEMETRY_CIDR>",
+      "router_control_ip": "<ROUTER_CONTROL_IP>",
+      "router_telemetry_ip": "<ROUTER_TELEMETRY_IP>",
+      "rockpi_control_ip": "<ROCKPI_CONTROL_IP>",
+      "modbus_unit_id": 1,
+      "modbus_tcp_port": 1502,
+      "devices": [
+        {
+          "device_id": "<DEVICE_ID>",
+          "telemetry_ip": "<DEVICE_TELEMETRY_IP>",
+          "mqtt_identity_reference": "<PRIVATE_MQTT_IDENTITY_REFERENCE>"
+        }
+      ],
+      "enrollment_state": "NOT_ENROLLED",
+      "commissioning_state": "WRITES_LOCKED"
+    }
+  ],
+  "revocation_ledger_reference": "<PRIVATE_REVOCATION_LEDGER_REFERENCE>",
+  "configuration_revision": "<PRIVATE_CONFIG_REVISION>"
+}

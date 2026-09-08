@@ -1,0 +1,16 @@
+# CONCEPTUAL TEMPLATE: adapt to the verified router firmware interface.
+# This configuration belongs to the SITE ROUTER, never ROCK Pi or ESP32.
+# CONTROL/TELEMETRY routes, VLANs, DNS and firewall require separate setup.
+[Interface]
+PrivateKey = <SITE_ROUTER_PRIVATE_KEY_LOCAL_ONLY>
+Address = <SITE_ROUTER_VPN_IP>/32
+
+[Peer]
+PublicKey = <BACKEND_PUBLIC_KEY>
+Endpoint = <BACKEND_PUBLIC_ENDPOINT>:51820
+AllowedIPs = <BACKEND_VPN_IP>/32
+PersistentKeepalive = 25
+
+# Router must route permitted EMS traffic to this peer WITHOUT VPN SNAT.
+# No OT prefix, no other sites, no default/full-tunnel route.
+# Allow only backend-to-Edge Modbus and devices-to-backend MQTTS.

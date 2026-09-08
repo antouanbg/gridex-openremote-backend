@@ -6,6 +6,8 @@ Independent OpenRemote deployment and integration contract. The web interface an
 
 The project is open source under the MIT License.
 
+> **Canonical architecture:** [GrideX implementation v4](docs/implementation/README.md) places WireGuard on the Windows 11 backend and each site router. ROCK Pi and ESP32 have no WireGuard client, and MQTT 8883 is VPN-only. These v4 network decisions supersede conflicting v1/v2/v3 descriptions.
+
 ### First integration: SunStorage Pro 261 / STE-261L
 
 The reference protocol defines a Modbus TCP endpoint on port `3200`, unit ID `1`. OpenRemote does not write directly to vendor registers. The command path is:
@@ -35,6 +37,7 @@ Meter/EVSE/inverter nodes have two telemetry paths. ROCK Pi E polls them continu
 - `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
 - `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
 - `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
+- `docs/strategy-api-integration.md` — versioned site-strategy API, PostgreSQL ownership and OpenRemote applied-revision handshake.
 - `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
 
 ### Start locally
@@ -59,6 +62,8 @@ OpenRemote owns strategy, forecasts, schedules, history, alarms, roles and the c
 Отделен deployment и интеграционен договор за OpenRemote. Уеб интерфейсът и C++ Edge Gateway не са част от този код.
 
 Проектът е open source и се разпространява под MIT License.
+
+> **Канонична архитектура:** [GrideX implementation v4](docs/implementation/README.md) поставя WireGuard на Windows 11 backend и на рутера на всеки обект. ROCK Pi и ESP32 нямат WireGuard клиент, а MQTT 8883 е достъпен само през VPN. Тези v4 мрежови решения отменят противоречащите описания от v1/v2/v3.
 
 ## Първа интеграция: SunStorage Pro 261 / STE-261L
 
@@ -92,6 +97,7 @@ ESP32 може паралелно да пише директно в собств
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 - `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
+- `docs/strategy-api-integration.md` - версияният API за стратегии, PostgreSQL ownership и OpenRemote applied-revision потвърждение.
 - `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
 
 ## Стартиране

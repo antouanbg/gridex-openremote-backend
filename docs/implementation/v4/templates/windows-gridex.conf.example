@@ -1,0 +1,17 @@
+# TEMPLATE ONLY. Fill outside Git using the protected local inventory.
+# One native Windows tunnel service; one peer per site router.
+# No hooks, no OT routes, no blanket/default routes.
+[Interface]
+PrivateKey = <BACKEND_PRIVATE_KEY_LOCAL_ONLY>
+Address = <BACKEND_VPN_IP>/32
+ListenPort = 51820
+
+[Peer]
+# Site A router identity, plus its routed EMS source/destination prefixes.
+PublicKey = <SITE_A_ROUTER_PUBLIC_KEY>
+AllowedIPs = <SITE_A_ROUTER_VPN_IP>/32, <SITE_A_CONTROL_CIDR>, <SITE_A_TELEMETRY_CIDR>
+
+[Peer]
+# Remove this example peer until site B has been explicitly enrolled.
+PublicKey = <SITE_B_ROUTER_PUBLIC_KEY>
+AllowedIPs = <SITE_B_ROUTER_VPN_IP>/32, <SITE_B_CONTROL_CIDR>, <SITE_B_TELEMETRY_CIDR>

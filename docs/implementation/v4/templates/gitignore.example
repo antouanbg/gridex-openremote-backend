@@ -1,0 +1,20 @@
+# Review and merge only missing, scoped rules into the real repository.
+/private/
+/operator-local/
+/runtime-secrets/
+.env
+.env.*
+!.env.example
+*.conf
+!*.conf.example
+*.conf.dpapi
+*.key
+*.p12
+*.pfx
+*.ovpn
+*.pcap
+*.pcapng
+*.log
+router-export*
+private-inventory.json
+# This is not a secret scanner. Tracked files are not protected by gitignore.
