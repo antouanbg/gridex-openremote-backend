@@ -37,6 +37,7 @@ Meter/EVSE/inverter nodes have two telemetry paths. ROCK Pi E polls them continu
 - `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
 - `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
 - `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
+- `docs/strategy-api-integration.md` — versioned site-strategy API, PostgreSQL ownership and OpenRemote applied-revision handshake.
 - `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
 
 ### Start locally
@@ -96,6 +97,7 @@ ESP32 може паралелно да пише директно в собств
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 - `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
+- `docs/strategy-api-integration.md` - версияният API за стратегии, PostgreSQL ownership и OpenRemote applied-revision потвърждение.
 - `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
 
 ## Стартиране
