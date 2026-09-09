@@ -1,0 +1,9 @@
+flowchart LR
+  WIN[Central Windows 11 backend\nOpenRemote · Keycloak · GrideX API · PostgreSQL]
+  WIN -->|dedicated WireGuard peer\nVPN-only control and telemetry| RTR[Site Router\nWireGuard endpoint]
+  RTR -->|CONTROL network\nallowlisted Modbus/HTTPS| RPI[ROCK Pi E\nlocal safety and command authority]
+  RTR -->|TELEMETRY network\nVPN-only MQTT| ESP[OLIMEX ESP32 nodes]
+  RPI -->|local OT Ethernet| DEV[PCS · BMS · inverter · meter · EVSE]
+  ESP -->|CAN / isolated RS485| DEV
+  NO[No public MQTT\nNo OT/BESS route to backend\nNo site-to-site routing]
+  WIN --- NO

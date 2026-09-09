@@ -1,0 +1,9 @@
+flowchart LR
+  WIN[Централен Windows 11 backend\nOpenRemote · Keycloak · GrideX API · PostgreSQL]
+  WIN -->|отделен WireGuard peer\nVPN-only управление и телеметрия| RTR[Site Router\nWireGuard endpoint]
+  RTR -->|CONTROL мрежа\nallowlisted Modbus/HTTPS| RPI[ROCK Pi E\nлокална safety и command authority]
+  RTR -->|TELEMETRY мрежа\nVPN-only MQTT| ESP[OLIMEX ESP32 нодове]
+  RPI -->|локален OT Ethernet| DEV[PCS · BMS · инвертор · meter · EVSE]
+  ESP -->|CAN / изолиран RS485| DEV
+  NO[Без публичен MQTT\nБез OT/BESS route към backend\nБез site-to-site routing]
+  WIN --- NO

@@ -24,6 +24,8 @@ ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated node
 
 ### Contents
 
+- `AGENTS.md` — persistent architecture, safety and repository instructions for coding agents.
+- `CODEX_STATE.md` — current implementation state and the next safe work items.
 - `docker-compose.yml` — local OpenRemote stack based on the official container architecture.
 - `deployment/manager/app/manager_config.json` — GrideX branding.
 - `contracts/energy-asset.schema.json` — canonical model shared by UI, OpenRemote and Edge.
@@ -38,6 +40,7 @@ ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated node
 - `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
 - `docs/gridex-api-v1.md` — complete frontend/backend API, database, Asset and hardware contract in English and Bulgarian.
 - `docs/diagrams/` — communication-flow and normalised PostgreSQL ER diagrams.
+- `docs/diagrams/site-vpn-topology-en.mmd` and `site-vpn-topology-bg.mmd` — canonical Windows backend ↔ Site Router VPN topology.
 - `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
 
 ### Start locally
@@ -84,6 +87,8 @@ MQTT 8883 не се публикува.
 
 ## Съдържание
 
+- `AGENTS.md` — постоянни архитектурни, safety и repository инструкции за coding agents.
+- `CODEX_STATE.md` — текущото състояние на реализацията и следващите безопасни задачи.
 - `docker-compose.yml` - локален OpenRemote stack по официалната контейнерна архитектура.
 - `deployment/manager/app/manager_config.json` - GrideX branding.
 - `contracts/energy-asset.schema.json` - каноничен модел между UI, OpenRemote и Edge.
@@ -98,6 +103,7 @@ MQTT 8883 не се публикува.
 - `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
 - `docs/gridex-api-v1.md` - пълният API, база, Asset и hardware договор на английски и български.
 - `docs/diagrams/` - схеми на комуникацията и нормализирания PostgreSQL модел.
+- `docs/diagrams/site-vpn-topology-en.mmd` и `site-vpn-topology-bg.mmd` - каноничната VPN топология Windows backend ↔ Site Router.
 - `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
 
 ## Стартиране
