@@ -6,6 +6,27 @@ volumes:
   postgresql-data:
 
 services:
+  data-services:
+    build: ./services/data-services
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      manager:
+        condition: service_healthy
+    environment:
+      ENTSOE_TOKEN: ${ENTSOE_TOKEN:-}
+      OPEN_METEO_BASE_URL: ${OPEN_METEO_BASE_URL:-https://api.open-meteo.com}
+      OPEN_METEO_API_KEY: ${OPEN_METEO_API_KEY:-}
+      OPEN_METEO_INTERVAL_MIN: ${OPEN_METEO_INTERVAL_MIN:-60}
+      DATA_DB_DSN: ${DATA_DB_DSN:-}
+      OR_URL: ${OR_URL:-http://manager:8080}
+      OR_REALMS: ${OR_REALMS:-master}
+      OR_CLIENT_ID: ${OR_CLIENT_ID:-gridex-data-services}
+      OR_CLIENT_SECRET: ${OR_CLIENT_SECRET:-}
+      DISCOVERY_INTERVAL_MIN: ${DISCOVERY_INTERVAL_MIN:-5}
+      DEFAULT_TZ: ${DEFAULT_TZ:-UTC}
+
   gridex-api:
     build: ./services/gridex-api
     restart: unless-stopped

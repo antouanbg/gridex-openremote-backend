@@ -36,6 +36,7 @@ Meter/EVSE/inverter nodes have two telemetry paths. ROCK Pi E polls them continu
 - `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
 - `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
 - `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
+- `services/data-services` — ENTSO-E A44 and Open-Meteo workers, discovered from OpenRemote asset attributes.
 
 ### Start locally
 
@@ -93,6 +94,7 @@ ESP32 може паралелно да пише директно в собств
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
 - `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
 - `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
+- `services/data-services` - ENTSO-E A44 и Open-Meteo worker-и, откривани от OpenRemote asset атрибути.
 
 ## Стартиране
 
