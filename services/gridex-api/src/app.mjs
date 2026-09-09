@@ -6,6 +6,7 @@ import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
+import { FORECAST_MODELS } from "./forecast-models.mjs";
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -205,6 +206,11 @@ export function createApp({ config, authenticate, repository, openRemote }) {
         requirePermission(principal, "strategy:read");
         const active = await repository.getActiveStrategy(site.id);
         return json(res, 200, { strategy: canonicalStrategyVersion(active, site.id) }, context);
+      }
+
+      if (req.method === "GET" && suffix === "/forecast/models") {
+        requirePermission(principal, "strategy:read");
+        return json(res, 200, { items: FORECAST_MODELS }, context);
       }
 
       if (req.method === "POST" && suffix === "/strategy/drafts") {

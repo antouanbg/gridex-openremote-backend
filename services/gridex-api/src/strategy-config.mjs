@@ -1,5 +1,6 @@
 import { ApiError } from "./errors.mjs";
 import { validateLossProtection } from "./economics.mjs";
+import { validateForecastModelSelection } from "./forecast-models.mjs";
 
 export const STRATEGY_CODES = Object.freeze([
   "intelligent_hybrid", "price_arbitrage", "self_consumption", "zero_export",
@@ -17,6 +18,7 @@ export function validateStrategyConfiguration(input) {
   };
   const battery = input.battery && typeof input.battery === "object" ? input.battery : {};
   const forecast = input.forecast && typeof input.forecast === "object" ? input.forecast : {};
+  const forecastModel = validateForecastModelSelection(forecast);
   const minSocPct = numberOrNull(input.minSocPct ?? battery.minimumSocPct, "battery.minimumSocPct", 0, 100);
   const maxSocPct = numberOrNull(input.maxSocPct ?? battery.maximumSocPct, "battery.maximumSocPct", 0, 100);
   const reserveSocPct = numberOrNull(input.reserveSocPct ?? battery.emergencyReserveSocPct, "battery.emergencyReserveSocPct", 0, 100);
@@ -44,6 +46,8 @@ export function validateStrategyConfiguration(input) {
     }
   }
   output.economics.cycleForecastHorizonHours = 24;
+  output.forecast ||= {};
+  output.forecast.modelKey = forecastModel.key;
   delete output.strategyCode;
   return output;
 }

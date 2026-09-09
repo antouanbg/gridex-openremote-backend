@@ -128,6 +128,17 @@ test("creates a canonical strategy draft with economic loss protection", async (
     assert.equal(draft.configuration.code, "intelligent_hybrid");
     assert.equal(draft.configuration.economics.lossProtection.mode, "full_cost");
     assert.equal(draft.configuration.economics.cycleForecastHorizonHours, 24);
+    assert.equal(draft.configuration.forecast.modelKey, "lightgbm_v1");
+  });
+});
+
+test("lists the selectable forecast and optimisation models", async () => {
+  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
+  const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote: { health: async () => true } });
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/v1/sites/${site.id}/forecast/models`, { headers: { Authorization: "Bearer test", Origin: "https://portal.example.invalid" } });
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).items.map((item) => item.key), ["lightgbm_v1", "anguelov_ibex_milp_v1"]);
   });
 });
 
