@@ -6,7 +6,13 @@
   "engines": {"node": ">=22"},
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check src/server.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "jose": "6.2.12",
+    "pg": "8.23.0"
   }
 }
-

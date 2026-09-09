@@ -1,0 +1,24 @@
+erDiagram
+  ORGANISATION ||--o{ ORGANISATION_MEMBERSHIP : grants
+  ORGANISATION ||--o{ SITE : owns
+  SITE ||--o{ HARDWARE_CONFIGURATION : versions
+  HARDWARE_CONFIGURATION ||--o{ GATEWAY : contains
+  GATEWAY ||--o{ GATEWAY_PORT : exposes
+  SITE ||--o{ DEVICE : configures
+  GATEWAY ||--o| DEVICE : dedicated_to
+  GATEWAY_PORT ||--o| DEVICE : connects
+  DEVICE ||--|| OPENREMOTE_ASSET_BINDING : maps_to
+  DEVICE ||--o{ TELEMETRY_POINT : defines
+  SITE ||--o{ SITE_CONFIGURATION : versions
+  ORGANISATION ||--o{ TARIFF : owns
+  SITE ||--o{ STRATEGY_DRAFT : edits
+  STRATEGY_DRAFT ||--o{ STRATEGY_SIMULATION : validates_with
+  SITE ||--o{ STRATEGY_VERSION : activates
+  SITE ||--o{ BATTERY_ENERGY_LEDGER_15M : attributes
+  SITE ||--o{ ECONOMIC_FORECAST : projects
+  SITE ||--o{ ALARM : raises
+  INCIDENT }o--o{ ALARM : groups
+  ORGANISATION ||--o{ INCIDENT : owns
+  SITE ||--o{ NOTIFICATION : emits
+  USER ||--|| USER_PREFERENCES : stores
+  USER ||--o{ AUDIT_EVENT : performs

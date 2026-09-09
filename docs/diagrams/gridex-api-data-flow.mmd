@@ -1,0 +1,10 @@
+flowchart LR
+  UI[GrideX frontend] -->|OIDC PKCE| KC[Keycloak]
+  UI -->|HTTPS JSON + SSE\nuser access token| API[gridex-api BFF]
+  API -->|membership, topology, config, audit| DB[(GrideX PostgreSQL)]
+  API -->|internal REST\nservice account| OR[OpenRemote Manager]
+  OR -->|VPN-only Modbus/MQTT| RTR[Site router + WireGuard]
+  RTR -->|CONTROL| RPI[ROCK Pi E]
+  RTR -->|TELEMETRY| NODES[ESP32 / CAN-Ethernet nodes]
+  RPI -->|local safety envelope| BESS[BESS / inverter / meter / EVSE]
+  NODES -->|RS485 / CAN| BESS

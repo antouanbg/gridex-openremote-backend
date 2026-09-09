@@ -1,10 +1,12 @@
 version: 1
-purpose: Direct ESP32 node telemetry to a private-cloud OpenRemote Manager
+purpose: OLIMEX ESP32-EVB telemetry to private-cloud OpenRemote through the site-router VPN
 transport:
   protocol: mqtt
   tls: required
   port: 8883
-  broker: OpenRemote Manager
+  exposure: vpn-only
+  route: "OLIMEX node Ethernet -> site router -> WireGuard tunnel -> VPN-bound OpenRemote MQTT listener"
+  broker: OpenRemote Manager private VPN address
 authentication:
   username: "{realm}:{service_user}"
   password: "{service_user_secret}"
@@ -31,7 +33,10 @@ source_arbitration:
   rule: use direct values while online is true and the direct datapoint is fresh; otherwise use the Edge copy
 security:
   - Do not expose TCP 1883.
+  - Do not bind TCP 8883 to a public interface; bind it only to the backend WireGuard interface.
+  - ROCK Pi E and ESP32 do not run WireGuard and use the site router tunnel.
   - Validate the broker certificate against the provisioned CA certificate.
   - Grant each node write access only to its own asset telemetry attributes.
-  - Never accept safety-critical power commands on the ESP32 MQTT connection.
-  - Keep Edge Modbus TCP 1502 restricted to the OpenRemote host or private VPN.
+  - Never subscribe to command topics on the ESP32 MQTT connection.
+  - Route device commands through OpenRemote -> ROCK Pi E -> OT Ethernet -> node Modbus TCP.
+  - Keep Edge Modbus TCP 1502 restricted to the CONTROL network through the site router VPN.

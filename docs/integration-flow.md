@@ -1,88 +1,44 @@
-# OpenRemote integration flow
+# OpenRemote and Edge integration flow
 
-## Asset tree
+## English
+
+### Asset tree
 
 ```text
 Organisation
 └── Site
-    ├── Grid connection / PCC meter
-    ├── PV plant
-    ├── SunStorage Pro 261
-    │   ├── PCS
-    │   ├── BAU/BMS
-    │   ├── Thermal management
-    │   └── Safety I/O
-    ├── Flexible loads
+    ├── PCC meter
+    ├── PV inverter(s)
+    ├── battery / all-in-one cabinet
+    ├── EVSE and flexible loads
     ├── GrideX Strategy
     └── GrideX Control
 ```
 
-`GrideX Strategy.requestedPowerKw` е желаната стойност от арбитража, day-ahead графика или ръчния оператор. `GrideX Control.appliedPowerKw` е стойността след Edge safety envelope.
+The strategy layer writes desired operating configuration. The protected OpenRemote rule writes one complete Control command. ROCK Pi E validates freshness, PCS state, BMS limits, SOC, software-fuse margin and command sequence before the device driver can apply power.
 
-Началният asset tree и точните връзки към normalized Edge картата са описани в `config/ste261l-asset-blueprint.yaml`. Това е source-of-truth за бъдещия OpenRemote setup extension; deployment-specific IDs и IP адресът на Edge се задават при инсталацията.
+For SunStorage Pro 261, the confirmed vendor semantics are: Modbus TCP port 3200, unit ID 1, no address offset, positive discharge / negative charge, command scale ×10, Int32 ABCD high-order word first, FC06 commands at intervals of at least one second, and heartbeat enable 5302 followed by countdown 5301. Registers 122–125 are read atomically in one FC04 request. Counters 122/124 are BMS DC-side energy retained across power loss; daily counters 129/130 reset at local BMS midnight.
 
-## Commissioning gate
+Cloud command writes stay locked until communication, polarity, scale, BMS limits, SOC, PCC meter, heartbeat, PCS mode and faults pass commissioning. Edge remains authoritative for fail-safe behaviour.
 
-Командите са забранени, докато едновременно не са изпълнени:
+### Network path
 
-1. Vendor комуникацията е стабилна.
-2. Потвърдено е директното адресиране без +1/-1 offset.
-3. Знакът заряд/разряд е потвърден с малка тестова мощност.
-4. Мащабът и byte order са потвърдени.
-5. BMS регистри 127/128 дават валидни динамични лимити.
-6. Software fuse има валидно PCC измерване и договорен лимит.
-7. Локалният PCS heartbeat е активен и наблюдаван.
-8. PCS е включен (`5003=1`), grid-tied (`5001=0`) и в current-source/PQ режим (`5002=1`).
-9. PCS/BMS fault и communication fault флаговете са чисти.
-10. Ако са зададени операторски PCS caps, те са неотрицателни и не могат да увеличат BMS лимитите.
+OpenRemote reaches the site only through the site router WireGuard tunnel. ROCK Pi E and ESP32 do not run WireGuard. CONTROL and TELEMETRY networks are separated; OT/BESS is not directly routed to the backend; site-to-site routing is forbidden. Public MQTT 8883 is not exposed after the VPN-only migration.
 
-## OpenRemote agent links
+### Node roles
 
-Създава се Modbus TCP Agent към Edge Gateway, не към SunStorage. Атрибутите използват `INPUT` или `HOLDING` според `edge-register-map.yaml`, unit ID `1` и request interval минимум 1000 ms. Историята се включва за мощност, SOC, SOH, лимити, quality и приложена команда. Прогнозните редове се пазят като predicted datapoints в Strategy asset.
+ROCK Pi E polls each OLIMEX ESP32-EVB canonical map over isolated OT Ethernet
+and maintains the local safety envelope. A node translates exactly one
+configured CAN or RS485 device family. Telemetry goes directly from the node
+to VPN-only MQTT through the site router; commands always return through
+OpenRemote, ROCK Pi E and the node's local Modbus TCP endpoint.
 
-Разширената батерийна телеметрия включва PCS status, DC/реактивна мощност,
-текущ PCS setpoint, честота, обща и дневна енергия за заряд/разряд, SOC граници
-и обобщени alarm bits. Регистри 122/124 са Int32, но производителската таблица
-не определя word order; стойностите не се маркират като валидни, докато редът
-на двете думи не бъде потвърден при commissioning.
+## Български
 
-## Защитени операторски действия
+Стратегията задава желаната конфигурация, защитено OpenRemote правило създава една цяла Control команда, а ROCK Pi E проверява freshness, PCS състояние, BMS лимити, SOC, software-fuse резерв и command sequence. Едва след това конкретният драйвер може да подаде мощност към устройството.
 
-Start/stop (`5003`), реактивна мощност (`5006`) и SOC граници (`5007/5008`)
-не са достъпни за автоматичната ценова стратегия. OpenRemote проверява роля
-`operator` или `admin`, записва action mask и стойностите, след това apply key
-`0xA55A` и накрая увеличава отделния operator sequence. Edge изпълнява всяка
-sequence стойност само веднъж и връща result code.
+За SunStorage Pro 261 са потвърдени: Modbus TCP порт 3200, unit ID 1, без address offset, положителна стойност за разряд и отрицателна за заряд, мащаб ×10, Int32 ABCD с high-order word first, FC06 през минимум една секунда и heartbeat чрез 5302/5301. Регистри 122–125 се четат атомарно с една FC04 заявка. Натрупаната енергия е от BMS DC страната и се пази при отпадане на захранването; дневните броячи се нулират в локалното BMS полунощ.
 
-При stop Edge първо задава `5005=0`, след което `5003=0`. Start се отказва,
-ако телеметрията не е валидна, има fault или PCS не е в grid-tied/PQ режим.
-SOC диапазонът трябва да изпълнява `0 <= lower < upper <= 100`; драйверът
-първо разширява безопасния прозорец и после го стеснява, за да не се получи
-невалидна междинна комбинация при два отделни Modbus записа.
+Командите остават заключени до успешна проверка на комуникацията, знак, мащаб, BMS лимити, SOC, PCC meter, heartbeat, PCS режим и faults. Edge остава последната инстанция за безопасност.
 
-## Meter, EVSE и inverter нодове
-
-ROCK Pi E обхожда всички конфигурирани MBUS адреси непрекъснато по RS485.
-Нормализираното копие на всеки нод се намира в отделен input-register слот от
-`0x0100`, със stride 16 и максимум 32 нода. Това копие се използва от локалните
-защити и като резервен облачен източник.
-
-Когато нодът има интернет, LilyGo T-CAN485 публикува същата телеметрия директно
-към OpenRemote Manager по MQTTS 8883. Директните атрибути и Edge копието не
-трябва да пишат в един и същи атрибут. MQTT обновява `actualPowerKw`, а Modbus
-Agent обновява `edgeActualPowerKw`; правило за freshness избира ефективната
-стойност. Така няма надписване и системата продължава при отпадане на единия
-път. Точният договор е в `config/mqtt-node-telemetry.yaml`.
-
-MQTT връзката на ESP32 е само за телеметрия. Командите остават по пътя
-OpenRemote -> Edge Modbus TCP -> safety envelope -> конкретен драйвер.
-
-## API към клиентския интерфейс
-
-GrideX UI не се свързва директно към OpenRemote. Браузърът използва GridEx API/BFF по HTTPS, а адаптерът преобразува OpenRemote Assets и Attributes към стабилния GridEx frontend договор. За live телеметрия GridEx API държи OpenRemote WebSocket subscription и предоставя един филтриран поток към портала. UI няма service-user secret, MQTT credentials или route към vendor PCS. Всички write операции са role-based и се записват в command history.
-
-Пълната граница, endpoint-ите, runtime режимите и deployment hostnames са описани в `docs/frontend-openremote-architecture.md`.
-
-## Стратегия и пазарна логика
-
-OpenRemote държи бизнес логиката над защитния слой: IBEX day-ahead цени, 15-минутни графици и небаланс, тридневна метеорологична/PV прогноза, товарова прогноза и заявки от ERP. Оптимизаторът може да задържи целеви SOC за следващ ден с ниско слънцегреене, да зареди от мрежата под зададен ценови праг и да блокира продажба при отрицателна цена. Edge Gateway остава единственият компонент, който превежда желаната мощност към регистър 5005 и винаги прилага BMS лимитите и локалните защити.
+OpenRemote достига обекта само през WireGuard тунела на site router-а. ROCK Pi E и ESP32 нямат WireGuard. CONTROL и TELEMETRY са отделени, OT/BESS не се route-ва директно към backend, няма site-to-site routing и публичен MQTT 8883 не се използва след VPN-only миграцията.
