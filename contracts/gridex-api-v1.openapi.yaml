@@ -1,0 +1,311 @@
+openapi: 3.1.0
+info:
+  title: GrideX Frontend API
+  version: 1.0.0
+  description: Stable browser-facing contract. Raw OpenRemote Assets and device connection details are never returned.
+servers:
+  - url: https://api.example.invalid/api/v1
+security:
+  - oidc: []
+paths:
+  /me:
+    get:
+      operationId: getCurrentUser
+      responses: { "200": { description: Effective identity and permissions, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } } }
+  /me/preferences:
+    get:
+      operationId: getUserPreferences
+      responses: { "200": { description: User preferences, content: { application/json: { schema: { $ref: "#/components/schemas/UserPreferences" } } } } }
+    put:
+      operationId: updateUserPreferences
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/UserPreferencesInput" } } } }
+      responses: { "200": { description: Updated preferences, content: { application/json: { schema: { $ref: "#/components/schemas/UserPreferences" } } } }, "412": { $ref: "#/components/responses/StaleRevision" } }
+  /sites:
+    get:
+      operationId: listSites
+      responses:
+        "200":
+          description: Sites allowed by GrideX membership
+          content: { application/json: { schema: { type: object, required: [sites], properties: { sites: { type: array, items: { $ref: "#/components/schemas/Site" } } } } } }
+  /device-types:
+    get:
+      operationId: listDeviceTypes
+      responses: { "200": { description: Device and hardware catalogues } }
+  /strategies/catalog:
+    get:
+      operationId: getStrategyCatalog
+      responses: { "200": { description: Strategies filtered by permissions and capabilities } }
+  /sites/{siteId}/hardware:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: getHardwareTopology
+      responses: { "200": { description: Current topology, content: { application/json: { schema: { $ref: "#/components/schemas/HardwareTopology" } } } } }
+  /sites/{siteId}/hardware-configurations:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    post:
+      operationId: createHardwareConfiguration
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/HardwareConfigurationInput" } } } }
+      responses: { "201": { description: Hardware configuration draft } }
+  /sites/{siteId}/devices:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: listDevices
+      responses: { "200": { description: Device configuration and optional live normalised data } }
+    post:
+      operationId: provisionDevice
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DeviceInput" } } } }
+      responses: { "201": { description: Device and OpenRemote Asset provisioned, content: { application/json: { schema: { $ref: "#/components/schemas/DeviceConfiguration" } } } } }
+  /sites/{siteId}/devices/{deviceId}:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/DeviceId" }]
+    get:
+      operationId: getDevice
+      responses: { "200": { description: Device configuration and live data } }
+    patch:
+      operationId: updateDevice
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DevicePatch" } } } }
+      responses: { "200": { description: Updated device configuration }, "412": { $ref: "#/components/responses/StaleRevision" } }
+  /sites/{siteId}/configurations/{section}:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/ConfigurationSection" }]
+    get:
+      operationId: getSiteConfiguration
+      responses: { "200": { description: Current section and revision } }
+    put:
+      operationId: updateSiteConfiguration
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+      responses: { "200": { description: Updated configuration }, "412": { $ref: "#/components/responses/StaleRevision" } }
+  /sites/{siteId}/snapshot:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: getSiteSnapshot
+      responses: { "200": { description: Normalised site snapshot, content: { application/json: { schema: { $ref: "#/components/schemas/SiteSnapshot" } } } } }
+  /sites/{siteId}/events:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: streamSiteEvents
+      responses: { "200": { description: Authenticated text/event-stream of snapshot and upstream-error events } }
+  /sites/{siteId}/strategy:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: getSiteStrategy
+      responses: { "200": { description: Active strategy or null } }
+  /sites/{siteId}/strategy/drafts:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    post:
+      operationId: createStrategyDraft
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [baseRevision, configuration], properties: { baseRevision: { type: integer, minimum: 0 }, configuration: { $ref: "#/components/schemas/StrategyConfiguration" } } } } } }
+      responses: { "201": { description: New strategy draft } }
+  /sites/{siteId}/strategy/drafts/{draftId}:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/DraftId" }]
+    put:
+      operationId: updateStrategyDraft
+      parameters: [{ $ref: "#/components/parameters/IfMatch" }]
+      responses: { "200": { description: Updated draft }, "412": { $ref: "#/components/responses/StaleRevision" } }
+  /sites/{siteId}/strategy/drafts/{draftId}/validate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/DraftId" }]
+    post:
+      operationId: validateStrategyDraft
+      responses: { "200": { description: Schema, capability and safety validation } }
+  /sites/{siteId}/strategy/drafts/{draftId}/simulate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/DraftId" }]
+    post:
+      operationId: simulateStrategyDraft
+      responses: { "202": { description: Simulation queued } }
+  /sites/{siteId}/strategy/drafts/{draftId}/activate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/DraftId" }]
+    post:
+      operationId: activateStrategyDraft
+      responses: { "202": { description: Activation requested; applied revision must be observed separately }, "423": { description: Commissioning write lock is closed } }
+  /sites/{siteId}/strategy/status:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: getStrategyStatus
+      responses: { "200": { description: Desired and OpenRemote-applied revisions } }
+  /sites/{siteId}/strategy/versions:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    get:
+      operationId: listStrategyVersions
+      responses: { "200": { description: Audited strategy history } }
+  /sites/{siteId}/commands/power:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }]
+    post:
+      operationId: requestPower
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PowerCommand" } } } }
+      responses: { "202": { description: Audited desired-power command accepted }, "423": { description: Commissioning write lock is closed } }
+components:
+  securitySchemes:
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://identity.example.invalid/.well-known/openid-configuration
+  parameters:
+    SiteId: { name: siteId, in: path, required: true, schema: { type: string, format: uuid } }
+    DeviceId: { name: deviceId, in: path, required: true, schema: { type: string, format: uuid } }
+    DraftId: { name: draftId, in: path, required: true, schema: { type: string, format: uuid } }
+    IfMatch: { name: If-Match, in: header, required: true, description: Current numeric revision, schema: { type: integer, minimum: 0 } }
+    ConfigurationSection:
+      name: section
+      in: path
+      required: true
+      schema: { type: string, enum: [battery-asset, tariff, forecast, grid, evse, notifications, trader-schedule, balancing] }
+  responses:
+    StaleRevision: { description: Configuration was changed by another request }
+  schemas:
+    User:
+      type: object
+      required: [subject, roles, permissions]
+      properties:
+        subject: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        preferredUsername: { type: string }
+        roles: { type: array, items: { type: string } }
+        permissions: { type: array, items: { type: string } }
+    UserPreferencesInput:
+      type: object
+      properties:
+        locale: { type: string, enum: [en, bg] }
+        displayTimezone: { type: string }
+        units: { type: string, enum: [metric] }
+        currency: { type: string, enum: [EUR, BGN] }
+        theme: { type: string, enum: [system, light, dark] }
+        notifications: { type: object, additionalProperties: true }
+    UserPreferences:
+      allOf: [{ $ref: "#/components/schemas/UserPreferencesInput" }, { type: object, required: [revision], properties: { revision: { type: integer, minimum: 0 } } }]
+    Site:
+      type: object
+      required: [id, organisationId, name, timezone, status]
+      properties:
+        id: { type: string, format: uuid }
+        organisationId: { type: string, format: uuid }
+        name: { type: string }
+        timezone: { type: string }
+        marketCode: { type: [string, "null"] }
+        status: { type: string }
+    DeviceInput:
+      type: object
+      required: [type, name, manufacturer, model, driverKey, protocol]
+      properties:
+        type: { type: string, enum: [inverter, battery, meter, evse] }
+        name: { type: string, minLength: 1 }
+        manufacturer: { type: string, minLength: 1 }
+        model: { type: string, minLength: 1 }
+        serialNumber: { type: [string, "null"] }
+        driverKey: { type: string, minLength: 1 }
+        protocol: { type: string, minLength: 1 }
+        parentDeviceId: { type: [string, "null"], format: uuid }
+        gatewayId: { type: [string, "null"], format: uuid }
+        gatewayPortId: { type: [string, "null"], format: uuid }
+        connection: { type: object, description: Backend-only and omitted from responses, additionalProperties: true }
+    DevicePatch:
+      type: object
+      properties:
+        name: { type: string }
+        manufacturer: { type: string }
+        model: { type: string }
+        serialNumber: { type: [string, "null"] }
+        driverKey: { type: string }
+        protocol: { type: string }
+        connection: { type: object, description: Backend-only and omitted from responses, additionalProperties: true }
+    DeviceConfiguration:
+      type: object
+      required: [id, siteId, type, name, manufacturer, model, driverKey, protocol, status, revision]
+      properties:
+        id: { type: string, format: uuid }
+        siteId: { type: string, format: uuid }
+        parentDeviceId: { type: [string, "null"], format: uuid }
+        gatewayId: { type: [string, "null"], format: uuid }
+        gatewayPortId: { type: [string, "null"], format: uuid }
+        type: { type: string, enum: [inverter, battery, meter, evse] }
+        name: { type: string }
+        manufacturer: { type: string }
+        model: { type: string }
+        serialNumber: { type: [string, "null"] }
+        driverKey: { type: string }
+        protocol: { type: string }
+        status: { type: string }
+        revision: { type: integer }
+    GatewayPort:
+      type: object
+      required: [name, transport, channel]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        transport: { type: string, enum: [ethernet, modbus-tcp, rs485, can, can-over-tcp, ocpp, mqtt] }
+        channel: { type: string }
+        settings: { type: object, additionalProperties: true }
+    Gateway:
+      type: object
+      required: [name, hardwareModel, role, ports]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        hardwareModel: { type: string, enum: [rock-pi-e, olimex-esp32-evb-ea-ind, olimex-esp32-evb-lab] }
+        role: { type: string, enum: [controller, device-node] }
+        managementNetwork: { type: object, additionalProperties: true }
+        ports: { type: array, items: { $ref: "#/components/schemas/GatewayPort" } }
+    HardwareConfigurationInput:
+      type: object
+      required: [gateways]
+      properties:
+        gateways: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Gateway" } }
+    HardwareTopology:
+      type: object
+      required: [gateways, devices]
+      properties:
+        configuration: { type: [object, "null"] }
+        gateways: { type: array, items: { $ref: "#/components/schemas/Gateway" } }
+        devices: { type: array, items: { $ref: "#/components/schemas/DeviceConfiguration" } }
+    StrategyConfiguration:
+      type: object
+      required: [code]
+      properties:
+        schemaVersion: { type: string, const: "1.0" }
+        code: { type: string, enum: [intelligent_hybrid, price_arbitrage, self_consumption, zero_export, peak_shaving, schedule_following, backup_reserve, manual] }
+        enabled: { type: boolean }
+        battery: { type: object, additionalProperties: true }
+        grid: { type: object, additionalProperties: true }
+        forecast: { type: object, properties: { horizonHours: { type: integer, minimum: 1, maximum: 168 }, useWeather: { type: boolean }, usePv: { type: boolean }, usePrice: { type: boolean }, lowSolarReserveSocPct: { type: number, minimum: 0, maximum: 100 } }, additionalProperties: true }
+        market: { type: object, additionalProperties: true }
+        economics:
+          type: object
+          properties:
+            trackChargeOrigin: { type: boolean }
+            cycleForecastHorizonHours: { type: integer, const: 24 }
+            priceForecastSources: { type: array, maxItems: 2, items: { type: object, additionalProperties: true } }
+            lossProtection:
+              type: object
+              required: [enabled, mode]
+              properties:
+                enabled: { type: boolean }
+                mode: { type: string, enum: [cash_cost, full_cost] }
+                minimumMarginPerMwh: { type: number, minimum: 0 }
+                blockNegativePriceExport: { type: boolean }
+                includeImbalanceRisk: { type: boolean }
+                includeBatteryDegradation: { type: boolean }
+                includeAssetDepreciation: { type: boolean }
+          additionalProperties: true
+      additionalProperties: true
+    PowerCommand:
+      type: object
+      required: [sequence, requestedPowerKw, enable]
+      properties:
+        sequence: { type: integer, minimum: 1 }
+        requestedPowerKw: { type: number }
+        enable: { type: boolean }
+        ttlSeconds: { type: integer, minimum: 1, maximum: 60, default: 15 }
+        reason: { type: string }
+    SiteSnapshot:
+      type: object
+      required: [siteId, siteName, timestamp, quality, power, devices]
+      properties:
+        siteId: { type: string, format: uuid }
+        siteName: { type: string }
+        timestamp: { type: string, format: date-time }
+        quality: { type: string, enum: [GOOD, STALE, INVALID] }
+        battery: { type: [object, "null"], additionalProperties: true }
+        power: { type: object, additionalProperties: { type: [number, "null"] } }
+        strategy: { type: [object, "null"], additionalProperties: true }
+        batteryEconomicsToday: { type: object, description: Source-attributed actual daily energy, cycles, degradation, depreciation and loss cost; available=false when no ledger data exists, additionalProperties: true }
+        devices: { type: array, items: { type: object, additionalProperties: true } }

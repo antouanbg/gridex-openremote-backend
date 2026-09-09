@@ -1,0 +1,48 @@
+schema_version: 1
+policy:
+  reference_only_status: needs-lab-validation
+  production_status: confirmed
+  notes:
+    - A published map is not automatically a production-ready GrideX driver.
+    - Exact model, firmware, transport, addressing, word order, scale, polarity, limits and write safety must be validated.
+    - Vendor documents and upstream source code remain under their original licences; this file stores metadata and links only.
+
+drivers:
+  - key: suntech.sunstorage-pro-261
+    manufacturer: Suntech
+    product_family: SunStorage Pro 261 / STE-261L
+    device_types: [battery, inverter]
+    transports: [modbus-tcp]
+    status: confirmed
+    implementation: config/sunstorage-pro-261.yaml
+    notes: Confirmed register semantics, Int32 ABCD word order, scale 10, heartbeat and command prerequisites.
+
+reference_sources:
+  - key: ha-solarman
+    title: ha-solarman Documentation and device profiles
+    repository: https://github.com/davidrapan/ha-solarman
+    documentation: https://github.com/davidrapan/ha-solarman/wiki/Documentation
+    supported_devices: https://github.com/davidrapan/ha-solarman/wiki/Supported-Devices
+    status: needs-lab-validation
+    integration_scope: Reference register maps and device-profile knowledge; no upstream files are copied here.
+    families:
+      - { manufacturer: Deye, profiles: [deye_string, deye_hybrid, deye_p3, deye_micro], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Sofar, profiles: [sofar_hybrid, sofar_g3, sofar_string], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Solis, profiles: [solis_hybrid, solis_1p-5g, solis_3p-4g], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Afore, profiles: [afore_2mppt, afore_bnt-tl, afore_hybrid], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Megarevo, profiles: [megarevo_r-3h], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Solarman, profiles: [DTSD422-D3, DDZY422-D2], device_types: [meter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Pytes, profiles: [RS485-V1.21], device_types: [battery], transports: [rs485] }
+      - { manufacturer: Pylontech, profiles: [FH3X], device_types: [battery], transports: [modbus-rtu] }
+      - { manufacturer: KSTAR, profiles: [kstar_hybrid], device_types: [inverter, battery], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: CHINT, profiles: [hybrid], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: INVT, profiles: [hybrid], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: SRNE, profiles: [monitoring-v2], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: Bluesun, profiles: [BSE12KH3, BSE15KH3], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Anenji, profiles: [12K-H3], device_types: [inverter], transports: [rs232] }
+      - { manufacturer: Inhenergy, profiles: [GPRS-WIFI], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: EG4, profiles: [18KPV-12LV], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: iStorage, profiles: [iStoragE], device_types: [inverter, battery], transports: [modbus-rtu] }
+      - { manufacturer: Hinen, profiles: [hybrid-v1.62], device_types: [inverter], transports: [modbus-rtu] }
+      - { manufacturer: Swatten, profiles: [SiH-TH], device_types: [inverter], transports: [modbus-rtu, solarman-logger] }
+      - { manufacturer: Selfa, profiles: [SFH-hybrid], device_types: [inverter], transports: [modbus-rtu] }

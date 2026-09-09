@@ -4,6 +4,7 @@ volumes:
   proxy-data:
   manager-data:
   postgresql-data:
+  gridex-db-data:
 
 services:
   gridex-api:
@@ -12,14 +13,40 @@ services:
     depends_on:
       manager:
         condition: service_healthy
+      gridex-db:
+        condition: service_healthy
     ports:
       - "127.0.0.1:${GRIDEX_API_PORT:-8081}:8080"
     environment:
       OPENREMOTE_BASE_URL: ${OPENREMOTE_BASE_URL:-http://manager:8080}
       OPENREMOTE_REALM: ${OPENREMOTE_REALM:-gridex}
-      GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_ALLOWED_ORIGINS:-https://gridex.tech,https://app.gridex.tech}
-      GRIDEX_SITE_MAP_JSON: '${GRIDEX_SITE_MAP_JSON:-{}}'
+      OPENREMOTE_SERVICE_CLIENT_ID: ${OPENREMOTE_SERVICE_CLIENT_ID:-gridex-api}
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${OPENREMOTE_SERVICE_CLIENT_SECRET}
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-gridex-portal}
+      PGHOST: gridex-db
+      PGPORT: 5432
+      PGDATABASE: ${GRIDEX_DATABASE_NAME:-gridex}
+      PGUSER: ${GRIDEX_DATABASE_USER:-gridex}
+      PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD}
+      GRIDEX_AUTO_MIGRATE: ${GRIDEX_AUTO_MIGRATE:-false}
+      GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_ALLOWED_ORIGINS}
       GRIDEX_WRITES_ENABLED: ${GRIDEX_WRITES_ENABLED:-false}
+
+  gridex-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${GRIDEX_DATABASE_NAME:-gridex}
+      POSTGRES_USER: ${GRIDEX_DATABASE_USER:-gridex}
+      POSTGRES_PASSWORD: ${GRIDEX_DATABASE_PASSWORD}
+    volumes:
+      - gridex-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GRIDEX_DATABASE_USER:-gridex} -d ${GRIDEX_DATABASE_NAME:-gridex}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   proxy:
     image: openremote/proxy:${PROXY_VERSION:-latest}
@@ -30,7 +57,7 @@ services:
     ports:
       - "80:80"
       - "${OR_SSL_PORT:-443}:443"
-      - "8883:8883"
+      - "${VPN_BIND_ADDRESS:?set VPN-only bind address}:8883:8883"
     volumes:
       - proxy-data:/deployment
     environment:
