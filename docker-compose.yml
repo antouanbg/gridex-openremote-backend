@@ -33,6 +33,33 @@ services:
       GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_ALLOWED_ORIGINS}
       GRIDEX_WRITES_ENABLED: ${GRIDEX_WRITES_ENABLED:-false}
 
+  gridex-config-worker:
+    build: ./services/gridex-api
+    command: ["node", "src/configuration-worker.mjs"]
+    restart: unless-stopped
+    profiles: ["configuration-worker"]
+    depends_on:
+      manager:
+        condition: service_healthy
+      gridex-db:
+        condition: service_healthy
+    environment:
+      OPENREMOTE_BASE_URL: ${OPENREMOTE_BASE_URL:-http://manager:8080}
+      OPENREMOTE_REALM: ${OPENREMOTE_REALM:-gridex}
+      OPENREMOTE_SERVICE_CLIENT_ID: ${OPENREMOTE_SERVICE_CLIENT_ID:-gridex-api}
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${OPENREMOTE_SERVICE_CLIENT_SECRET}
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-gridex-portal}
+      PGHOST: gridex-db
+      PGPORT: 5432
+      PGDATABASE: ${GRIDEX_DATABASE_NAME:-gridex}
+      PGUSER: ${GRIDEX_DATABASE_USER:-gridex}
+      PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD}
+      GRIDEX_AUTO_MIGRATE: "false"
+      GRIDEX_CONFIG_WORKER_POLL_MS: ${GRIDEX_CONFIG_WORKER_POLL_MS:-2000}
+      GRIDEX_CONFIG_WORKER_LEASE_SECONDS: ${GRIDEX_CONFIG_WORKER_LEASE_SECONDS:-60}
+      GRIDEX_CONFIG_WORKER_MAX_ATTEMPTS: ${GRIDEX_CONFIG_WORKER_MAX_ATTEMPTS:-8}
+
   gridex-db:
     image: postgres:17-alpine
     restart: unless-stopped

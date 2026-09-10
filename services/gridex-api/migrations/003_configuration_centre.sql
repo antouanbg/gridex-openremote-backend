@@ -25,6 +25,7 @@ ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS simulation_result jsonb
 ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS openremote_sync_state text NOT NULL DEFAULT 'not_requested';
 ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS openremote_applied_revision integer;
 ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS openremote_event_id text;
+ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS last_sync_error text;
 ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS applied_at timestamptz;
 ALTER TABLE site_configurations ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 

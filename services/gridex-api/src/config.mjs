@@ -36,6 +36,9 @@ export function loadConfig(env = process.env) {
       .split(",").map((value) => value.trim()).filter(Boolean)),
     snapshotRefreshMs: integer(env.GRIDEX_SNAPSHOT_REFRESH_MS, 5000),
     maximumBodyBytes: integer(env.GRIDEX_MAXIMUM_BODY_BYTES, 131072),
+    configurationWorkerPollMs: integer(env.GRIDEX_CONFIG_WORKER_POLL_MS, 2000),
+    configurationWorkerLeaseSeconds: integer(env.GRIDEX_CONFIG_WORKER_LEASE_SECONDS, 60),
+    configurationWorkerMaximumAttempts: integer(env.GRIDEX_CONFIG_WORKER_MAX_ATTEMPTS, 8),
   };
 }
 
