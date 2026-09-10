@@ -233,13 +233,75 @@ export class PostgresRepository {
       const item=rows[0];
       if (!item || item.status!=="ready" || item.simulation_result?.simulationId!==simulationId) throw new ApiError(409,"configuration_simulation_required","A completed simulation for this revision is required.");
       const payload={siteId,section,revision,configuration:item.configuration,requestedBy:subject};
-      await client.query(`INSERT INTO configuration_outbox(id,site_id,configuration_id,operation,payload,idempotency_key)
-        VALUES($1,$2,$3,'apply',$4::jsonb,$5) ON CONFLICT(idempotency_key) DO NOTHING`,[randomUUID(),siteId,item.id,JSON.stringify(payload),idempotencyKey]);
+      const inserted=await client.query(`INSERT INTO configuration_outbox(id,site_id,configuration_id,operation,payload,idempotency_key)
+        VALUES($1,$2,$3,'apply',$4::jsonb,$5) ON CONFLICT(idempotency_key) DO NOTHING RETURNING configuration_id`,[randomUUID(),siteId,item.id,JSON.stringify(payload),idempotencyKey]);
+      if(!inserted.rows[0]){
+        const existing=await client.query("SELECT configuration_id FROM configuration_outbox WHERE idempotency_key=$1",[idempotencyKey]);
+        if(existing.rows[0]?.configuration_id!==item.id)throw new ApiError(409,"idempotency_key_reused","The idempotency key belongs to another configuration revision.");
+      }
       await client.query("UPDATE site_configurations SET status='activating',openremote_sync_state='pending',updated_at=now() WHERE id=$1",[item.id]);
       await client.query("COMMIT");
       return {id:item.id,siteId,section,revision,status:"activating",openRemoteSync:{state:"pending"}};
     } catch(error) { await client.query("ROLLBACK"); throw error; }
     finally { client.release(); }
+  }
+
+  async claimConfigurationOutbox(leaseSeconds = 60) {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query(`SELECT o.*,c.section,c.revision,c.configuration
+        FROM configuration_outbox o JOIN site_configurations c ON c.id=o.configuration_id
+        WHERE o.status IN ('pending','processing') AND o.available_at<=now()
+          AND NOT EXISTS (
+            SELECT 1 FROM configuration_outbox older
+            JOIN site_configurations older_c ON older_c.id=older.configuration_id
+            WHERE older.site_id=o.site_id AND older_c.section=c.section
+              AND older_c.revision<c.revision AND older.status IN ('pending','processing'))
+        ORDER BY o.created_at FOR UPDATE OF o SKIP LOCKED LIMIT 1`);
+      if (!rows[0]) { await client.query("COMMIT"); return null; }
+      const row=rows[0];
+      await client.query(`UPDATE configuration_outbox SET status='processing',attempts=attempts+1,
+        available_at=now()+($2*interval '1 second') WHERE id=$1`,[row.id,leaseSeconds]);
+      await client.query("COMMIT");
+      return {id:row.id,siteId:row.site_id,configurationId:row.configuration_id,section:row.section,
+        revision:Number(row.revision),configuration:row.configuration,attempts:Number(row.attempts)+1};
+    } catch(error){await client.query("ROLLBACK");throw error;} finally{client.release();}
+  }
+
+  async getConfigurationWorkerContext(siteId, section) {
+    const { rows:sites }=await this.pool.query("SELECT * FROM sites WHERE id=$1 AND deleted_at IS NULL",[siteId]);
+    if(!sites[0])throw new ApiError(404,"site_not_found","The site was not found.");
+    const { rows:bindings }=await this.pool.query(`SELECT section,local_resource_type,local_resource_id,openremote_asset_id
+      FROM configuration_openremote_bindings WHERE site_id=$1 AND section=$2`,[siteId,section]);
+    return {site:siteRow(sites[0]),bindings:bindings.map(row=>({section:row.section,localResourceType:row.local_resource_type,localResourceId:row.local_resource_id,openremoteAssetId:row.openremote_asset_id}))};
+  }
+
+  async completeConfigurationOutbox(event, assetIds) {
+    const client=await this.pool.connect();
+    try{await client.query("BEGIN");
+      await client.query("UPDATE configuration_outbox SET status='applied',processed_at=now(),last_error=NULL WHERE id=$1",[event.id]);
+      await client.query("UPDATE site_configurations SET status='superseded' WHERE site_id=$1 AND section=$2 AND status='applied' AND revision<>$3",[event.siteId,event.section,event.revision]);
+      await client.query(`UPDATE site_configurations SET status='applied',openremote_sync_state='applied',
+        openremote_applied_revision=revision,openremote_event_id=$4,applied_at=now(),updated_at=now()
+        WHERE id=$1 AND site_id=$2 AND revision=$3`,[event.configurationId,event.siteId,event.revision,event.id]);
+      await client.query("COMMIT");
+      return {status:"applied",assetIds};
+    }catch(error){await client.query("ROLLBACK");throw error;}finally{client.release();}
+  }
+
+  async failConfigurationOutbox(event, message, maximumAttempts) {
+    const dead=event.attempts>=maximumAttempts;
+    const retrySeconds=Math.min(900,Math.max(5,2**Math.min(event.attempts,9)));
+    const client=await this.pool.connect();
+    try{await client.query("BEGIN");
+      await client.query(`UPDATE configuration_outbox SET status=$2,last_error=$3,
+        available_at=CASE WHEN $2='pending' THEN now()+($4*interval '1 second') ELSE available_at END
+        WHERE id=$1`,[event.id,dead?"dead_letter":"pending",message,retrySeconds]);
+      await client.query(`UPDATE site_configurations SET openremote_sync_state=$2,last_sync_error=$3,updated_at=now()
+        WHERE id=$1`,[event.configurationId,dead?"failed":"pending",message]);
+      await client.query("COMMIT");
+    }catch(error){await client.query("ROLLBACK");throw error;}finally{client.release();}
   }
 
   async getTopology(siteId) {
@@ -445,6 +507,8 @@ export class MemoryRepository {
     this.strategyDrafts = new Map();
     this.strategySimulations = new Map();
     this.auditEvents = [];
+    this.configurationOutbox = [];
+    this.configurationContexts = new Map();
   }
   async migrate() {}
   async close() {}
@@ -496,7 +560,11 @@ export class MemoryRepository {
   }
   async setConfigurationValidation(siteId,section,revision,validation){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision)throw new ApiError(404,"configuration_not_found","The configuration revision was not found.");item.validation=validation;item.status=validation.valid?"validated":"invalid";return item;}
   async setConfigurationSimulation(siteId,section,revision,simulation){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision||!item.validation.valid)throw new ApiError(409,"configuration_validation_required","Validate first.");item.simulation=simulation;item.status="ready";return simulation;}
-  async requestConfigurationActivation(siteId,section,revision,simulationId,idempotencyKey){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision||item.status!=="ready"||item.simulation?.simulationId!==simulationId)throw new ApiError(409,"configuration_simulation_required","Simulate first.");item.status="activating";item.openRemoteSync={state:"pending",idempotencyKey};return{id:item.id,siteId,section,revision,status:item.status,openRemoteSync:item.openRemoteSync};}
+  async requestConfigurationActivation(siteId,section,revision,simulationId,idempotencyKey){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision||item.status!=="ready"||item.simulation?.simulationId!==simulationId)throw new ApiError(409,"configuration_simulation_required","Simulate first.");const existing=this.configurationOutbox.find(event=>event.idempotencyKey===idempotencyKey);if(existing&&existing.configurationId!==item.id)throw new ApiError(409,"idempotency_key_reused","The idempotency key belongs to another configuration revision.");item.status="activating";item.openRemoteSync={state:"pending",idempotencyKey};if(!existing)this.configurationOutbox.push({id:randomUUID(),siteId,configurationId:item.id,section,revision,configuration:item.configuration,attempts:0,status:"pending",idempotencyKey});return{id:item.id,siteId,section,revision,status:item.status,openRemoteSync:item.openRemoteSync};}
+  async claimConfigurationOutbox(){const item=this.configurationOutbox.find(event=>event.status==="pending");if(!item)return null;item.status="processing";item.attempts+=1;return{...item};}
+  async getConfigurationWorkerContext(siteId,section){const configured=this.configurationContexts.get(`${siteId}:${section}`);if(configured)return configured;const site=this.sites.find(item=>item.id===siteId);if(!site)throw new ApiError(404,"site_not_found","The site was not found.");return{site,bindings:[]};}
+  async completeConfigurationOutbox(event,assetIds){const stored=this.configurationOutbox.find(item=>item.id===event.id);if(stored)stored.status="applied";const configuration=await this.getSiteConfiguration(event.siteId,event.section);configuration.status="applied";configuration.openRemoteSync={state:"applied",appliedRevision:event.revision,assetIds};}
+  async failConfigurationOutbox(event,message,maximumAttempts){const stored=this.configurationOutbox.find(item=>item.id===event.id);if(stored){stored.status=event.attempts>=maximumAttempts?"dead_letter":"pending";stored.lastError=message;}const configuration=await this.getSiteConfiguration(event.siteId,event.section);configuration.openRemoteSync={state:stored?.status==="dead_letter"?"failed":"pending",error:message};}
   async getTopology(siteId) { return this.topologies.get(siteId) || { configuration: null, gateways: [], devices: await this.listDevices(siteId) }; }
   async getDailyBatteryEconomics() { return { available: false }; }
   async getActiveStrategy(siteId) { return (this.strategies.get(siteId) || []).find((item) => item.lifecycle === "active") || null; }
