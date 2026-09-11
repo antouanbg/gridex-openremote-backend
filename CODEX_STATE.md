@@ -17,6 +17,9 @@ data-services worker without storing the upstream token in Git.
   client, idempotent PostgreSQL upsert and manual CLI operation.
 - Removed the obsolete public MQTT `8883` Compose port; private telemetry uses
   the Site Router VPN path.
+- Added `HANDOFF.md` to record every unimplemented backend data-services and
+  commissioning milestone with dependencies, acceptance evidence and an exact
+  next action.
 
 ## Remaining
 
@@ -37,5 +40,6 @@ data-services worker without storing the upstream token in Git.
 
 ## Next action
 
-Implement asset discovery and scheduled A44 refresh, then validate the Compose
-runtime on the Windows 11 backend before opening a pull request.
+Read `HANDOFF.md`, then implement asset discovery and scheduled A44 refresh.
+Validate the Compose runtime on the Windows 11 backend before opening a pull
+request.
