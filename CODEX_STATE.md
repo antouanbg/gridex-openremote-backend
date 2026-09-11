@@ -22,6 +22,8 @@ data-services worker without storing the upstream token in Git.
   next action.
 - Added `AGENTS.md` with the mandatory HANDOFF/CODEX_STATE update policy for
   every future backend task.
+- Recorded the unimplemented dedicated GrideX PostgreSQL/Timescale Compose
+  service as an explicit HANDOFF item; only its SQL schema foundation exists.
 - Fixed the market CLI parser and verified a live read-only ENTSO-E A44 import
   through `gridex-data`: 288 normalised 15-minute points were fetched without
   database persistence or token output.

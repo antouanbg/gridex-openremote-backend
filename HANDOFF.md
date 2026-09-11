@@ -13,7 +13,20 @@ production addresses, customer inventory or actual configuration values.
 
 ## Deferred work / Отложена работа
 
-1. **Schedule the ENTSO-E A44 worker / Периодично изпълнение на ENTSO-E A44 worker-а**
+1. **Provision the separate GrideX PostgreSQL/Timescale database / Отделна GrideX PostgreSQL/Timescale база**
+   - Dependency: approved Docker image/tag, persistent volume location,
+     database-secret provisioning and the final Windows 11 Docker Compose
+     deployment plan.
+   - Acceptance: Compose starts a dedicated `gridex-data-db` service with a
+     persistent volume, healthcheck, non-superuser application role and
+     TimescaleDB extension. `data-services` reaches it only through the
+     internal Docker network using a secret-backed `DATA_DB_DSN`; no database
+     port is publicly exposed.
+   - Next action: add the dedicated database service, migrations runner,
+     healthcheck and secret-file configuration to Compose; validate a restart
+     and a `dam_price` upsert on the Windows 11 backend.
+
+2. **Schedule the ENTSO-E A44 worker / Периодично изпълнение на ENTSO-E A44 worker-а**
    - Dependency: the Docker secret file and `DATA_DB_DSN` must be configured
      on the Windows 11 backend host; the supplier asset must contain a valid
      bidding-zone EIC.
@@ -23,7 +36,7 @@ production addresses, customer inventory or actual configuration values.
    - Next action: implement a scheduler command that reads enabled supplier
      assets and invokes the existing `fetch-a44` operation.
 
-2. **Discover supplier Assets and synchronise prices / Откриване на supplier Assets и синхронизация на цени**
+3. **Discover supplier Assets and synchronise prices / Откриване на supplier Assets и синхронизация на цени**
    - Dependency: final OpenRemote Asset query and attribute-write contract.
    - Acceptance: the worker reads only enabled Assets, persists A44 data in
      PostgreSQL, updates the approved OpenRemote price/predicted attributes,
@@ -32,7 +45,7 @@ production addresses, customer inventory or actual configuration values.
    - Next action: implement Asset discovery in `services/data-services` and
      add mocked OpenRemote contract tests.
 
-3. **Complete forecasting orchestration / Пълна оркестрация на прогнозите**
+4. **Complete forecasting orchestration / Пълна оркестрация на прогнозите**
    - Dependency: the ENTSO-E import scheduler, Open-Meteo discovery contract
      and the agreed forecasting-model selection per Site.
    - Acceptance: prices, weather, PV and load inputs produce versioned 96 ×
@@ -42,7 +55,7 @@ production addresses, customer inventory or actual configuration values.
    - Next action: add the orchestration worker after market and weather Asset
      discovery are available.
 
-4. **Commission the Docker secret and private runtime / Въвеждане на Docker secret и private runtime**
+5. **Commission the Docker secret and private runtime / Въвеждане на Docker secret и private runtime**
    - Dependency: access to the Windows 11 backend host and a newly generated
      ENTSO-E token stored outside Git.
    - Acceptance: `docker compose config` and service health checks pass; the
