@@ -24,6 +24,7 @@ data-services worker without storing the upstream token in Git.
   every future backend task.
 - Recorded the unimplemented dedicated GrideX PostgreSQL/Timescale Compose
   service as an explicit HANDOFF item; only its SQL schema foundation exists.
+- Required every HANDOFF to state its exact GitHub repository below the title.
 - Fixed the market CLI parser and verified a live read-only ENTSO-E A44 import
   through `gridex-data`: 288 normalised 15-minute points were fetched without
   database persistence or token output.

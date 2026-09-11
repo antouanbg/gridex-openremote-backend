@@ -37,6 +37,10 @@ Before each commit and final response:
 4. Run relevant tests and configuration validation; inspect `git diff` and
    scan staged changes for accidental secrets.
 
+Every `HANDOFF.md` must identify its repository directly below its title in
+this form: `Repository / GitHub: <owner>/<repository>`. Never leave a handoff
+ambiguous when several GrideX repositories or worktrees exist.
+
 Repository state is authoritative. On resume, repeat the pre-change steps and
 do not treat a conversation as the only source of project knowledge.
 

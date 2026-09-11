@@ -1,5 +1,7 @@
 # Handoff — GrideX OpenRemote backend
 
+Repository / GitHub: `antouanbg/gridex-openremote-backend`
+
 ## Purpose / Предназначение
 
 This file is the durable backlog for backend work that is designed but not yet
