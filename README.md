@@ -38,7 +38,7 @@ ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated node
 - `config/edge-register-map.yaml` — northbound Modbus TCP map of the Edge Gateway.
 - `config/sunstorage-pro-261.yaml` — confirmed vendor registers used by the first driver.
 - `config/ste261l-asset-blueprint.yaml` — Asset tree, attributes, Modbus links and command ownership.
-- `config/mqtt-node-telemetry.yaml` — direct MQTTS contract, security and Edge fallback.
+- `config/mqtt-node-telemetry.yaml` — ROCK Pi MQTT bridge contract and backend-ingestion mapping.
 - `config/driver-reference-catalog.yaml` — confirmed mappings and external protocol references, with validation status.
 - `contracts/power-command.schema.json` — desired-power and TTL API contract.
 - `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
@@ -98,7 +98,7 @@ MQTT 8883 не се публикува.
 - `config/edge-register-map.yaml` - northbound Modbus TCP карта на Edge Gateway.
 - `config/sunstorage-pro-261.yaml` - потвърдените vendor регистри, използвани от първия драйвер.
 - `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
-- `config/mqtt-node-telemetry.yaml` - директният MQTTS договор, security и Edge fallback.
+- `config/mqtt-node-telemetry.yaml` - договорът за MQTT моста на ROCK Pi и backend-ingestion mapping-а.
 - `config/driver-reference-catalog.yaml` - потвърдени и референтни карти с ясен статус.
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.

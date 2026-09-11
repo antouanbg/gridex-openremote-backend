@@ -29,9 +29,12 @@ OpenRemote reaches the site only through the site router WireGuard tunnel. ROCK 
 
 ROCK Pi E polls each OLIMEX ESP32-EVB canonical map over isolated OT Ethernet
 and maintains the local safety envelope. A node translates exactly one
-configured CAN or RS485 device family. Telemetry goes directly from the node
-to VPN-only MQTT through the site router; commands always return through
-OpenRemote, ROCK Pi E and the node's local Modbus TCP endpoint.
+configured CAN or RS485 device family. Telemetry flows from the node over OT
+Modbus TCP to ROCK Pi E. Only ROCK Pi publishes it through the Site Router
+WireGuard tunnel to the private MQTT broker; backend ingestion persists the
+data and synchronises the required OpenRemote Assets. Commands always return
+through OpenRemote or the authorized backend, ROCK Pi E and the node's local
+Modbus TCP endpoint. ESP32 has no MQTT credentials or direct OpenRemote path.
 
 ## Български
 
@@ -42,3 +45,15 @@ OpenRemote, ROCK Pi E and the node's local Modbus TCP endpoint.
 Командите остават заключени до успешна проверка на комуникацията, знак, мащаб, BMS лимити, SOC, PCC meter, heartbeat, PCS режим и faults. Edge остава последната инстанция за безопасност.
 
 OpenRemote достига обекта само през WireGuard тунела на site router-а. ROCK Pi E и ESP32 нямат WireGuard. CONTROL и TELEMETRY са отделени, OT/BESS не се route-ва директно към backend, няма site-to-site routing и публичен MQTT 8883 не се използва след VPN-only миграцията.
+
+### Роли на нодовете
+
+ROCK Pi E обхожда каноничната карта на всеки OLIMEX ESP32-EVB по изолирана OT
+Ethernet мрежа и поддържа локалния безопасен работен диапазон. Нодът превежда
+точно една конфигурирана CAN или RS485 фамилия устройства. Телеметрията минава
+от нода по OT Modbus TCP към ROCK Pi E. Само ROCK Pi я публикува през
+WireGuard тунела на Site Router към private MQTT broker; backend ingestion
+услугата пази данните и синхронизира нужните OpenRemote Assets. Командите
+винаги се връщат през OpenRemote или оторизирания backend, ROCK Pi E и локалния
+Modbus TCP endpoint на нода. ESP32 няма MQTT credentials или директен път към
+OpenRemote.

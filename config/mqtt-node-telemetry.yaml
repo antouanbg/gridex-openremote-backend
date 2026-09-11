@@ -1,42 +1,36 @@
-version: 1
-purpose: OLIMEX ESP32-EVB telemetry to private-cloud OpenRemote through the site-router VPN
+version: 2
+purpose: ROCK Pi bridge telemetry from OT ESP32 nodes to GrideX backend ingestion
 transport:
   protocol: mqtt
   tls: required
-  port: 8883
-  exposure: vpn-only
-  route: "OLIMEX node Ethernet -> site router -> WireGuard tunnel -> VPN-bound OpenRemote MQTT listener"
-  broker: OpenRemote Manager private VPN address
+  listener: private-vpn-only
+  broker: GrideX private broker reachable through the Site Router WireGuard tunnel
 authentication:
-  username: "{realm}:{service_user}"
-  password: "{service_user_secret}"
-  client_id: "gridex-{site_id}-{node_uid}"
+  owner: ROCK Pi deployment configuration only
+  username: "{rockpi_service_user}"
+  password: "{rockpi_service_user_secret}"
+  client_id: "gridex-{site_id}-{gateway_id}"
   client_id_must_be_unique: true
-  production_recommendation: unique restricted service user or X.509 auto-provisioning per node
-publish_topic: "{realm}/{client_id}/writeattributevalue/{attribute_name}/{asset_id}"
+  production_recommendation: one restricted client identity per site gateway; never provision broker credentials to ESP32
+publish_topic: "gridex/v1/sites/{site_id}/edge/{gateway_id}/nodes/{slot}/telemetry"
 attributes:
-  online: {type: boolean, history: true, source: mqtt-last-will-and-connect}
-  actualPowerKw: {type: number, unit: kW, history: true, source: direct-mqtt}
-  energyWh: {type: integer, unit: Wh, history: true, source: direct-mqtt}
-  deviceState: {type: integer, history: true, source: direct-mqtt}
-  alarmBits: {type: integer, history: true, source: direct-mqtt}
-  quality: {type: integer, history: true, source: direct-mqtt}
-  heartbeat: {type: integer, history: false, source: direct-mqtt}
-edge_fallback_attributes:
-  edgeActualPowerKw: {source: edge-node-slot-offset-7}
-  edgeEnergyWh: {source: edge-node-slot-offsets-8-and-9}
-  edgeNodeOnline: {source: edge-node-slot-offset-0}
-  edgeSampleAgeSeconds: {source: edge-node-slot-offset-12}
-source_arbitration:
-  preferred: direct-mqtt
-  fallback: edge-modbus-node-slot
-  rule: use direct values while online is true and the direct datapoint is fresh; otherwise use the Edge copy
+  online: {type: boolean, history: true, source: rockpi-mqtt-bridge}
+  actualPowerKw: {type: number, unit: kW, history: true, source: rockpi-mqtt-bridge}
+  energyWh: {type: integer, unit: Wh, history: true, source: rockpi-mqtt-bridge}
+  deviceState: {type: integer, history: true, source: rockpi-mqtt-bridge}
+  alarmBits: {type: integer, history: true, source: rockpi-mqtt-bridge}
+  quality: {type: integer, history: true, source: rockpi-mqtt-bridge}
+  heartbeat: {type: integer, history: false, source: rockpi-mqtt-bridge}
+backend_ingestion:
+  validates: [schemaVersion, observedAt, site, gateway, slot, driverId, quality]
+  persists_to: PostgreSQL
+  synchronizes_to: OpenRemote Assets
+  browser_access: GrideX API only
+command_topic: "gridex/v1/sites/{site_id}/edge/{gateway_id}/nodes/{slot}/command"
 security:
-  - Do not expose TCP 1883.
-  - Do not bind TCP 8883 to a public interface; bind it only to the backend WireGuard interface.
-  - ROCK Pi E and ESP32 do not run WireGuard and use the site router tunnel.
+  - Do not expose public MQTT listeners or TCP 1883.
+  - The broker route exists only through the Site Router VPN; ROCK Pi and ESP32 are not WireGuard peers.
   - Validate the broker certificate against the provisioned CA certificate.
-  - Grant each node write access only to its own asset telemetry attributes.
-  - Never subscribe to command topics on the ESP32 MQTT connection.
-  - Route device commands through OpenRemote -> ROCK Pi E -> OT Ethernet -> node Modbus TCP.
-  - Keep Edge Modbus TCP 1502 restricted to the CONTROL network through the site router VPN.
+  - Grant the ROCK Pi identity access only to its own site/gateway topics.
+  - ESP32 nodes have no broker credentials and never accept MQTT commands.
+  - Keep Edge Modbus TCP 1502 restricted to OpenRemote or authorized backend services through the private VPN.
