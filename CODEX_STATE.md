@@ -20,6 +20,8 @@ data-services worker without storing the upstream token in Git.
 - Added `HANDOFF.md` to record every unimplemented backend data-services and
   commissioning milestone with dependencies, acceptance evidence and an exact
   next action.
+- Added `AGENTS.md` with the mandatory HANDOFF/CODEX_STATE update policy for
+  every future backend task.
 
 ## Remaining
 
