@@ -7,6 +7,7 @@ import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
 import { CONFIGURATION_SECTIONS, validateConfiguration } from "./configuration-centre.mjs";
+import { edgeHealthSnapshot } from "./edge-health.mjs";
 
 const CONFIGURATION_SECTION_SET = new Set(CONFIGURATION_SECTIONS);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -100,14 +101,15 @@ async function loadDeviceRecords(site, repository, openRemote) {
   return devices.map((device) => ({ ...publicDeviceConfiguration(device), live: liveByDeviceId.get(device.id) || null }));
 }
 
-async function loadSnapshot(site, repository, openRemote) {
+async function loadSnapshot(site, repository, openRemote, config) {
   const devices = await loadSiteDevices(site, repository, openRemote);
-  const [strategy, control, batteryEconomicsToday] = await Promise.all([
+  const [strategy, control, batteryEconomicsToday, edgeHealth] = await Promise.all([
     site.openremoteStrategyAssetId ? openRemote.getManagedAsset(site.openremoteStrategyAssetId) : null,
     site.openremoteControlAssetId ? openRemote.getManagedAsset(site.openremoteControlAssetId) : null,
     repository.getDailyBatteryEconomics(site.id),
+    repository.getEdgeHealth(site.id),
   ]);
-  return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
+  return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday, edge: edgeHealthSnapshot(edgeHealth, new Date(), config.edgeHealthStaleSeconds, config.edgeHealthOfflineSeconds) };
 }
 
 export function createApp({ config, authenticate, repository, openRemote }) {
@@ -371,7 +373,7 @@ export function createApp({ config, authenticate, repository, openRemote }) {
 
       if (req.method === "GET" && suffix === "/snapshot") {
         requirePermission(principal, "asset:read");
-        return json(res, 200, await loadSnapshot(site, repository, openRemote), context);
+        return json(res, 200, await loadSnapshot(site, repository, openRemote, config), context);
       }
 
       if (req.method === "GET" && suffix === "/events") {
@@ -384,7 +386,7 @@ export function createApp({ config, authenticate, repository, openRemote }) {
         let previous = "";
         while (!closed) {
           try {
-            const snapshot = await loadSnapshot(site, repository, openRemote);
+            const snapshot = await loadSnapshot(site, repository, openRemote, config);
             const serialized = JSON.stringify(snapshot);
             if (serialized !== previous) { res.write(`event: snapshot\ndata: ${serialized}\n\n`); previous = serialized; }
             else res.write(": keepalive\n\n");

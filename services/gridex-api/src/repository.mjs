@@ -65,6 +65,28 @@ export class PostgresRepository {
     return rows.map(siteRow);
   }
 
+  async getSiteByCode(siteCode) {
+    const { rows } = await this.pool.query("SELECT * FROM sites WHERE site_code=$1 AND deleted_at IS NULL LIMIT 1", [siteCode]);
+    if (!rows[0]) throw new ApiError(404, "site_not_found", "The site code is not registered.");
+    return siteRow(rows[0]);
+  }
+
+  async upsertEdgeHealth(siteId, health) {
+    const { rows } = await this.pool.query(`INSERT INTO edge_gateway_health
+      (site_id,gateway_id,observed_at,state,pcs_heartbeat_ok,control_ready,safe_mode,northbound_ready,node_online_count,node_total,payload)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb)
+      ON CONFLICT(site_id,gateway_id) DO UPDATE SET observed_at=excluded.observed_at,received_at=now(),state=excluded.state,
+      pcs_heartbeat_ok=excluded.pcs_heartbeat_ok,control_ready=excluded.control_ready,safe_mode=excluded.safe_mode,northbound_ready=excluded.northbound_ready,
+      node_online_count=excluded.node_online_count,node_total=excluded.node_total,payload=excluded.payload
+      RETURNING *`, [siteId,health.gatewayId,health.observedAt,health.state,health.pcsHeartbeatOk,health.controlReady,health.safeMode,health.northboundReady,health.nodeOnlineCount,health.nodeTotal,JSON.stringify(health)]);
+    return rows[0];
+  }
+
+  async getEdgeHealth(siteId) {
+    const { rows } = await this.pool.query("SELECT * FROM edge_gateway_health WHERE site_id=$1 ORDER BY received_at DESC LIMIT 1", [siteId]);
+    return rows[0] || null;
+  }
+
   async getUserPreferences(subject) {
     const { rows } = await this.pool.query("SELECT revision, preferences FROM user_preferences WHERE subject=$1", [subject]);
     return rows[0] ? { revision: rows[0].revision, ...rows[0].preferences } : {
@@ -509,6 +531,7 @@ export class MemoryRepository {
     this.auditEvents = [];
     this.configurationOutbox = [];
     this.configurationContexts = new Map();
+    this.edgeHealth = new Map();
   }
   async migrate() {}
   async close() {}
@@ -527,6 +550,9 @@ export class MemoryRepository {
     if (!site) throw new ApiError(404, "site_not_found", "The site was not found or is not accessible.");
     return site;
   }
+  async getSiteByCode(siteCode) { const site=this.sites.find((item)=>item.siteCode===siteCode); if(!site) throw new ApiError(404,"site_not_found","The site code is not registered."); return site; }
+  async upsertEdgeHealth(siteId, health) { const item={siteId,...health,receivedAt:new Date().toISOString()}; this.edgeHealth.set(siteId,item); return item; }
+  async getEdgeHealth(siteId) { return this.edgeHealth.get(siteId) || null; }
   async listDevices(siteId) { return this.devices.filter((item) => item.siteId === siteId); }
   async getDevice(siteId, deviceId) {
     const device = this.devices.find((item) => item.siteId === siteId && item.id === deviceId);
