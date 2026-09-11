@@ -6,6 +6,14 @@ Independent OpenRemote deployment and integration contract. The web interface an
 
 The project is open source under the MIT License.
 
+## Project credits / Принос към проекта
+
+Created and led by **Dr. Eng. Antuan Hristov Angelov** — product concept, EMS
+and system architecture, software development, backend integration design, and
+product/UX/UI design. [Digital profile](https://linkmy.cards/en/antouan-anguelov/)
+· [LinkedIn](https://www.linkedin.com/in/antouan/) ·
+[Българска версия](CREDITS.md#български)
+
 ### First integration: SunStorage Pro 261 / STE-261L
 
 The reference protocol defines a Modbus TCP endpoint on port `3200`, unit ID `1`. OpenRemote does not write directly to vendor registers. The command path is:
