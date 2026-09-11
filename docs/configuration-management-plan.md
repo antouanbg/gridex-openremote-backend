@@ -48,6 +48,10 @@ Physical PV rows are also normalised in `pv_arrays` so the forecast worker can
 query them safely without interpreting an arbitrary JSON document. The table
 enforces valid ranges, tracker layout and a 100% east-west split.
 
+The exhaustive ownership decision for every configuration and live read-only
+field is maintained in `contracts/configuration-field-ownership.yaml`; the
+bilingual guide is `docs/configuration-field-ownership.md`.
+
 `configuration_openremote_bindings` maps local resources to Asset IDs and
 attributes. `configuration_outbox` guarantees retriable, idempotent activation.
 It contains no secrets. Connection credentials and provider tokens are secret
@@ -88,9 +92,10 @@ the outbox; the request transaction never performs a remote call.
 - ordered execution of all SQL migrations;
 - API tests proving that save does not activate OpenRemote directly.
 
-The next runtime increment is the outbox worker and concrete OpenRemote
-attribute mapper. Until then, queued activation remains `pending` and no field
-equipment is modified.
+The outbox worker and concrete allow-listed OpenRemote mapper are implemented
+in the stacked worker change. Production activation remains disabled until the
+worker profile, Asset bindings and commissioning write lock are deliberately
+configured on the deployment host.
 
 ## Български
 
@@ -126,6 +131,10 @@ single-axis/dual-axis, `1P`/`2P`, DC kWp, наклон, азимут, PR, заг
 температури и аварии са само за четене от OpenRemote и никога не се заместват
 с потребителска настройка.
 
+Пълното решение за собствеността на всяко конфигурационно и live/read-only
+поле е в `contracts/configuration-field-ownership.yaml`, а двуезичното описание
+е в `docs/configuration-field-ownership.md`.
+
 ### Жизнен цикъл
 
 **Чернова → Валидация → Симулация → Активиране → Outbox → OpenRemote →
@@ -133,8 +142,8 @@ single-axis/dual-axis, `1P`/`2P`, DC kWp, наклон, азимут, PR, заг
 `Idempotency-Key` пази от повторно активиране. Remote call не се изпълнява в
 HTTP транзакцията. Пароли, ключове и токени не се записват в payload-а.
 
-Този PR реализира базовата миграция, валидирането, API жизнения цикъл,
-транзакционния outbox и теста, че записът на чернова не променя OpenRemote.
-Следваща runtime стъпка е worker-ът, който прилага mapping-а и потвърждава
-приложената ревизия. До него activation остава `pending` и не управлява реално
-оборудване.
+Базовата промяна реализира миграцията, валидирането, API жизнения цикъл и
+транзакционния outbox. В stacked worker промяната са реализирани allow-listed
+mapping-ът и потвърждението на приложената ревизия. Production activation
+остава изключена, докато worker профилът, Asset bindings и commissioning write
+lock не бъдат съзнателно конфигурирани на deployment машината.

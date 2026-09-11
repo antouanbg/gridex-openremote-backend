@@ -185,7 +185,7 @@ components:
         locale: { type: string, enum: [en, bg] }
         displayTimezone: { type: string }
         units: { type: string, enum: [metric] }
-        currency: { type: string, enum: [EUR, BGN] }
+        currency: { type: string, enum: [EUR] }
         theme: { type: string, enum: [system, light, dark] }
         notifications: { type: object, additionalProperties: true }
     UserPreferences:

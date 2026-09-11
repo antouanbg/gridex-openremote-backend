@@ -57,6 +57,11 @@ export function buildConfigurationProjection(event, context) {
       configurationPerformanceRatio: array.performanceRatio,
       configurationTemperatureCoefficientPctPerC: array.temperatureCoefficientPctPerC,
       configurationShadingLossPct: array.shadingLossPct,
+      configurationEastSharePct: array.eastWestSplitPct?.east,
+      configurationWestSharePct: array.eastWestSplitPct?.west,
+      configurationLatitudeOverride: array.latitude,
+      configurationLongitudeOverride: array.longitude,
+      configurationInverterDeviceId: array.inverterDeviceId,
     },
   );
 
@@ -68,6 +73,8 @@ export function buildConfigurationProjection(event, context) {
     configurationMinimumSocPct: config.minimumSocPct,
     configurationMaximumSocPct: config.maximumSocPct,
     configurationReserveSocPct: config.reserveSocPct,
+    configurationChargeEfficiencyPct: config.chargeEfficiencyPct,
+    configurationDischargeEfficiencyPct: config.dischargeEfficiencyPct,
     configurationGridChargePermitted: config.gridChargePermitted,
     configurationBatteryExportPermitted: config.batteryExportPermitted,
   });
@@ -79,6 +86,8 @@ export function buildConfigurationProjection(event, context) {
     configurationMaximumExportKw: config.maximumExportKw,
     configurationSoftwareFuseMarginKw: config.softwareFuseMarginKw,
     configurationMeterUnavailableMode: config.meterUnavailableMode,
+    configurationFallbackImportLimitKw: config.fallbackImportLimitKw,
+    configurationFallbackExportLimitKw: config.fallbackExportLimitKw,
     configurationZeroExportToleranceKw: config.zeroExportToleranceKw,
   });
 
@@ -98,6 +107,9 @@ export function buildConfigurationProjection(event, context) {
     configurationForecastResolutionMinutes: config.resolutionMinutes,
     configurationMinimumForecastConfidencePct: config.minimumConfidencePct,
     configurationMaximumForecastAgeMinutes: config.maximumAgeMinutes,
+    configurationForecastFallbackModel: config.fallbackModel,
+    configurationTrainingWindowDays: config.trainingWindowDays,
+    configurationErpLoadInputEnabled: config.erpLoadInputEnabled,
   });
 
   if (section === "strategy") add(strategyAssetId, {
@@ -106,6 +118,17 @@ export function buildConfigurationProjection(event, context) {
     configurationControlIntervalSeconds: config.controlIntervalSeconds,
     configurationReoptimiseMinutes: config.reoptimiseMinutes,
     configurationLossProtection: config.lossProtection,
+    configurationMinimumNetProfitEurPerDay: config.minimumNetProfitEurPerDay,
+    configurationMinimumNetSpreadEurPerMwh: config.minimumNetSpreadEurPerMwh,
+    configurationPvExportFloorEurPerMwh: config.pvExportFloorEurPerMwh,
+    configurationBatteryExportFloorEurPerMwh: config.batteryExportFloorEurPerMwh,
+    configurationTrackChargeOrigin: config.trackChargeOrigin,
+    configurationIncludeBatteryDegradation: config.includeBatteryDegradation,
+    configurationIncludeDepreciation: config.includeDepreciation,
+    configurationGridChargePermitted: config.gridChargePermitted,
+    configurationBatteryExportPermitted: config.batteryExportPermitted,
+    configurationLowSolarReserveEnabled: config.lowSolarReserveEnabled,
+    configurationLowSolarThresholdPct: config.lowSolarThresholdPct,
     configurationLowSolarReserveSocPct: config.lowSolarReserveSocPct,
   });
 
@@ -114,9 +137,13 @@ export function buildConfigurationProjection(event, context) {
       configurationPriority: item.priority,
       configurationMinimumPowerKw: item.minimumPowerKw,
       configurationMaximumPowerKw: item.maximumPowerKw,
+      configurationAvailability: item.availability,
       configurationEnergyTargetKwh: item.energyTargetKwh,
       configurationDeadline: item.deadline,
       configurationInterruptionPolicy: item.interruptionPolicy,
+      configurationDynamicTariffEnabled: item.dynamicTariffEnabled,
+      configurationMinimumCustomerPriceEurPerMwh: item.minimumCustomerPriceEurPerMwh,
+      configurationMarkupEurPerMwh: item.markupEurPerMwh,
     },
   );
 
