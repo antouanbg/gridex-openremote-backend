@@ -1,52 +1,49 @@
 # Current task
 
-Prepare the OpenRemote configuration outbox worker Pull Request.
+Prepare the stacked configuration-completeness Pull Request.
 
 # Completed
 
-- Added leased PostgreSQL outbox claiming with per-site/section revision order.
-- Added trusted binding resolution and allow-listed configuration projections.
-- Protected command, heartbeat, telemetry and BMS-limit attributes from writes.
-- Added OpenRemote read-back revision verification.
-- Added retry, bounded backoff, dead-letter and atomic applied-state handling.
-- Added a separate opt-in Docker Compose worker profile.
-- Added English/Bulgarian operating and ownership documentation.
+- Added a canonical 160-field PostgreSQL/OpenRemote/Edge/read-only ownership matrix for all ten sections.
+- Added comprehensive required, range, enum, cross-field, topology and secret validators.
+- Extended the allow-listed OpenRemote mapping for operational PV, battery, grid, forecast, strategy and load/EV fields.
+- Kept economics, access policy, vendor protocol details and secrets outside OpenRemote.
+- Documented the matrix and validation behaviour in English and Bulgarian.
+- Restricted API currency preferences to EUR.
 
 # Remaining
 
-- Review and merge configuration PR #3 before this stacked PR.
+- Review and merge configuration PR #3, worker PR #4, then this stacked PR.
 - Validate the Compose profile and migrations on the Windows 11 Docker host.
 - Configure real OpenRemote Asset bindings during commissioning.
 
 # Modified files
 
-- `.env.example`
-- `docker-compose.yml`
 - `README.md`
-- `docs/configuration-outbox-worker.md`
-- `services/gridex-api/migrations/003_configuration_centre.sql`
-- `services/gridex-api/src/config.mjs`
+- `contracts/configuration-field-ownership.yaml`
+- `contracts/gridex-api-v1.openapi.yaml`
+- `docs/configuration-field-ownership.md`
+- `docs/configuration-management-plan.md`
+- `services/gridex-api/src/configuration-centre.mjs`
 - `services/gridex-api/src/configuration-projection.mjs`
-- `services/gridex-api/src/configuration-worker-service.mjs`
-- `services/gridex-api/src/configuration-worker.mjs`
-- `services/gridex-api/src/repository.mjs`
-- `services/gridex-api/test/configuration-worker.test.mjs`
+- `services/gridex-api/test/configuration-completeness.test.mjs`
 
 # Tests
 
-- `npm test` — 17/17 pass.
+- `npm test` — 22/22 pass (requires local loopback permission for HTTP tests).
 - `npm run check` — pass.
-- Docker Compose validation unavailable locally because Docker CLI is not installed.
+- YAML parse — 10 sections and 160 fields.
+- Editable OpenRemote matrix attributes versus projection — no missing mappings.
 
 # Known issues
 
-- The worker is intentionally disabled unless the `configuration-worker` profile is enabled.
-- No real OpenRemote or electrical equipment was modified by these tests.
+- The worker remains intentionally disabled unless the `configuration-worker` profile is enabled.
+- No real OpenRemote or electrical equipment was modified.
 
 # Next action
 
-Final diff/secret review, commit, push and open a stacked Pull Request.
+Commit, push and open a draft stacked Pull Request against `feat/openremote-config-outbox`.
 
 # Last updated
 
-2026-09-10
+2026-09-11
