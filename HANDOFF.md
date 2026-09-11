@@ -42,6 +42,15 @@ in the repository. It complements the current-task checkpoint in
    - Keep audit logs free of credentials, tokens and electrical-control data
      beyond what is necessary for traceability.
 
+7. **Implement the alarms, incidents and notifications runtime**
+   - PostgreSQL tables and the portal prototype exist, but there is no backend
+     ingestion/synchronisation worker, alarm/incident REST contract, lifecycle
+     service or actual notification delivery yet.
+   - Ingest OpenRemote/Edge state changes idempotently; correlate alarms into
+     incidents; enforce acknowledge/resolve permissions and audit each action.
+   - Deliver email/webhook/push only through a configured provider and test the
+     retention, retry, escalation and tenant/site authorization behaviour.
+
 ## Completion evidence
 
 - Draft PRs are reviewed and tests/checks pass.
