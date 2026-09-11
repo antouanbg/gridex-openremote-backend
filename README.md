@@ -53,6 +53,11 @@ OpenRemote Assets. An ESP32 has no direct MQTT/OpenRemote path in production.
 
 GrideX API is published behind a TLS reverse proxy as `api.gridex.tech`. Command writes are locked by default; `GRIDEX_WRITES_ENABLED=true` is set only after successful commissioning.
 
+The ENTSO-E A44 worker receives its security token only from the ignored Docker
+secret file described in [the integration guide](docs/ENTSOE_A44_INTEGRATION.md).
+The Compose stack does not publish a public MQTT `8883` port; site telemetry
+uses the private broker route through the Site Router VPN.
+
 Production container versions must be pinned to exact tested tags. `latest` is retained only for the initial local prototype.
 
 ### Responsibility boundary
@@ -113,6 +118,11 @@ private broker, след което backend ingestion услугата я паз
 4. Свържете атрибутите по `config/edge-register-map.yaml`.
 
 GridEx API се публикува зад TLS reverse proxy като `api.gridex.tech`. По подразбиране командните записи са заключени; `GRIDEX_WRITES_ENABLED=true` се задава едва след успешно commissioning.
+
+ENTSO-E A44 worker-ът получава security token-а само от игнорирания Docker
+secret файл, описан в [интеграционното ръководство](docs/ENTSOE_A44_INTEGRATION.md).
+Compose stack-ът не публикува public MQTT порт `8883`; телеметрията на обектите
+използва private broker пътя през VPN на Site Router.
 
 За production контейнерните версии трябва да бъдат заключени до конкретен тестван tag. `latest` е оставен само за първоначалния локален прототип.
 

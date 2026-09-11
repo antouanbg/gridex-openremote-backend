@@ -1,5 +1,5 @@
 .env
+secrets/
 data/
 *.log
 .DS_Store
-

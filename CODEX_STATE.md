@@ -1,7 +1,7 @@
 # Current task
 
-Align backend data-path documentation and MQTT configuration to the VPN-only
-Site Router topology before continuing the data-services worker.
+Implement a secure ENTSO-E A44 day-ahead price import foundation for the
+data-services worker without storing the upstream token in Git.
 
 ## Completed
 
@@ -13,18 +13,23 @@ Site Router topology before continuing the data-services worker.
 - Added the provisioning schema and data-service asset contract documentation.
 - Replaced the obsolete direct ESP32-to-OpenRemote MQTTS path with the ROCK Pi
   MQTT bridge and backend-ingestion path in the integration documentation.
+- Added a Docker-secret-first ENTSO-E token loader, authenticated A44 fetch
+  client, idempotent PostgreSQL upsert and manual CLI operation.
+- Removed the obsolete public MQTT `8883` Compose port; private telemetry uses
+  the Site Router VPN path.
 
 ## Remaining
 
-- Implement discovery, database persistence, scheduling, CLI subcommands and
-  OpenRemote output-attribute creation.
-- Add offline fixtures and the full test suite required by the handoff.
-- Validate against Python 3.12, Ruff, MyPy, Pytest and Docker Compose.
+- Implement asset discovery, scheduling and OpenRemote output-attribute
+  creation for the data-services worker.
+- Add further fixtures and the full test suite required by the handoff.
+- Validate against the target Python 3.12, Ruff, MyPy, Pytest and Docker Compose.
 
 ## Tests
 
-- Python source compiles using the available interpreter with temporary cache.
-- Docker Compose validation is pending because Docker is unavailable locally.
+- A44 MockTransport tests pass (2/2) in an isolated temporary environment.
+- Python source compiles in that environment; Compose YAML parses successfully.
+- Docker Compose runtime validation is pending because Docker is unavailable locally.
 
 ## Known issues
 
@@ -32,5 +37,5 @@ Site Router topology before continuing the data-services worker.
 
 ## Next action
 
-Commit and push the data-path documentation correction, then implement asset
-discovery and persistence for the data-services worker.
+Implement asset discovery and scheduled A44 refresh, then validate the Compose
+runtime on the Windows 11 backend before opening a pull request.

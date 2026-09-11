@@ -1,11 +1,32 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from xml.etree import ElementTree as ET
+
+import httpx
 
 
 class ParseError(ValueError):
     pass
+
+
+class EntsoeRequestError(RuntimeError):
+    """Safe request failure that never embeds the token-bearing request URL."""
+
+
+@dataclass(frozen=True)
+class DayAheadPriceRequest:
+    zone_eic: str
+    period_start_utc: datetime
+    period_end_utc: datetime
+
+    def __post_init__(self) -> None:
+        if not self.zone_eic.strip():
+            raise ValueError("zone_eic is required")
+        if self.period_start_utc.tzinfo is None or self.period_end_utc.tzinfo is None:
+            raise ValueError("ENTSO-E periods must be timezone-aware")
+        if self.period_start_utc >= self.period_end_utc:
+            raise ValueError("period_start_utc must precede period_end_utc")
 
 
 @dataclass(frozen=True)
@@ -19,6 +40,47 @@ class PricePoint:
 class ParsedDocument:
     document_mrid: str
     points: list[PricePoint]
+
+
+class EntsoeClient:
+    """Minimal ENTSO-E Transparency Platform client for A44 day-ahead prices."""
+
+    def __init__(
+        self,
+        security_token: str,
+        base_url: str = "https://web-api.tp.entsoe.eu/api",
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        if not security_token.strip():
+            raise ValueError("ENTSO-E security token is required")
+        self._security_token = security_token.strip()
+        self._base_url = base_url.rstrip("/")
+        self._transport = transport
+
+    async def fetch_a44(self, request: DayAheadPriceRequest) -> ParsedDocument:
+        """Fetch A44 for one bidding zone; ENTSO-E returns intervals in UTC."""
+        params = {
+            "securityToken": self._security_token,
+            "documentType": "A44",
+            "in_Domain": request.zone_eic,
+            "out_Domain": request.zone_eic,
+            "periodStart": _format_period(request.period_start_utc),
+            "periodEnd": _format_period(request.period_end_utc),
+        }
+        async with httpx.AsyncClient(timeout=30.0, transport=self._transport) as client:
+            response = await client.get(self._base_url, params=params)
+        if response.status_code >= 400:
+            raise EntsoeRequestError(f"ENTSO-E returned HTTP {response.status_code}")
+        try:
+            return parse_a44(response.text)
+        except ParseError:
+            raise
+        except ET.ParseError as error:
+            raise EntsoeRequestError("ENTSO-E returned malformed XML") from error
+
+
+def _format_period(value: datetime) -> str:
+    return value.astimezone(UTC).strftime("%Y%m%d%H%M")
 
 
 def _name(node: ET.Element) -> str:

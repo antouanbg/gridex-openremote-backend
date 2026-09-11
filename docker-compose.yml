@@ -5,6 +5,10 @@ volumes:
   manager-data:
   postgresql-data:
 
+secrets:
+  entsoe_security_token:
+    file: ${ENTSOE_SECURITY_TOKEN_FILE:-./secrets/entsoe_security_token.txt}
+
 services:
   data-services:
     build: ./services/data-services
@@ -15,7 +19,9 @@ services:
       manager:
         condition: service_healthy
     environment:
+      ENTSOE_SECURITY_TOKEN_FILE: /run/secrets/entsoe_security_token
       ENTSOE_TOKEN: ${ENTSOE_TOKEN:-}
+      ENTSOE_BASE_URL: ${ENTSOE_BASE_URL:-https://web-api.tp.entsoe.eu/api}
       OPEN_METEO_BASE_URL: ${OPEN_METEO_BASE_URL:-https://api.open-meteo.com}
       OPEN_METEO_API_KEY: ${OPEN_METEO_API_KEY:-}
       OPEN_METEO_INTERVAL_MIN: ${OPEN_METEO_INTERVAL_MIN:-60}
@@ -26,6 +32,8 @@ services:
       OR_CLIENT_SECRET: ${OR_CLIENT_SECRET:-}
       DISCOVERY_INTERVAL_MIN: ${DISCOVERY_INTERVAL_MIN:-5}
       DEFAULT_TZ: ${DEFAULT_TZ:-UTC}
+    secrets:
+      - entsoe_security_token
 
   gridex-api:
     build: ./services/gridex-api
@@ -51,7 +59,6 @@ services:
     ports:
       - "80:80"
       - "${OR_SSL_PORT:-443}:443"
-      - "8883:8883"
     volumes:
       - proxy-data:/deployment
     environment:
