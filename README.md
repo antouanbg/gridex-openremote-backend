@@ -20,7 +20,13 @@ The forecast and market strategy may request power, but only the Edge Gateway ca
 
 The Edge northbound endpoint is a Modbus TCP server on port `1502`, unit ID `1`, supporting FC03/04 reads and FC06/16 writes. OpenRemote refreshes the EMS heartbeat every 10 seconds; the Edge timeout is 15 seconds.
 
-Meter/EVSE/inverter nodes have two telemetry paths. ROCK Pi E polls them continuously over RS485 and exposes node slots through the same Modbus endpoint. An ESP32 may also write directly to its own OpenRemote Asset over MQTTS 8883. Control never travels directly through the ESP32 cloud connection.
+Meter/EVSE/inverter nodes expose their local data to ROCK Pi E through the
+isolated OT network (normally Modbus TCP; the node itself owns downstream
+RS-485/CAN). ROCK Pi E polls the canonical node map and exposes node slots
+through the normalized Edge Modbus endpoint. It is the sole site MQTT bridge:
+telemetry crosses the Site Router's WireGuard tunnel to the private broker,
+then the backend ingestion service persists and synchronizes the required
+OpenRemote Assets. An ESP32 has no direct MQTT/OpenRemote path in production.
 
 ### Contents
 
@@ -30,7 +36,7 @@ Meter/EVSE/inverter nodes have two telemetry paths. ROCK Pi E polls them continu
 - `config/edge-register-map.yaml` — northbound Modbus TCP map of the Edge Gateway.
 - `config/sunstorage-pro-261.yaml` — confirmed vendor registers used by the first driver.
 - `config/ste261l-asset-blueprint.yaml` — Asset tree, attributes, Modbus links and command ownership.
-- `config/mqtt-node-telemetry.yaml` — direct MQTTS contract, security and Edge fallback.
+- `config/mqtt-node-telemetry.yaml` — ROCK Pi MQTT bridge contract and backend ingestion mapping.
 - `contracts/power-command.schema.json` — desired-power and TTL API contract.
 - `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
 - `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
@@ -75,10 +81,13 @@ GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
 
 Edge northbound endpoint вече е реализиран като Modbus TCP server на порт `1502`, unit ID `1`, с read функции FC03/04 и write функции FC06/16. OpenRemote обновява EMS heartbeat през 10 секунди; Edge timeout е 15 секунди.
 
-Meter/EVSE/inverter нодовете имат двоен telemetry path: ROCK Pi E ги polling-ва
-постоянно по RS485 и ги предоставя в node slots на същия Modbus endpoint, а
-ESP32 може паралелно да пише директно в собствения си OpenRemote Asset по MQTTS
-8883. Управлението никога не минава директно през ESP32 облачната връзка.
+Meter/EVSE/inverter нодовете предоставят локалните си данни към ROCK Pi E през
+изолираната OT мрежа (обичайно Modbus TCP; самият нод управлява downstream
+RS-485/CAN). ROCK Pi E обхожда каноничната карта на нода и предоставя node
+slots през нормализирания Edge Modbus endpoint. Той е единственият MQTT мост
+на обекта: телеметрията преминава през WireGuard тунела на Site Router към
+private broker, след което backend ingestion услугата я пази и синхронизира
+нужните OpenRemote Assets. ESP32 няма директен MQTT/OpenRemote път в production.
 
 ## Съдържание
 
@@ -88,7 +97,7 @@ ESP32 може паралелно да пише директно в собств
 - `config/edge-register-map.yaml` - northbound Modbus TCP карта на Edge Gateway.
 - `config/sunstorage-pro-261.yaml` - потвърдените vendor регистри, използвани от първия драйвер.
 - `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
-- `config/mqtt-node-telemetry.yaml` - директният MQTTS договор, security и Edge fallback.
+- `config/mqtt-node-telemetry.yaml` - договорът за MQTT моста на ROCK Pi и backend ingestion mapping-а.
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.

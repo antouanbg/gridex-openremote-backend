@@ -1,6 +1,7 @@
 # Current task
 
-Implement OpenRemote-driven ENTSO-E A44 market and Open-Meteo/PV data services.
+Align backend data-path documentation and MQTT configuration to the VPN-only
+Site Router topology before continuing the data-services worker.
 
 ## Completed
 
@@ -10,6 +11,8 @@ Implement OpenRemote-driven ENTSO-E A44 market and Open-Meteo/PV data services.
 - Added TimescaleDB SQL bootstrap/init scripts, Compose service and environment
   placeholders without secrets or site configuration.
 - Added the provisioning schema and data-service asset contract documentation.
+- Replaced the obsolete direct ESP32-to-OpenRemote MQTTS path with the ROCK Pi
+  MQTT bridge and backend-ingestion path in the integration documentation.
 
 ## Remaining
 
@@ -29,5 +32,5 @@ Implement OpenRemote-driven ENTSO-E A44 market and Open-Meteo/PV data services.
 
 ## Next action
 
-Implement asset discovery and persistence, then add fixtures/tests before
-opening a pull request.
+Commit and push the data-path documentation correction, then implement asset
+discovery and persistence for the data-services worker.

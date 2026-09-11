@@ -62,20 +62,22 @@ SOC диапазонът трябва да изпълнява `0 <= lower < uppe
 
 ## Meter, EVSE и inverter нодове
 
-ROCK Pi E обхожда всички конфигурирани MBUS адреси непрекъснато по RS485.
-Нормализираното копие на всеки нод се намира в отделен input-register слот от
-`0x0100`, със stride 16 и максимум 32 нода. Това копие се използва от локалните
-защити и като резервен облачен източник.
+ROCK Pi E обхожда непрекъснато всеки конфигуриран ESP32 нод по Modbus TCP в
+изолираната OT Ethernet мрежа. Нодът управлява локалния downstream RS485/CAN
+драйвер. Нормализираното копие на всеки нод се намира в отделен input-register
+слот от `0x0100`, със stride 16 и максимум 32 нода. Това копие се използва от
+локалните защити и от OpenRemote през нормализирания Edge Modbus endpoint.
 
-Когато нодът има интернет, LilyGo T-CAN485 публикува същата телеметрия директно
-към OpenRemote Manager по MQTTS 8883. Директните атрибути и Edge копието не
-трябва да пишат в един и същи атрибут. MQTT обновява `actualPowerKw`, а Modbus
-Agent обновява `edgeActualPowerKw`; правило за freshness избира ефективната
-стойност. Така няма надписване и системата продължава при отпадане на единия
-път. Точният договор е в `config/mqtt-node-telemetry.yaml`.
+Само ROCK Pi E публикува телеметрията към private MQTT broker през WireGuard
+тунела на Site Router. Backend ingestion услугата я валидира, пази в
+PostgreSQL и синхронизира необходимите OpenRemote Assets. ESP32 няма MQTT
+credentials, публичен MQTTS listener или директен път до OpenRemote. Точният
+договор е в `config/mqtt-node-telemetry.yaml`.
 
-MQTT връзката на ESP32 е само за телеметрия. Командите остават по пътя
-OpenRemote -> Edge Modbus TCP -> safety envelope -> конкретен драйвер.
+Командите към нодове са или OpenRemote -> Edge Modbus TCP -> безопасен работен
+диапазон -> конкретен драйвер, или backend -> private MQTT -> ROCK Pi command
+bridge -> OT Modbus TCP -> ESP32. Във всички случаи ESP32 не приема директна
+MQTT команда.
 
 ## API към клиентския интерфейс
 
