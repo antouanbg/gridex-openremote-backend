@@ -1,6 +1,6 @@
 # Current task
 
-Prepare the stacked configuration-completeness Pull Request.
+No active implementation task.
 
 # Completed
 
@@ -10,6 +10,7 @@ Prepare the stacked configuration-completeness Pull Request.
 - Kept economics, access policy, vendor protocol details and secrets outside OpenRemote.
 - Documented the matrix and validation behaviour in English and Bulgarian.
 - Restricted API currency preferences to EUR.
+- Published draft PR #5, stacked on `feat/openremote-config-outbox`.
 
 # Remaining
 
@@ -42,7 +43,7 @@ Prepare the stacked configuration-completeness Pull Request.
 
 # Next action
 
-Commit, push and open a draft stacked Pull Request against `feat/openremote-config-outbox`.
+Review and merge the configuration chain in order: PR #3, PR #4, then PR #5.
 
 # Last updated
 
