@@ -22,6 +22,9 @@ data-services worker without storing the upstream token in Git.
   next action.
 - Added `AGENTS.md` with the mandatory HANDOFF/CODEX_STATE update policy for
   every future backend task.
+- Fixed the market CLI parser and verified a live read-only ENTSO-E A44 import
+  through `gridex-data`: 288 normalised 15-minute points were fetched without
+  database persistence or token output.
 
 ## Remaining
 
@@ -32,7 +35,10 @@ data-services worker without storing the upstream token in Git.
 
 ## Tests
 
-- A44 MockTransport tests pass (2/2) in an isolated temporary environment.
+- A44 MockTransport and CLI-parser tests pass (3/3) in an isolated temporary
+  environment.
+- A live read-only A44 HTTPS/CLI test returned HTTP 200 and 288 normalised
+  points; the temporary token file and response were removed immediately.
 - Python source compiles in that environment; Compose YAML parses successfully.
 - Docker Compose runtime validation is pending because Docker is unavailable locally.
 

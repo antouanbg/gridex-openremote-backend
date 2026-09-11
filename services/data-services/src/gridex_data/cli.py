@@ -31,7 +31,7 @@ async def _fetch_a44(settings: Settings, args: argparse.Namespace) -> int:
     return 0
 
 
-def main() -> None:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="gridex-data")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run discovery, ENTSO-E and Open-Meteo workers.")
@@ -43,7 +43,12 @@ def main() -> None:
     a44.add_argument("--zone-eic", required=True, help="Bidding-zone EIC from the supplier asset.")
     a44.add_argument("--period-start", type=_utc_timestamp, help="UTC ISO-8601 start; defaults to today.")
     a44.add_argument("--period-end", type=_utc_timestamp, help="UTC ISO-8601 end; defaults to start + 2 days.")
-    parser.add_parser("forecast", help="Forecast operations (fetch, run-once).")
+    sub.add_parser("forecast", help="Forecast operations (fetch, run-once).")
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
     args = parser.parse_args()
     settings = Settings()
     if args.command == "status":

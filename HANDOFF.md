@@ -48,6 +48,9 @@ production addresses, customer inventory or actual configuration values.
    - Acceptance: `docker compose config` and service health checks pass; the
      secret is readable only by `data-services`; no public MQTT `8883` listener
      exists; one A44 fetch is completed without the token appearing in logs.
+   - Current evidence: a read-only A44 HTTPS/CLI test returned HTTP 200 and
+     parsed 288 15-minute points without persistence or token output. Docker
+     secret mounting and PostgreSQL persistence remain uncommissioned.
    - Next action: create the ignored secret file on the backend host, deploy
      the Compose stack and run a read-only A44 import for a configured test
      zone.
@@ -59,7 +62,8 @@ production addresses, customer inventory or actual configuration values.
   normalisation.
 - Idempotent PostgreSQL `dam_price` upsert and `gridex-data market fetch-a44`
   CLI command.
-- Offline request tests; no real security token is committed or used by tests.
+- Offline request tests and one read-only live A44 CLI test; no real security
+  token is committed or used by tests.
 
 ## Resume instruction / Инструкция при продължаване
 

@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 
 import httpx
 
+from gridex_data.cli import build_parser
 from gridex_data.market.entsoe import (
     DayAheadPriceRequest,
     EntsoeClient,
@@ -60,3 +61,13 @@ class EntsoeClientTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(EntsoeRequestError) as raised:
             await client.fetch_a44(self.request())
         self.assertEqual("ENTSO-E returned HTTP 401", str(raised.exception))
+
+
+class CliParserTest(unittest.TestCase):
+    def test_market_a44_command_parses(self) -> None:
+        args = build_parser().parse_args(
+            ["market", "fetch-a44", "--zone-eic", "10YTEST----------X"]
+        )
+        self.assertEqual("market", args.command)
+        self.assertEqual("fetch-a44", args.market_command)
+        self.assertEqual("10YTEST----------X", args.zone_eic)
