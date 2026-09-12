@@ -51,3 +51,26 @@ Bulgarian section where practical. When an architecture or data path changes,
 update the related diagrams/docs in the same task. Keep permanent project rules
 in this file, temporary progress in `CODEX_STATE.md`, and incomplete work in
 `HANDOFF.md`.
+
+## Mandatory Pull Request workflow / Задължителен Pull Request процес
+
+- Every completed change set must be committed on a named branch, pushed to
+  `origin` and given a Pull Request before it is reported as ready for review.
+- Target `main` unless an explicitly documented dependency requires another
+  base branch. State the scope, tests, operational limits and deployment work
+  still required in the Pull Request.
+- Never merge automatically. Report the URL and await the project owner's
+  review/merge decision.
+- If GitHub permissions or an API error prevent PR creation, record the branch,
+  commit SHA and exact blocker in `CODEX_STATE.md` and `HANDOFF.md`.
+
+- Всяка завършена промяна се commit-ва в именуван branch, push-ва се към
+  `origin` и получава Pull Request, преди да бъде докладвана като готова за
+  review.
+- Целта е `main`, освен ако изрично документирана зависимост не изисква друга
+  base branch. В Pull Request-а се описват обхватът, тестовете, оперативните
+  ограничения и оставащата deployment работа.
+- Не merge-вай автоматично. Докладвай URL и изчакай review/merge решение на
+  собственика на проекта.
+- Ако GitHub права или API грешка блокират създаването на PR, запиши branch-а,
+  commit SHA и точното препятствие в `CODEX_STATE.md` и `HANDOFF.md`.

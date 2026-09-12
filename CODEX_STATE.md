@@ -28,6 +28,8 @@ data-services worker without storing the upstream token in Git.
 - Fixed the market CLI parser and verified a live read-only ENTSO-E A44 import
   through `gridex-data`: 288 normalised 15-minute points were fetched without
   database persistence or token output.
+- Added a mandatory Pull Request workflow to `AGENTS.md`: each completed
+  change must be pushed and opened for review, but never merged automatically.
 
 ## Remaining
 
@@ -35,6 +37,7 @@ data-services worker without storing the upstream token in Git.
   creation for the data-services worker.
 - Add further fixtures and the full test suite required by the handoff.
 - Validate against the target Python 3.12, Ruff, MyPy, Pytest and Docker Compose.
+- Review the Pull Request for this backend branch before any merge decision.
 
 ## Tests
 
@@ -51,6 +54,6 @@ data-services worker without storing the upstream token in Git.
 
 ## Next action
 
-Read `HANDOFF.md`, then implement asset discovery and scheduled A44 refresh.
-Validate the Compose runtime on the Windows 11 backend before opening a pull
-request.
+Review the Pull Request for this branch first. Then read `HANDOFF.md` and
+implement asset discovery and scheduled A44 refresh. Validate the Compose
+runtime on the Windows 11 backend before commissioning.
