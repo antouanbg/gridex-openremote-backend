@@ -39,6 +39,13 @@ export function loadConfig(env = process.env) {
     configurationWorkerPollMs: integer(env.GRIDEX_CONFIG_WORKER_POLL_MS, 2000),
     configurationWorkerLeaseSeconds: integer(env.GRIDEX_CONFIG_WORKER_LEASE_SECONDS, 60),
     configurationWorkerMaximumAttempts: integer(env.GRIDEX_CONFIG_WORKER_MAX_ATTEMPTS, 8),
+    mqttUrl: env.GRIDEX_MQTT_URL || "",
+    mqttUsername: env.GRIDEX_MQTT_USERNAME || "",
+    mqttPassword: env.GRIDEX_MQTT_PASSWORD || "",
+    mqttClientId: env.GRIDEX_MQTT_CLIENT_ID || "gridex-edge-health-worker",
+    mqttTopicPrefix: env.GRIDEX_MQTT_TOPIC_PREFIX || "gridex/v1",
+    edgeHealthStaleSeconds: integer(env.GRIDEX_EDGE_HEALTH_STALE_SECONDS, 30),
+    edgeHealthOfflineSeconds: integer(env.GRIDEX_EDGE_HEALTH_OFFLINE_SECONDS, 90),
   };
 }
 
