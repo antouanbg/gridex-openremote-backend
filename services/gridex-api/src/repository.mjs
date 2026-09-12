@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationUrl = new URL("../migrations/001_gridex_core.sql", import.meta.url);
+const migrationsUrl = new URL("../migrations/", import.meta.url);
 
 const siteRow = (row) => ({
   id: row.id,
@@ -45,8 +45,12 @@ export class PostgresRepository {
   }
 
   async migrate() {
-    const sql = await readFile(fileURLToPath(migrationUrl), "utf8");
-    await this.pool.query(sql);
+    const directory = fileURLToPath(migrationsUrl);
+    const migrations = (await readdir(directory)).filter((name) => /^\d+_.+\.sql$/.test(name)).sort();
+    for (const name of migrations) {
+      const sql = await readFile(new URL(name, migrationsUrl), "utf8");
+      await this.pool.query(sql);
+    }
   }
 
   async close() { await this.pool.end(); }
@@ -185,9 +189,9 @@ export class PostgresRepository {
   }
 
   async getSiteConfiguration(siteId, section) {
-    const { rows } = await this.pool.query(`SELECT revision,configuration FROM site_configurations
+    const { rows } = await this.pool.query(`SELECT id,revision,configuration,status,validation,simulation_result,openremote_sync_state,openremote_applied_revision FROM site_configurations
       WHERE site_id=$1 AND section=$2 ORDER BY revision DESC LIMIT 1`, [siteId, section]);
-    return rows[0] ? { revision: rows[0].revision, configuration: rows[0].configuration } : { revision: 0, configuration: {} };
+    return rows[0] ? { id:rows[0].id, revision:rows[0].revision, configuration:rows[0].configuration, status:rows[0].status, validation:rows[0].validation, simulation:rows[0].simulation_result, openRemoteSync:{state:rows[0].openremote_sync_state,appliedRevision:rows[0].openremote_applied_revision} } : { revision: 0, configuration: {}, status:"draft", validation:{valid:false,errors:[],warnings:[]}, openRemoteSync:{state:"not_requested"} };
   }
 
   async saveSiteConfiguration(siteId, section, configuration, expectedRevision, subject) {
@@ -197,13 +201,44 @@ export class PostgresRepository {
       await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`${siteId}:${section}`]);
       const current = await client.query("SELECT COALESCE(MAX(revision),0) AS revision FROM site_configurations WHERE site_id=$1 AND section=$2", [siteId, section]);
       if (Number(current.rows[0].revision) !== expectedRevision) throw new ApiError(412, "stale_revision", "The site configuration has changed.");
-      await client.query("UPDATE site_configurations SET status='superseded' WHERE site_id=$1 AND section=$2 AND status='active'", [siteId, section]);
       const revision = expectedRevision + 1;
-      await client.query(`INSERT INTO site_configurations(id,site_id,section,revision,configuration,status,created_by)
-        VALUES($1,$2,$3,$4,$5::jsonb,'active',$6)`, [randomUUID(), siteId, section, revision, JSON.stringify(configuration), subject]);
+      await client.query(`INSERT INTO site_configurations(id,site_id,section,revision,base_revision,configuration,status,created_by)
+        VALUES($1,$2,$3,$4,$5,$6::jsonb,'draft',$7)`, [randomUUID(), siteId, section, revision, expectedRevision, JSON.stringify(configuration), subject]);
       await client.query("COMMIT");
-      return { revision, configuration };
+      return { revision, configuration, status:"draft", validation:{valid:false,errors:[],warnings:[]}, openRemoteSync:{state:"not_requested"} };
     } catch (error) { await client.query("ROLLBACK"); throw error; }
+    finally { client.release(); }
+  }
+
+  async setConfigurationValidation(siteId, section, revision, validation) {
+    const status = validation.valid ? "validated" : "invalid";
+    const { rows } = await this.pool.query(`UPDATE site_configurations SET validation=$4::jsonb,status=$5,updated_at=now()
+      WHERE site_id=$1 AND section=$2 AND revision=$3 RETURNING id,revision,status,validation`, [siteId,section,revision,JSON.stringify(validation),status]);
+    if (!rows[0]) throw new ApiError(404,"configuration_not_found","The configuration revision was not found.");
+    return rows[0];
+  }
+
+  async setConfigurationSimulation(siteId, section, revision, simulation) {
+    const { rows } = await this.pool.query(`UPDATE site_configurations SET simulation_result=$4::jsonb,status='ready',updated_at=now()
+      WHERE site_id=$1 AND section=$2 AND revision=$3 AND validation->>'valid'='true' RETURNING simulation_result`, [siteId,section,revision,JSON.stringify(simulation)]);
+    if (!rows[0]) throw new ApiError(409,"configuration_validation_required","The validated configuration revision was not found.");
+    return rows[0].simulation_result;
+  }
+
+  async requestConfigurationActivation(siteId, section, revision, simulationId, idempotencyKey, subject) {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query(`SELECT * FROM site_configurations WHERE site_id=$1 AND section=$2 AND revision=$3 FOR UPDATE`, [siteId,section,revision]);
+      const item=rows[0];
+      if (!item || item.status!=="ready" || item.simulation_result?.simulationId!==simulationId) throw new ApiError(409,"configuration_simulation_required","A completed simulation for this revision is required.");
+      const payload={siteId,section,revision,configuration:item.configuration,requestedBy:subject};
+      await client.query(`INSERT INTO configuration_outbox(id,site_id,configuration_id,operation,payload,idempotency_key)
+        VALUES($1,$2,$3,'apply',$4::jsonb,$5) ON CONFLICT(idempotency_key) DO NOTHING`,[randomUUID(),siteId,item.id,JSON.stringify(payload),idempotencyKey]);
+      await client.query("UPDATE site_configurations SET status='activating',openremote_sync_state='pending',updated_at=now() WHERE id=$1",[item.id]);
+      await client.query("COMMIT");
+      return {id:item.id,siteId,section,revision,status:"activating",openRemoteSync:{state:"pending"}};
+    } catch(error) { await client.query("ROLLBACK"); throw error; }
     finally { client.release(); }
   }
 
@@ -453,12 +488,15 @@ export class MemoryRepository {
     const result = { id: randomUUID(), siteId, revision: (previous?.configuration?.revision || 0) + 1, status: "draft" };
     this.topologies.set(siteId, { configuration: result, gateways: input.gateways || [], devices: await this.listDevices(siteId) }); return result;
   }
-  async getSiteConfiguration(siteId, section) { return this.configurations.get(`${siteId}:${section}`) || { revision: 0, configuration: {} }; }
+  async getSiteConfiguration(siteId, section) { return this.configurations.get(`${siteId}:${section}`) || { revision: 0, configuration: {}, status:"draft", validation:{valid:false,errors:[],warnings:[]}, openRemoteSync:{state:"not_requested"} }; }
   async saveSiteConfiguration(siteId, section, configuration, expectedRevision) {
     const current = await this.getSiteConfiguration(siteId, section);
     if (current.revision !== expectedRevision) throw new ApiError(412, "stale_revision", "The site configuration has changed.");
-    const next = { revision: expectedRevision + 1, configuration }; this.configurations.set(`${siteId}:${section}`, next); return next;
+    const next = { id:randomUUID(), revision: expectedRevision + 1, configuration, status:"draft", validation:{valid:false,errors:[],warnings:[]}, openRemoteSync:{state:"not_requested"} }; this.configurations.set(`${siteId}:${section}`, next); return next;
   }
+  async setConfigurationValidation(siteId,section,revision,validation){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision)throw new ApiError(404,"configuration_not_found","The configuration revision was not found.");item.validation=validation;item.status=validation.valid?"validated":"invalid";return item;}
+  async setConfigurationSimulation(siteId,section,revision,simulation){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision||!item.validation.valid)throw new ApiError(409,"configuration_validation_required","Validate first.");item.simulation=simulation;item.status="ready";return simulation;}
+  async requestConfigurationActivation(siteId,section,revision,simulationId,idempotencyKey){const item=await this.getSiteConfiguration(siteId,section);if(item.revision!==revision||item.status!=="ready"||item.simulation?.simulationId!==simulationId)throw new ApiError(409,"configuration_simulation_required","Simulate first.");item.status="activating";item.openRemoteSync={state:"pending",idempotencyKey};return{id:item.id,siteId,section,revision,status:item.status,openRemoteSync:item.openRemoteSync};}
   async getTopology(siteId) { return this.topologies.get(siteId) || { configuration: null, gateways: [], devices: await this.listDevices(siteId) }; }
   async getDailyBatteryEconomics() { return { available: false }; }
   async getActiveStrategy(siteId) { return (this.strategies.get(siteId) || []).find((item) => item.lifecycle === "active") || null; }

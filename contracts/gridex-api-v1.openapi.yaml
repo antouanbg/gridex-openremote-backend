@@ -70,12 +70,28 @@ paths:
     parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/ConfigurationSection" }]
     get:
       operationId: getSiteConfiguration
-      responses: { "200": { description: Current section and revision } }
+      responses: { "200": { description: Latest section draft/version, validation and OpenRemote sync state } }
     put:
       operationId: updateSiteConfiguration
       parameters: [{ $ref: "#/components/parameters/IfMatch" }]
       requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
-      responses: { "200": { description: Updated configuration }, "412": { $ref: "#/components/responses/StaleRevision" } }
+      responses: { "200": { description: Draft saved; OpenRemote is unchanged }, "412": { $ref: "#/components/responses/StaleRevision" } }
+  /sites/{siteId}/configurations/{section}/validate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/ConfigurationSection" }]
+    post:
+      operationId: validateConfiguration
+      responses: { "200": { description: Stored field-path validation result } }
+  /sites/{siteId}/configurations/{section}/simulate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/ConfigurationSection" }]
+    post:
+      operationId: simulateConfiguration
+      responses: { "202": { description: Simulation result for the validated revision } }
+  /sites/{siteId}/configurations/{section}/activate:
+    parameters: [{ $ref: "#/components/parameters/SiteId" }, { $ref: "#/components/parameters/ConfigurationSection" }, { $ref: "#/components/parameters/IdempotencyKey" }]
+    post:
+      operationId: activateConfiguration
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [revision, simulationId], properties: { revision: { type: integer }, simulationId: { type: string, format: uuid } } } } } }
+      responses: { "202": { description: Transactional outbox activation queued }, "409": { description: Validation or simulation prerequisite missing }, "423": { description: Commissioning write lock is closed } }
   /sites/{siteId}/snapshot:
     parameters: [{ $ref: "#/components/parameters/SiteId" }]
     get:
@@ -144,11 +160,12 @@ components:
     DeviceId: { name: deviceId, in: path, required: true, schema: { type: string, format: uuid } }
     DraftId: { name: draftId, in: path, required: true, schema: { type: string, format: uuid } }
     IfMatch: { name: If-Match, in: header, required: true, description: Current numeric revision, schema: { type: integer, minimum: 0 } }
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, minLength: 16, maxLength: 128 } }
     ConfigurationSection:
       name: section
       in: path
       required: true
-      schema: { type: string, enum: [battery-asset, tariff, forecast, grid, evse, notifications, trader-schedule, balancing] }
+      schema: { type: string, enum: [site, pv, battery_pcs, metering_grid, market_tariffs, forecast, strategy, loads_ev, edge_devices, notifications_access] }
   responses:
     StaleRevision: { description: Configuration was changed by another request }
   schemas:

@@ -116,6 +116,23 @@ test("stores per-user preferences with optimistic revision control", async () =>
   });
 });
 
+test("configuration lifecycle stores a draft before OpenRemote activation", async () => {
+  const repository = new MemoryRepository({ sites:[site], memberships:[{subject:"user-1",organisationId:site.organisationId}] });
+  const app = createApp({config:baseConfig,authenticate:async()=>principal,repository,openRemote:{health:async()=>true}});
+  await withServer(app,async(baseUrl)=>{
+    const path=`${baseUrl}/api/v1/sites/${site.id}/configurations/site`;
+    const headers={Authorization:"Bearer test",Origin:"https://portal.example.invalid","Content-Type":"application/json"};
+    const saved=await fetch(path,{method:"PUT",headers:{...headers,"If-Match":"0"},body:JSON.stringify({name:"Plant",siteCode:"SITE-001",countryCode:"BG",timezone:"Europe/Sofia",marketCode:"IBEX",latitude:42.7,longitude:23.3})});
+    assert.equal(saved.status,200); assert.equal((await saved.json()).status,"draft");
+    const validated=await fetch(`${path}/validate`,{method:"POST",headers});
+    assert.equal(validated.status,200); assert.equal((await validated.json()).valid,true);
+    const simulated=await fetch(`${path}/simulate`,{method:"POST",headers});
+    assert.equal(simulated.status,202); const simulation=await simulated.json();
+    const activated=await fetch(`${path}/activate`,{method:"POST",headers:{...headers,"Idempotency-Key":"configuration-test-001"},body:JSON.stringify({revision:1,simulationId:simulation.simulationId})});
+    assert.equal(activated.status,202); assert.equal((await activated.json()).openRemoteSync.state,"pending");
+  });
+});
+
 test("creates a canonical strategy draft with economic loss protection", async () => {
   const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
   const openRemote = { health: async () => true };

@@ -6,8 +6,9 @@ import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
+import { CONFIGURATION_SECTIONS, validateConfiguration } from "./configuration-centre.mjs";
 
-const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
+const CONFIGURATION_SECTION_SET = new Set(CONFIGURATION_SECTIONS);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
   code,
   label: { en: code.split("_").map((part) => part[0].toUpperCase() + part.slice(1)).join(" "), bg: code },
@@ -180,25 +181,60 @@ export function createApp({ config, authenticate, repository, openRemote }) {
         return json(res, 201, result, context);
       }
 
-      const configurationRoute = suffix.match(/^\/configurations\/([^/]+)$/);
+      const configurationRoute = suffix.match(/^\/configurations\/([^/]+)(\/(?:validate|simulate|activate))?$/);
       if (configurationRoute && req.method === "GET") {
         requirePermission(principal, "site:read");
         const section = decodeURIComponent(configurationRoute[1]);
-        if (!CONFIGURATION_SECTIONS.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
+        if (!CONFIGURATION_SECTION_SET.has(section) || configurationRoute[2]) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
         return json(res, 200, { section, ...(await repository.getSiteConfiguration(site.id, section)) }, context);
       }
 
-      if (configurationRoute && req.method === "PUT") {
+      if (configurationRoute && req.method === "PUT" && !configurationRoute[2]) {
         requirePermission(principal, "configuration:manage");
         if (!config.writesEnabled) throw new ApiError(423, "writes_locked", "Configuration writes are locked until commissioning.");
         const section = decodeURIComponent(configurationRoute[1]);
-        if (!CONFIGURATION_SECTIONS.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
+        if (!CONFIGURATION_SECTION_SET.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
         const body = await readJson(req, config.maximumBodyBytes);
         const configuration = body.configuration && typeof body.configuration === "object" ? body.configuration : body;
         const updated = await repository.saveSiteConfiguration(site.id, section, configuration, expectedRevision(req), principal.subject);
         await repository.audit({ principal, siteId, action: "site.configuration.updated", resourceType: "site_configuration", resourceId: section, result: "success", requestId, details: { revision: updated.revision } });
         res.setHeader("ETag", String(updated.revision));
         return json(res, 200, { section, ...updated }, context);
+      }
+
+      if (configurationRoute && req.method === "POST" && configurationRoute[2] === "/validate") {
+        requirePermission(principal, "configuration:manage");
+        const section = decodeURIComponent(configurationRoute[1]);
+        if (!CONFIGURATION_SECTION_SET.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
+        const current = await repository.getSiteConfiguration(site.id, section);
+        const validation = validateConfiguration(section, current.configuration);
+        await repository.setConfigurationValidation(site.id, section, current.revision, validation);
+        return json(res, 200, validation, context);
+      }
+
+      if (configurationRoute && req.method === "POST" && configurationRoute[2] === "/simulate") {
+        requirePermission(principal, "configuration:manage");
+        const section = decodeURIComponent(configurationRoute[1]);
+        if (!CONFIGURATION_SECTION_SET.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
+        const current = await repository.getSiteConfiguration(site.id, section);
+        if (!current.validation?.valid) throw new ApiError(409, "configuration_validation_required", "Validate the current configuration before simulation.");
+        const simulation = await repository.setConfigurationSimulation(site.id, section, current.revision, {
+          simulationId: randomUUID(), status: "completed", createdAt: new Date().toISOString(),
+        });
+        return json(res, 202, simulation, context);
+      }
+
+      if (configurationRoute && req.method === "POST" && configurationRoute[2] === "/activate") {
+        requirePermission(principal, "configuration:manage");
+        if (!config.writesEnabled) throw new ApiError(423, "writes_locked", "Configuration activation is locked until commissioning.");
+        const idempotencyKey = req.headers["idempotency-key"]?.toString();
+        if (!idempotencyKey) throw new ApiError(428, "idempotency_key_required", "Idempotency-Key is required for activation.");
+        const section = decodeURIComponent(configurationRoute[1]);
+        if (!CONFIGURATION_SECTION_SET.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
+        const body = await readJson(req, config.maximumBodyBytes);
+        const result = await repository.requestConfigurationActivation(site.id, section, Number(body.revision), body.simulationId, idempotencyKey, principal.subject);
+        await repository.audit({ principal, siteId, action: "site.configuration.activation_requested", resourceType: "site_configuration", resourceId: result.id, result: "success", requestId, details: { section, revision: result.revision } });
+        return json(res, 202, result, context);
       }
 
       if (req.method === "GET" && suffix === "/strategy") {
