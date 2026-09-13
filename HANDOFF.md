@@ -2,6 +2,87 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Prioritized work possible before the backend host exists / Приоритизирана работа преди наличието на backend машина
+
+The numbered work below may be implemented, reviewed and tested locally or in
+CI without a Windows 11 backend host, live credentials, live OpenRemote or a
+private MQTT broker. It must not be reported as commissioned until the separate
+deployment evidence exists.
+
+Посочената по-долу номерирана работа може да се имплементира, прегледа и
+тества локално или в CI без Windows 11 backend машина, реални credentials,
+live OpenRemote или private MQTT broker. Тя не трябва да се отчита като
+commissioned преди отделните deployment доказателства.
+
+1. **Approve the telemetry recovery v1 contract / Одобряване на telemetry recovery v1 договора**
+   - Repository: coordinated `antouanbg/gridex-edge-gateway` and
+     `antouanbg/gridex-openremote-backend` work.
+   - Output: approved record identity, acknowledgement, retention and rejection
+     rules in `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
+   - Next action: owner review; no code is enabled by approval alone.
+
+2. **GrideX PostgreSQL/Timescale migrations / GrideX PostgreSQL/Timescale миграции**
+   - Repository: `antouanbg/gridex-openremote-backend`.
+   - Output: versioned SQL migrations for tenancy, Sites, configurations,
+     telemetry, alarms, audit and journal-record deduplication, with rollback
+     and fixture tests.
+   - Next action: implement migrations against a local disposable database or
+     SQL parser test harness; do not require production values.
+
+3. **GrideX API contracts, validation and authorization tests / GrideX API договори, validation и authorization тестове**
+   - Repository: `antouanbg/gridex-openremote-backend`.
+   - Output: stable frontend DTOs, configuration revisions, audit events,
+     tenant/role middleware and mock Keycloak claims tests.
+   - Next action: implement API routes and validators with test doubles only.
+
+4. **OpenRemote asset adapter and outbox tests / OpenRemote asset adapter и outbox тестове**
+   - Repository: `antouanbg/gridex-openremote-backend`.
+   - Output: Asset blueprints, attribute mappings, idempotent outbox model and
+     mocked REST contract tests for inverter, battery, meter and EVSE Assets.
+   - Next action: implement the adapter without an actual OpenRemote endpoint.
+
+5. **Journal recovery ingestion worker / Journal recovery ingestion worker**
+   - Repository: `antouanbg/gridex-openremote-backend`, coordinated with Edge.
+   - Output: parser, authentication boundary, PostgreSQL deduplication and ACK
+     state machine with duplicate, restart, reordered and outage test fixtures.
+   - Next action: implement only after item 1 is approved; no live MQTT
+     connection, command subscription or device control is included.
+
+6. **Edge journal exporter contract implementation / Edge journal exporter implementation**
+   - Repository: `antouanbg/gridex-edge-gateway`.
+   - Output: durable `recordId`, bounded export checkpoint and outbound-only
+     export client tested against a fake broker/ACK fixture.
+   - Next action: coordinate its schema fixtures with item 5; do not deploy it
+     to ROCK Pi before private MQTT commissioning.
+
+7. **Forecasting and optimisation foundation / Основа за forecasting и optimisation**
+   - Repository: `antouanbg/gridex-openremote-backend`.
+   - Output: model-selection contract, market/weather/PV/load fixtures,
+     96 × 15-minute schedule model and tests for “do not sell at a loss”.
+   - Next action: use fixtures and the published IBEX model interface; defer
+     live supplier calls and schedule activation.
+
+8. **Docker, Windows and secret templates / Docker, Windows и secret templates**
+   - Repository: `antouanbg/gridex-openremote-backend`.
+   - Output: Compose validation, healthchecks, volumes, `.env.example`, Docker
+     Secret templates and PowerShell deployment/rollback/backup runbooks.
+   - Next action: validate syntax locally; do not add actual secrets or run
+     production containers.
+
+9. **Automated quality and security checks / Автоматични quality и security проверки**
+   - Repository: all three GrideX repositories where relevant.
+   - Output: CI lint, unit/contract tests, Compose validation, secret scan and
+     documentation-link checks.
+   - Next action: add repository-local checks with fixtures only.
+
+## Blocked until the Windows 11 backend is available / Блокирано до наличието на Windows 11 backend
+
+- Docker service startup and health evidence.
+- Real PostgreSQL/Timescale migrations and backup/restore proof.
+- Real Keycloak login, OpenRemote Asset synchronization and private MQTT TLS.
+- WireGuard peer provisioning and Site Router firewall verification.
+- End-to-end ROCK Pi → broker → database → OpenRemote → frontend evidence.
+
 ## English
 
 ### Planned: local telemetry journal recovery ingestion
