@@ -31,6 +31,7 @@ Pi. С тази задача не се имплементира source code за
 - `HANDOFF.md`
 - `CODEX_STATE.md`
 - `docs/integration-flow.md`
+- `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`
 
 ## Tests
 

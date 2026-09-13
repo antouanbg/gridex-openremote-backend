@@ -23,6 +23,7 @@ treated as journal recovery.
   tested; records are retained in PostgreSQL with audit fields; only approved
   live summaries reach OpenRemote; no MQTT command subscription or device
   control path is introduced.
+- Contract draft: `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
 - Exact next action: agree the versioned export/acknowledgement contract with
   `antouanbg/gridex-edge-gateway`, then implement the PostgreSQL deduplication
   migration and recovery ingestion worker in a separate backend Pull Request.
@@ -48,6 +49,7 @@ Local NDJSON журналът на ROCK Pi е внедрен и ограниче
   restart случаи; записите се пазят в PostgreSQL с audit полета; само одобрени
   live summaries достигат OpenRemote; не се добавя MQTT command subscription
   или device control path.
+- Чернова на договора: `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
 - Точно следващо действие: договори versioned export/acknowledgement договора
   с `antouanbg/gridex-edge-gateway`, после имплементирай PostgreSQL
   deduplication migration и recovery ingestion worker в отделен backend Pull
