@@ -14,9 +14,27 @@ deployment evidence exists.
 live OpenRemote или private MQTT broker. Тя не трябва да се отчита като
 commissioned преди отделните deployment доказателства.
 
+## Progress statistics / Статистика на напредъка
+
+**Baseline:** 9 pre-deployment tasks. **Completed:** 0 (0%). **In review:** 1
+(item 1). **Queued:** 8 (items 2–9). **Blocked within this numbered backlog:**
+0. The separate Windows-host commissioning items remain blocked outside this
+count. Last updated: 2026-09-13.
+
+**База:** 9 pre-deployment задачи. **Изпълнени:** 0 (0%). **В преглед:** 1
+(точка 1). **Чакащи:** 8 (точки 2–9). **Блокирани в този номериран backlog:**
+0. Отделните commissioning точки за Windows машината остават блокирани извън
+този брой. Последно обновяване: 2026-09-13.
+
 1. **Approve the telemetry recovery v1 contract / Одобряване на telemetry recovery v1 договора**
    - Repository: coordinated `antouanbg/gridex-edge-gateway` and
      `antouanbg/gridex-openremote-backend` work.
+   - Status: **in review**. The bilingual contract draft exists in both
+     repositories and was reviewed for no secrets, no public route and no
+     device-control path; the owner approval is still required.
+   - Статус: **в преглед**. Двуезичната чернова на договора съществува и в
+     двете repository-та и е прегледана за липса на secrets, public route и
+     device-control path; все още е нужно одобрение от собственика.
    - Output: approved record identity, acknowledgement, retention and rejection
      rules in `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md`.
    - Next action: owner review; no code is enabled by approval alone.

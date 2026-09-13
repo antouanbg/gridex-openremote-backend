@@ -34,3 +34,19 @@ repository state. Every `HANDOFF.md` must identify its repository directly
 under the title as `Repository / GitHub: <owner>/<repository>` and be updated
 for every incomplete, untested, deployment-blocked or commissioning-blocked
 item.
+
+## Priority backlog accounting / Отчетност за приоритетния backlog
+
+For every numbered HANDOFF backlog, maintain a visible count of completed,
+in-review, queued and blocked items. Change a task to completed only when its
+listed acceptance evidence exists; a draft, a Pull Request or an approved plan
+is not implementation completion. Update the count, task status, evidence,
+repository, Pull Request/commit where applicable, tests and exact next action
+whenever work starts, changes status or ends.
+
+За всеки номериран HANDOFF backlog поддържай видим брой изпълнени, в преглед,
+чакащи и блокирани точки. Отбелязвай задача като изпълнена само когато има
+описаните приемателни доказателства; чернова, Pull Request или одобрен план не
+са завършена имплементация. Обновявай броя, статуса, доказателствата,
+repository-то, Pull Request/commit-а при нужда, тестовете и точното следващо
+действие при започване, промяна на статус или приключване.

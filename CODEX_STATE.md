@@ -2,12 +2,13 @@
 
 ## Current task
 
-Prioritize and document backend work that can be completed before the Windows
-11 backend host is available. No runtime service is implemented by this task.
+Maintain strict priority-backlog statistics and put item 1, the telemetry
+recovery v1 contract, into owner review. No runtime service is implemented by
+this task.
 
-Приоритизирай и документирай backend работата, която може да се завърши преди
-Windows 11 backend машината да е налична. С тази задача не се имплементира
-runtime услуга.
+Поддържай строга статистика за приоритетния backlog и постави точка 1,
+telemetry recovery v1 договора, в owner review. С тази задача не се
+имплементира runtime услуга.
 
 ## Completed
 
@@ -15,19 +16,22 @@ runtime услуга.
   export and backend recovery-ingestion work.
 - Added an ordered pre-deployment backlog, separating local/CI implementation
   work from Windows-host-dependent commissioning.
+- Added strict task statistics and marked item 1 as in review, not completed.
 
 - Добавен е трайният, специфичен за repository-то handoff запис за
   координираните Edge export и backend recovery-ingestion задачи.
 - Добавен е подреден pre-deployment backlog, който разделя local/CI
   имплементацията от commissioning, зависещ от Windows машината.
+- Добавена е строга task статистика и точка 1 е отбелязана като в преглед, а
+  не като изпълнена.
 
 ## Remaining
 
-- Execute the numbered HANDOFF items in priority order, beginning with owner
-  approval of the versioned export/acknowledgement contract.
+- Obtain the owner decision for item 1, then update the statistics before
+  beginning item 2.
 
-- Изпълнявай номерираните HANDOFF точки по важност, като започнеш с owner
-  approval на versioned export/acknowledgement договора.
+- Получи решение от собственика за точка 1, после обнови статистиката преди
+  началото на точка 2.
 
 ## Modified files
 
@@ -46,13 +50,13 @@ runtime услуга.
 
 ## Next action
 
-Create the coordinated Edge and backend implementation Pull Requests only after
-the versioned record identity and acknowledgement contract are approved; then
-start the PostgreSQL/Timescale migration foundation.
+Record the owner decision for item 1. If approved, mark it approved-but-not-
+implemented, keep completed at zero, and start the PostgreSQL/Timescale
+migration foundation as item 2.
 
-Създай координираните Edge и backend implementation Pull Request-и едва след
-одобрение на versioned record identity и acknowledgement договора; след това
-започни с PostgreSQL/Timescale migration основата.
+Запиши решението на собственика за точка 1. Ако е одобрена, отбележи я като
+одобрена, но неимплементирана, запази изпълнените на нула и започни
+PostgreSQL/Timescale migration основата като точка 2.
 
 ## Last updated
 
