@@ -1,0 +1,178 @@
+version: 1
+description: Canonical ownership matrix for GrideX configuration and live read-only fields.
+legend:
+  postgresql: Canonical durable configuration in GrideX PostgreSQL.
+  openremote: Allow-listed Asset attribute, or null when the field is not projected.
+  edge: none, config, driver, or runtime.
+  readOnly: True when the portal may display but never edit the value.
+sections:
+  site:
+    - { field: name, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: siteCode, postgresql: true, openremote: gridexSiteCode, edge: config, readOnly: false }
+    - { field: countryCode, postgresql: true, openremote: countryCode, edge: none, readOnly: false }
+    - { field: latitude, postgresql: true, openremote: location, edge: none, readOnly: false }
+    - { field: longitude, postgresql: true, openremote: location, edge: none, readOnly: false }
+    - { field: timezone, postgresql: true, openremote: timezone, edge: config, readOnly: false }
+    - { field: marketCode, postgresql: true, openremote: marketCode, edge: none, readOnly: false }
+    - { field: marketParticipationEnabled, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: traderName, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: importScheduleCode, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: exportScheduleCode, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: settlementIntervalMinutes, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: openRemoteSiteAssetId, postgresql: true, openremote: binding, edge: none, readOnly: true }
+  pv:
+    - { field: "arrays[].id", postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: "arrays[].name", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: "arrays[].enabled", postgresql: true, openremote: configurationEnabled, edge: config, readOnly: false }
+    - { field: "arrays[].orientationProfile", postgresql: true, openremote: configurationOrientationProfile, edge: none, readOnly: false }
+    - { field: "arrays[].mountingType", postgresql: true, openremote: configurationMountingType, edge: none, readOnly: false }
+    - { field: "arrays[].trackingType", postgresql: true, openremote: configurationTrackingType, edge: config, readOnly: false }
+    - { field: "arrays[].moduleLayout", postgresql: true, openremote: configurationModuleLayout, edge: config, readOnly: false }
+    - { field: "arrays[].dcKwp", postgresql: true, openremote: configurationDcKwp, edge: none, readOnly: false }
+    - { field: "arrays[].tiltDeg", postgresql: true, openremote: configurationTiltDeg, edge: none, readOnly: false }
+    - { field: "arrays[].azimuthDeg", postgresql: true, openremote: configurationAzimuthDeg, edge: none, readOnly: false }
+    - { field: "arrays[].eastWestSplitPct.east", postgresql: true, openremote: configurationEastSharePct, edge: none, readOnly: false }
+    - { field: "arrays[].eastWestSplitPct.west", postgresql: true, openremote: configurationWestSharePct, edge: none, readOnly: false }
+    - { field: "arrays[].performanceRatio", postgresql: true, openremote: configurationPerformanceRatio, edge: none, readOnly: false }
+    - { field: "arrays[].temperatureCoefficientPctPerC", postgresql: true, openremote: configurationTemperatureCoefficientPctPerC, edge: none, readOnly: false }
+    - { field: "arrays[].shadingLossPct", postgresql: true, openremote: configurationShadingLossPct, edge: none, readOnly: false }
+    - { field: "arrays[].latitude", postgresql: true, openremote: configurationLatitudeOverride, edge: none, readOnly: false }
+    - { field: "arrays[].longitude", postgresql: true, openremote: configurationLongitudeOverride, edge: none, readOnly: false }
+    - { field: "arrays[].inverterDeviceId", postgresql: true, openremote: configurationInverterDeviceId, edge: config, readOnly: false }
+    - { field: "arrays[].openRemoteAssetId", postgresql: true, openremote: binding, edge: none, readOnly: true }
+    - { field: "arrays[].actualPowerKw", postgresql: false, openremote: actualPowerKw, edge: runtime, readOnly: true }
+  battery_pcs:
+    - { field: id, postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: systemType, postgresql: true, openremote: configurationSystemType, edge: driver, readOnly: false }
+    - { field: coupling, postgresql: true, openremote: configurationCoupling, edge: config, readOnly: false }
+    - { field: manufacturer, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: model, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: pcsManufacturer, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: pcsModel, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: usableCapacityKwh, postgresql: true, openremote: configurationUsableCapacityKwh, edge: config, readOnly: false }
+    - { field: ratedPcsPowerKw, postgresql: true, openremote: configurationRatedPcsPowerKw, edge: config, readOnly: false }
+    - { field: minimumSocPct, postgresql: true, openremote: configurationMinimumSocPct, edge: config, readOnly: false }
+    - { field: maximumSocPct, postgresql: true, openremote: configurationMaximumSocPct, edge: config, readOnly: false }
+    - { field: reserveSocPct, postgresql: true, openremote: configurationReserveSocPct, edge: config, readOnly: false }
+    - { field: chargeEfficiencyPct, postgresql: true, openremote: configurationChargeEfficiencyPct, edge: none, readOnly: false }
+    - { field: dischargeEfficiencyPct, postgresql: true, openremote: configurationDischargeEfficiencyPct, edge: none, readOnly: false }
+    - { field: warrantedCycles, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: assetValueEur, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: residualValueEur, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: usefulLifeMonths, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: gridChargePermitted, postgresql: true, openremote: configurationGridChargePermitted, edge: config, readOnly: false }
+    - { field: batteryExportPermitted, postgresql: true, openremote: configurationBatteryExportPermitted, edge: config, readOnly: false }
+    - { field: depreciationEurPerDay, postgresql: true, openremote: null, edge: none, readOnly: true }
+    - { field: cycleCostEurPerEfc, postgresql: true, openremote: null, edge: none, readOnly: true }
+    - { field: socPct, postgresql: false, openremote: socPct, edge: runtime, readOnly: true }
+    - { field: sohPct, postgresql: false, openremote: sohPct, edge: runtime, readOnly: true }
+    - { field: maxChargeKw, postgresql: false, openremote: maxChargeKw, edge: runtime, readOnly: true }
+    - { field: maxDischargeKw, postgresql: false, openremote: maxDischargeKw, edge: runtime, readOnly: true }
+  metering_grid:
+    - { field: pccMeterDeviceId, postgresql: true, openremote: configurationPccMeterId, edge: config, readOnly: false }
+    - { field: signConvention, postgresql: true, openremote: configurationSignConvention, edge: driver, readOnly: false }
+    - { field: ctRatio, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: vtRatio, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: phaseSequence, postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: maximumImportKw, postgresql: true, openremote: configurationMaximumImportKw, edge: config, readOnly: false }
+    - { field: maximumExportKw, postgresql: true, openremote: configurationMaximumExportKw, edge: config, readOnly: false }
+    - { field: softwareFuseMarginKw, postgresql: true, openremote: configurationSoftwareFuseMarginKw, edge: config, readOnly: false }
+    - { field: zeroExportToleranceKw, postgresql: true, openremote: configurationZeroExportToleranceKw, edge: config, readOnly: false }
+    - { field: meterUnavailableMode, postgresql: true, openremote: configurationMeterUnavailableMode, edge: config, readOnly: false }
+    - { field: fallbackImportLimitKw, postgresql: true, openremote: configurationFallbackImportLimitKw, edge: config, readOnly: false }
+    - { field: fallbackExportLimitKw, postgresql: true, openremote: configurationFallbackExportLimitKw, edge: config, readOnly: false }
+    - { field: "submeters[].id", postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: "submeters[].deviceId", postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: "submeters[].role", postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: livePowerKw, postgresql: false, openremote: powerKw, edge: runtime, readOnly: true }
+  market_tariffs:
+    - { field: currency, postgresql: true, openremote: configurationCurrency, edge: none, readOnly: false }
+    - { field: dayAheadSource, postgresql: true, openremote: configurationDayAheadSource, edge: none, readOnly: false }
+    - { field: validFrom, postgresql: true, openremote: configurationTariffValidFrom, edge: none, readOnly: false }
+    - { field: "components[].type", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: "components[].priceEurPerMwh", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: scheduleEnabled, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: scheduleDeadline, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: scheduleFormat, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: scheduleChannel, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: scheduleRecipient, postgresql: true, openremote: null, edge: none, readOnly: false }
+  forecast:
+    - { field: "priceModels[].modelKey", postgresql: true, openremote: configurationPriceModels, edge: none, readOnly: false }
+    - { field: "priceModels[].weight", postgresql: true, openremote: configurationPriceModels, edge: none, readOnly: false }
+    - { field: weatherProvider, postgresql: true, openremote: configurationWeatherProvider, edge: none, readOnly: false }
+    - { field: pvModel, postgresql: true, openremote: configurationPvModel, edge: none, readOnly: false }
+    - { field: loadModel, postgresql: true, openremote: configurationLoadModel, edge: none, readOnly: false }
+    - { field: horizonHours, postgresql: true, openremote: configurationForecastHorizonHours, edge: none, readOnly: false }
+    - { field: resolutionMinutes, postgresql: true, openremote: configurationForecastResolutionMinutes, edge: none, readOnly: false }
+    - { field: minimumConfidencePct, postgresql: true, openremote: configurationMinimumForecastConfidencePct, edge: none, readOnly: false }
+    - { field: maximumAgeMinutes, postgresql: true, openremote: configurationMaximumForecastAgeMinutes, edge: none, readOnly: false }
+    - { field: fallbackModel, postgresql: true, openremote: configurationForecastFallbackModel, edge: none, readOnly: false }
+    - { field: trainingWindowDays, postgresql: true, openremote: configurationTrainingWindowDays, edge: none, readOnly: false }
+    - { field: erpLoadInputEnabled, postgresql: true, openremote: configurationErpLoadInputEnabled, edge: none, readOnly: false }
+    - { field: erpConnectorId, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: erpLoadField, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: forecastSeries, postgresql: false, openremote: forecastSeries, edge: none, readOnly: true }
+  strategy:
+    - { field: code, postgresql: true, openremote: configurationStrategyCode, edge: config, readOnly: false }
+    - { field: fallbackMode, postgresql: true, openremote: configurationFallbackMode, edge: config, readOnly: false }
+    - { field: controlIntervalSeconds, postgresql: true, openremote: configurationControlIntervalSeconds, edge: config, readOnly: false }
+    - { field: reoptimiseMinutes, postgresql: true, openremote: configurationReoptimiseMinutes, edge: none, readOnly: false }
+    - { field: lossProtection.mode, postgresql: true, openremote: configurationLossProtection, edge: none, readOnly: false }
+    - { field: minimumNetProfitEurPerDay, postgresql: true, openremote: configurationMinimumNetProfitEurPerDay, edge: none, readOnly: false }
+    - { field: minimumNetSpreadEurPerMwh, postgresql: true, openremote: configurationMinimumNetSpreadEurPerMwh, edge: none, readOnly: false }
+    - { field: pvExportFloorEurPerMwh, postgresql: true, openremote: configurationPvExportFloorEurPerMwh, edge: none, readOnly: false }
+    - { field: batteryExportFloorEurPerMwh, postgresql: true, openremote: configurationBatteryExportFloorEurPerMwh, edge: none, readOnly: false }
+    - { field: trackChargeOrigin, postgresql: true, openremote: configurationTrackChargeOrigin, edge: none, readOnly: false }
+    - { field: includeBatteryDegradation, postgresql: true, openremote: configurationIncludeBatteryDegradation, edge: none, readOnly: false }
+    - { field: includeDepreciation, postgresql: true, openremote: configurationIncludeDepreciation, edge: none, readOnly: false }
+    - { field: gridChargePermitted, postgresql: true, openremote: configurationGridChargePermitted, edge: config, readOnly: false }
+    - { field: batteryExportPermitted, postgresql: true, openremote: configurationBatteryExportPermitted, edge: config, readOnly: false }
+    - { field: lowSolarReserveEnabled, postgresql: true, openremote: configurationLowSolarReserveEnabled, edge: config, readOnly: false }
+    - { field: lowSolarThresholdPct, postgresql: true, openremote: configurationLowSolarThresholdPct, edge: none, readOnly: false }
+    - { field: lowSolarReserveSocPct, postgresql: true, openremote: configurationLowSolarReserveSocPct, edge: config, readOnly: false }
+    - { field: requestedPowerKw, postgresql: false, openremote: requestedPowerKw, edge: runtime, readOnly: true }
+    - { field: appliedPowerKw, postgresql: false, openremote: appliedPowerKw, edge: runtime, readOnly: true }
+  loads_ev:
+    - { field: "loads[].id / evse[].id", postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: "[].assetRelationId", postgresql: true, openremote: binding, edge: config, readOnly: false }
+    - { field: "[].priority", postgresql: true, openremote: configurationPriority, edge: config, readOnly: false }
+    - { field: "[].minimumPowerKw", postgresql: true, openremote: configurationMinimumPowerKw, edge: config, readOnly: false }
+    - { field: "[].maximumPowerKw", postgresql: true, openremote: configurationMaximumPowerKw, edge: config, readOnly: false }
+    - { field: "[].availability", postgresql: true, openremote: configurationAvailability, edge: config, readOnly: false }
+    - { field: "[].energyTargetKwh", postgresql: true, openremote: configurationEnergyTargetKwh, edge: config, readOnly: false }
+    - { field: "[].deadline", postgresql: true, openremote: configurationDeadline, edge: config, readOnly: false }
+    - { field: "[].interruptionPolicy", postgresql: true, openremote: configurationInterruptionPolicy, edge: config, readOnly: false }
+    - { field: "[].erpControlled", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: "[].erpConnectorId", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: "[].erpField", postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: "evse[].dynamicTariffEnabled", postgresql: true, openremote: configurationDynamicTariffEnabled, edge: none, readOnly: false }
+    - { field: "evse[].minimumCustomerPriceEurPerMwh", postgresql: true, openremote: configurationMinimumCustomerPriceEurPerMwh, edge: none, readOnly: false }
+    - { field: "evse[].markupEurPerMwh", postgresql: true, openremote: configurationMarkupEurPerMwh, edge: none, readOnly: false }
+    - { field: "[].actualPowerKw", postgresql: false, openremote: actualPowerKw, edge: runtime, readOnly: true }
+  edge_devices:
+    - { field: controller.id, postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: controller.hardwareModel, postgresql: true, openremote: configurationControllerModel, edge: config, readOnly: false }
+    - { field: controller.internalEthernetRole, postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: controller.uplinkEthernetRole, postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: controller.wireguardEnabled, postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: "gateways[].id", postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: "gateways[].hardwareModel", postgresql: true, openremote: null, edge: config, readOnly: false }
+    - { field: "gateways[].deviceType", postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: "gateways[].manufacturer", postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: "gateways[].driverKey", postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: "gateways[].driverVersion", postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: "gateways[].ports", postgresql: true, openremote: null, edge: driver, readOnly: false }
+    - { field: "gateways[].deploymentStatus", postgresql: true, openremote: null, edge: runtime, readOnly: true }
+  notifications_access:
+    - { field: recipients, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: minimumSeverity, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: channels, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: editRole, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: activationRole, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: dualApprovalRequired, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: quietHours.from, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: quietHours.to, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: quietHours.timezone, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: escalation, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: reporting, postgresql: true, openremote: null, edge: none, readOnly: false }
+    - { field: retentionDays, postgresql: true, openremote: null, edge: none, readOnly: false }

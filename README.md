@@ -39,6 +39,8 @@ ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated node
 - `docs/gridex-api-v1.md` — complete frontend/backend API, database, Asset and hardware contract in English and Bulgarian.
 - `docs/configuration-management-plan.md` — PostgreSQL/OpenRemote field ownership and versioned configuration lifecycle in English and Bulgarian.
 - `docs/configuration-outbox-worker.md` — safe allow-listed OpenRemote projection, retry and dead-letter operation.
+- `docs/configuration-field-ownership.md` — field-by-field PostgreSQL/OpenRemote/Edge/read-only ownership and validation coverage.
+- `contracts/configuration-field-ownership.yaml` — machine-readable canonical configuration matrix.
 - `docs/diagrams/` — communication-flow and normalised PostgreSQL ER diagrams.
 - `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
 
@@ -101,6 +103,8 @@ MQTT 8883 не се публикува.
 - `docs/gridex-api-v1.md` - пълният API, база, Asset и hardware договор на английски и български.
 - `docs/configuration-management-plan.md` - разпределение на полетата между PostgreSQL/OpenRemote и жизнен цикъл на конфигурациите.
 - `docs/configuration-outbox-worker.md` - безопасна OpenRemote проекция, retry и dead-letter поведение.
+- `docs/configuration-field-ownership.md` - матрица поле по поле за PostgreSQL/OpenRemote/Edge/read-only и покритие на валидацията.
+- `contracts/configuration-field-ownership.yaml` - машинно четима канонична конфигурационна матрица.
 - `docs/diagrams/` - схеми на комуникацията и нормализирания PostgreSQL модел.
 - `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
 
