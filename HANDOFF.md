@@ -4,6 +4,64 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Planned: isolated staging of the six main services
+
+- Plan: [STAGING_STARTUP_PLAN.md](docs/STAGING_STARTUP_PLAN.md), baseline main
+  279745b. Windows 10 is temporary testing; Windows 11 remains production design.
+- Prefer all-users Docker Desktop Hyper-V/Linux containers, conditional on OS
+  support/ESU, license and CPU compatibility. No BIOS change or installation.
+- New blocker: Manager 1.30.0 uses UBI 10/x86-64-v3; X5660 lacks AVX/AVX2.
+  Resolve a reviewed compatible image or suitable host before execution.
+- Pending: isolated loopback-only Compose override with no published MQTT,
+  physical Agents/rules or device connections; exact API base digest; Keycloak
+  bootstrap mapping; internal service-token endpoint preserving external issuer;
+  explicit 001/002 SQL execution. Candidate component digests are not runtime proof.
+- Acceptance pending: Linux container, merged Compose validation, six healthy
+  services, Keycloak/Manager login, API rights/locks, persistence and backup/restore.
+- Preserve diagnostics below as dated evidence. The earlier diagnostics commit
+  failed on missing identity; its remote branch contains no changes. This plan
+  and diagnosis use codex/staging-startup-plan. No runtime or device work occurred.
+
+### Blocked: Windows backend deployment — diagnosis 2026-09-14
+
+- Actual host: HP Z800, Windows 10 Enterprise 22H2 build 19045.4046, two Xeon
+  X5660 CPUs (12 cores / 12 visible logical processors), 24 GB RAM. About
+  13.7 GiB RAM was free. C: SSD has 114.4/237.9 GiB free/total; D: HDD has
+  199.2/465.3 GiB. Windows disk health is Healthy; detailed SMART is untested.
+- Hyper-V and its hypervisor are active. CPU virtualization/SLAT flags returned
+  false under the hypervisor; this does not prove missing hardware support.
+  WSL and VirtualMachinePlatform are disabled; no current-user distribution
+  registration was found. Docker was not found in CLI, standard installation
+  locations, services or processes. LanmanServer is running / Automatic.
+- Missing: local .env and validated container runtime. Compose defines API,
+  GrideX PostgreSQL, proxy, OpenRemote PostgreSQL, Keycloak and manager, but no
+  separate MQTT ingestion service or TimescaleDB. No containers were started.
+- Next: use the Hyper-V-first staging plan before separately authorized installation;
+  prepare secrets outside Git and OIDC/OpenRemote integration; pin tested images;
+  test services, migrations, backups and telemetry capacity. Keep command writes
+  disabled until commissioning. RAM/storage look adequate for an initial test,
+  but production capacity is unproven. No installation or network change occurred.
+- OS servicing/ESU and updates remain unverified. Windows 10 22H2 standard support
+  ended on 2025-10-14. Windows 11 remains planned production, Windows 10 temporary testing.
+- Git snapshot: clean main 279745b matched remote main. Open PRs: #9 and drafts
+  #7, #6, #5, #4, #3, #1. Refresh this snapshot before dependent work.
+
+### Coordination with the Mac installation
+
+The user reports that their Mac can access ROCK Pi and ESP32 and authorizes
+agent coordination and inspection of Git changes. No Mac task/host is visible
+in the available task listing; no board state or deployment was independently
+verified. Once accessible, exchange repository, branch, commit, PR and sanitized
+test evidence. Keep results and next steps in CODEX_STATE.md and HANDOFF.md;
+use separate branches and PRs. Never commit or exchange passwords, keys or real
+addresses. This permission does not authorize installation or network changes.
+
+### Diagnostic references
+
+- [Docker Windows requirements](https://docs.docker.com/desktop/setup/install/windows-install/): WSL backend requires WSL 2.1.5 or later; OS servicing conditions apply.
+- [Microsoft Hyper-V requirements](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/host-hardware-requirements): active hypervisors affect requirement reporting.
+- [Windows 10 lifecycle](https://learn.microsoft.com/en-ca/lifecycle/announcements/windows-10-22h2-end-of-support-update).
+
 ### Planned: local telemetry journal recovery ingestion
 
 The ROCK Pi local NDJSON journal is deployed and bounded, but no journal export,
@@ -29,6 +87,67 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Планирано: изолиран staging на шестте main услуги
+
+- План: [STAGING_STARTUP_PLAN.md](docs/STAGING_STARTUP_PLAN.md), main 279745b.
+  Windows 10 е временен тест; Windows 11 остава production архитектурата.
+- Предпочитан all-users Docker Desktop Hyper-V/Linux containers при изпълнени
+  OS support/ESU, license и CPU условия. Без BIOS промяна или инсталация.
+- Нов блокер: Manager 1.30.0 използва UBI 10/x86-64-v3; X5660 няма AVX/AVX2.
+  Нужен е прегледан съвместим image или подходящ host преди изпълнение.
+- Предстоят: изолиран loopback-only Compose override без публикуван MQTT,
+  physical Agents/rules или device връзки; exact API base digest; Keycloak
+  bootstrap mapping; вътрешен service-token endpoint със запазен външен issuer;
+  изрични 001/002 SQL миграции. Candidate digests не доказват runtime съвместимост.
+- Приемането предстои: Linux container, merged Compose validation, шест healthy
+  услуги, Keycloak/Manager login, API права/locks, persistence и backup/restore.
+- Диагностиката по-долу се пази като датирани доказателства. Предходният commit
+  отказа заради identity; remote branch няма промени. Планът и диагностиката
+  са в codex/staging-startup-plan. Не е извършвана runtime или device работа.
+
+### Блокирано: Windows backend deployment — диагностика 2026-09-14
+
+- Реален host: HP Z800, Windows 10 Enterprise 22H2 build 19045.4046, два Xeon
+  X5660 (12 ядра / 12 видими логически процесора), 24 GB RAM. Свободни бяха около
+  13.7 GiB RAM. C: SSD има 114.4/237.9 GiB свободни/общо; D: HDD има
+  199.2/465.3 GiB. Windows отчита Healthy; подробен SMART тест не е правен.
+- Hyper-V и хипервайзорът му са активни. CPU флаговете за виртуализация/SLAT
+  върнаха false при активния хипервайзор; това не доказва липса на поддръжка.
+  WSL и VirtualMachinePlatform са изключени; не е намерена дистрибуция за текущия
+  потребител. Docker не е намерен в CLI, стандартните места за инсталация, услуги
+  или процеси. LanmanServer е Running / Automatic.
+- Липсват локален .env и проверен container runtime. Compose определя API,
+  GrideX PostgreSQL, proxy, OpenRemote PostgreSQL, Keycloak и manager, но няма
+  отделна MQTT ingestion услуга или TimescaleDB. Не са стартирани контейнери.
+- Следва: Hyper-V staging планът преди отделно разрешена инсталация;
+  подготовка на тайни извън Git и OIDC/OpenRemote интеграция; фиксиране на тествани
+  images; тест на услуги, миграции, архиви и капацитет за телеметрия. Командните
+  записи остават изключени до commissioning. RAM/дисковете изглеждат достатъчни
+  за начален тест, но production капацитетът не е доказан. Няма инсталации или
+  мрежови промени.
+- OS поддръжката/ESU и актуализациите не са проверени. Стандартната поддръжка на
+  Windows 10 22H2 приключи на 2025-10-14. Windows 11 остава планиран production,
+  а Windows 10 е временен тест.
+- Git снимка: чист main 279745b съвпадаше с remote main. Отворени PR-и: #9 и
+  чернови #7, #6, #5, #4, #3, #1. Обнови снимката преди зависима работа.
+
+### Координация с Mac инсталацията
+
+По данни на потребителя Mac машината му има достъп до ROCK Pi и ESP32 и той
+разрешава комуникация между агенти и проверка на Git промените. В наличния списък
+със задачи няма видим Mac task/host; състоянието и deployment-ите на платките
+не са независимо проверени. При достъп да се обменят repository, branch, commit,
+PR и тестови доказателства без чувствителни данни. Резултатите и следващите стъпки
+се пазят в CODEX_STATE.md и HANDOFF.md; използват се отделни branches и PR-и.
+Никога не се записват в Git или обменят пароли, ключове или реални адреси.
+Това разрешение не включва инсталации или мрежови промени.
+
+### Източници за диагностиката
+
+- [Docker Windows изисквания](https://docs.docker.com/desktop/setup/install/windows-install/): WSL backend изисква WSL 2.1.5 или по-нов; важат условията за OS поддръжка.
+- [Microsoft Hyper-V изисквания](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/host-hardware-requirements): активните хипервайзори влияят на отчитането на изискванията.
+- [Windows 10 жизнен цикъл](https://learn.microsoft.com/en-ca/lifecycle/announcements/windows-10-22h2-end-of-support-update).
 
 ### Планирано: recovery ingestion на local telemetry journal
 

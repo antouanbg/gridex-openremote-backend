@@ -2,6 +2,15 @@
 
 ## Architecture and security
 
+Windows 10 Enterprise on HP Z800 is a temporary, isolated staging environment.
+Windows 11 remains the planned production architecture. Staging must not connect
+to or command physical devices; see docs/STAGING_STARTUP_PLAN.md for entry gates.
+
+Windows 10 Enterprise на HP Z800 е временна изолирана staging среда.
+Windows 11 остава планираната production архитектура. Staging не трябва да се
+свързва с физически устройства или да ги управлява; условията за старт са в
+docs/STAGING_STARTUP_PLAN.md.
+
 The Windows 11 backend hosts Docker services, GrideX API, PostgreSQL,
 OpenRemote, Keycloak and private MQTT ingestion. Each Site Router terminates
 its own WireGuard peer; ROCK Pi and ESP nodes are behind the router. Browser
