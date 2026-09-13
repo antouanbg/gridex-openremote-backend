@@ -43,6 +43,7 @@ ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated node
 - `contracts/power-command.schema.json` — desired-power and TTL API contract.
 - `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
 - `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
+- `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` — draft private recovery-ingestion and acknowledgement contract; no worker is implemented yet.
 - `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
 - `docs/gridex-api-v1.md` — complete frontend/backend API, database, Asset and hardware contract in English and Bulgarian.
 - `docs/diagrams/` — communication-flow and normalised PostgreSQL ER diagrams.
@@ -103,6 +104,7 @@ MQTT 8883 не се публикува.
 - `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
 - `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
 - `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
+- `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` - чернова на private recovery-ingestion и acknowledgement договора; worker още не е имплементиран.
 - `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
 - `docs/gridex-api-v1.md` - пълният API, база, Asset и hardware договор на английски и български.
 - `docs/diagrams/` - схеми на комуникацията и нормализирания PostgreSQL модел.
