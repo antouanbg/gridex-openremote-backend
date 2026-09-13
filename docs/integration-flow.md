@@ -30,9 +30,11 @@ OpenRemote reaches the site only through the site router WireGuard tunnel. ROCK 
 ROCK Pi E polls each OLIMEX ESP32-EVB canonical map over isolated OT Ethernet
 and maintains the local safety envelope. A node translates exactly one
 configured CAN or RS485 device family. Telemetry flows from the node over OT
-Modbus TCP to ROCK Pi E. Only ROCK Pi publishes it through the Site Router
-WireGuard tunnel to the private MQTT broker; backend ingestion persists the
-data and synchronises the required OpenRemote Assets. Commands always return
+Modbus TCP to ROCK Pi E. Only ROCK Pi publishes live telemetry through the Site
+Router WireGuard tunnel to the private MQTT broker; the planned backend
+ingestion service will persist it and synchronise the required OpenRemote
+Assets. Local journal recovery export and acknowledgement are not implemented
+yet. Commands always return
 through OpenRemote or the authorized backend, ROCK Pi E and the node's local
 Modbus TCP endpoint. ESP32 has no MQTT credentials or direct OpenRemote path.
 
@@ -52,8 +54,10 @@ ROCK Pi E обхожда каноничната карта на всеки OLIME
 Ethernet мрежа и поддържа локалния безопасен работен диапазон. Нодът превежда
 точно една конфигурирана CAN или RS485 фамилия устройства. Телеметрията минава
 от нода по OT Modbus TCP към ROCK Pi E. Само ROCK Pi я публикува през
-WireGuard тунела на Site Router към private MQTT broker; backend ingestion
-услугата пази данните и синхронизира нужните OpenRemote Assets. Командите
+WireGuard тунела на Site Router към private MQTT broker; планираната backend
+ingestion услуга ще пази данните и ще синхронизира нужните OpenRemote Assets.
+Local journal recovery export и acknowledgement още не са имплементирани.
+Командите
 винаги се връщат през OpenRemote или оторизирания backend, ROCK Pi E и локалния
 Modbus TCP endpoint на нода. ESP32 няма MQTT credentials или директен път към
 OpenRemote.
