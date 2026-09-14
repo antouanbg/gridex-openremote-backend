@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+## Port update / Промяна на порт — 2026-09-14
+
+OpenRemote endpoint changed to https://localhost:8443/ at owner's request.
+OIDC/forwarded headers and callback settings updated together; databases
+preserved. Browser certificate/login acceptance remains pending.
+
+OpenRemote адресът е променен на https://localhost:8443/ по искане на
+собственика. OIDC/forwarded headers и callbacks са обновени заедно; базите
+са запазени. Browser certificate/login приемането предстои.
+
 ## Current authoritative checkpoint / Актуално състояние — 2026-09-14
 
 Runtime and OIDC/API tenant tests implemented on feat/macos-linux-runtime.
