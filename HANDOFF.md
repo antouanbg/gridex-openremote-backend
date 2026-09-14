@@ -1,8 +1,96 @@
 # Handoff — GrideX OpenRemote backend
-
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
+
+### CURRENT HANDOFF — Windows attempt unsuccessful; continue on Mac
+
+2026-09-14: user ended Windows troubleshooting and will continue this chat in
+another local environment, expected to be the Mac. Record this as an UNSUCCESSFUL
+backend startup attempt, not a completed or validated deployment. Do not resume
+Windows installers, launchers, networking changes or manual console instructions
+without a new user request. Older checkpoints below are historical.
+
+Proven: Windows Hyper-V runs Ubuntu; the manual VM reached login after install
+and restart, and the user reported x86_64. The automated gridex-auto VM reached
+login; its prepared disk and cloud-init seed were checked. Hyper-V NIC attachment
+succeeded after fixing the agent's wrong ACL count and duplicate priorities.
+
+Not achieved: usable DHCP/SSH access to gridex-auto, verified Docker Linux runtime,
+or a running OpenRemote/backend stack. Latest local DHCP report is
+NO_DHCP_OBSERVED. No successful application startup or actual original Manager
+CPU failure was captured. Manager 1.30.0's UBI 10 CPU baseline mismatch remains
+source/metadata evidence, not an observed startup result. This failure does NOT
+prove Windows/Hyper-V/Ubuntu or OpenRemote is inherently unusable on the host.
+User reported a freeze/reboot of the manual VM; cause remains undiagnosed.
+The agent's provisioning defects, fragmented instructions and elevation failures
+consumed user time; do not repeat that workflow on the next machine.
+
+Windows leftovers: gridex-cpu-staging and gridex-auto, local disks/seeds/SSH keys,
+internal staging switch/address configuration, and Default Switch ACL setup.
+No shutdown or cleanup was verified at handoff; the previous suggestion to leave
+VMs stopped was not an executed shutdown. Do not describe them as stopped or
+removed. Local scripts may have been started by the user; no remaining running
+helper inventory was established. No physical devices were accessed by this work.
+
+Next environment: read AGENTS.md, this file, CODEX_STATE.md and HANDOFF.md from
+codex/automated-cloud-vm / PR #13, not main alone. PR #13 builds on #12, which
+builds on #11 and #10; these changes have not been merged by this work. Inspect
+Mac model, Intel versus Apple Silicon, RAM, disk, OS and existing container
+runtime/license before choosing an image architecture. Do not assume amd64 pins
+apply to arm64 or that emulation proves native CPU compatibility. Keep original
+OpenRemote Manager 1.30.0 as the first startup candidate; no silent downgrade.
+
+Mac has reported access to RockPi/ESP32, which must remain outside this isolated
+test. Do not import physical-device inventory, Agents/rules, production volumes,
+VPN configuration or credentials. Generate environment-specific secrets locally;
+never transfer the Windows seed/private keys through Git. Package a reproducible
+setup with clear automatic status, minimizing user console work. Still pending:
+six-service isolated Compose, loopback HTTP/HTTPS/API, no published MQTT, OIDC,
+internal token endpoint, explicit migrations, healthy services, login, API rights,
+persistence and backup/restore. Mac is a test candidate; Windows 10 remains
+historical temporary staging and Windows 11 remains planned production.
+
+### Current privilege boundary
+
+The last background RunAs attempt returned operation canceled; the user reports
+all visible prompts confirmed. Retried once; completion is not established.
+Do not assert a pending visible UAC prompt. Prepared local Fix-DHCP.cmd for
+user-initiated execution. Read-only guest-disk inspection found DHCP netplan,
+authorized_keys and bootstrap unit present; this is not SSH or DHCP success.
+
+
+### DHCP follow-up pending
+
+VM attach and normal restart succeeded with 22 uniquely weighted ACLs. No DHCP
+address or SSH success has been observed. Prepared a DHCP-only reply exception
+(UDP server 67 to client 68 on the internal Default Switch) because the service
+may not source replies from the host interface address. Its elevated application
+is awaiting completion; do not claim DHCP/SSH/Docker ready. Other ACLs unchanged.
+
+
+### Live repair: VM running, DHCP still pending
+
+Administrator inspection confirmed gridex-auto running with its prepared disk
+and seed, but a disconnected NIC. Fixed two provisioning defects: expected ACL
+count was 23 instead of 22; repeated direction/weight pairs caused switch attach
+to fail with 0x800700B7. Unique priorities preserved all restrictions. Actual
+attach succeeded, then the new VM was shut down normally and started again.
+DHCP/SSH/Docker acceptance remains pending. Regression construction check passed:
+22 rules with unique direction/weight pairs. Do not rerun the creation launcher
+against the existing VM. No physical devices contacted; old VM preserved.
+
+
+### Latest: automatic VM prepared
+
+User replaced manual console work with a ready automated VM request after a
+reported freeze/reboot. See docs/AUTOMATED_CLOUD_VM.md. Generic cloud QCOW
+checksum/signature, VHD full-data roundtrip and seed ISO/YAML checks PASS.
+Start-GrideX.cmd is the single UAC launcher; old VM session is saved, not deleted.
+New VM/DHCP/SSH/ACL/Docker/image runtime remain NOT_RUN. Six application services
+are not deployed yet; OIDC, migrations and acceptance remain pending. Branch
+codex/automated-cloud-vm follows PR #12. Keys/artifacts are local only.
+
 
 ### Current checkpoint — Ubuntu running; offline SSH preparation
 
@@ -174,6 +262,96 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### ТЕКУЩ HANDOFF — Windows опитът е неуспешен; продължаване на Mac
+
+2026-09-14: потребителят прекрати Windows troubleshooting и ще продължи чата в
+друг локален environment, очаквано на Mac. Това е НЕУСПЕШЕН опит за backend
+startup, не завършено или валидирано deployment. Не подновявайте Windows
+installers, launchers, мрежови промени или ръчни конзолни инструкции без ново
+искане от потребителя. Долните checkpoints са исторически.
+
+Доказано: Windows Hyper-V зарежда Ubuntu; ръчната VM достигна login след
+инсталация и рестарт, а потребителят съобщи x86_64. Автоматичната gridex-auto
+достигна login; подготвените диск и cloud-init seed са проверени. Hyper-V NIC
+attachment успя след поправка на грешния ACL брой и дублираните приоритети на агента.
+
+Непостигнато: използваем DHCP/SSH достъп до gridex-auto, проверен Docker Linux
+runtime или работещ OpenRemote/backend stack. Последният локален DHCP резултат
+е NO_DHCP_OBSERVED. Няма успешен application startup или заснет реален CPU отказ
+на оригиналния Manager. Несъответствието на UBI 10 CPU baseline при Manager
+1.30.0 остава source/metadata доказателство, не наблюдаван startup резултат.
+Този неуспех НЕ доказва принципна неизползваемост на Windows/Hyper-V/Ubuntu или
+OpenRemote върху host-а. Потребителят съобщи freeze/reboot на ръчната VM;
+причината не е диагностицирана. Provisioning грешките, разпокъсаните инструкции
+и elevation отказите на агента загубиха време на потребителя; този workflow
+не трябва да се повтаря на следващата машина.
+
+Оставено на Windows: gridex-cpu-staging и gridex-auto, локални дискове/seed/SSH
+ключове, internal staging switch/address конфигурация и Default Switch ACL.
+При handoff не са потвърдени shutdown или cleanup; предишното предложение VM да
+останат спрени не е изпълнен shutdown. Не ги описвайте като спрени или изтрити.
+Потребителят може да е стартирал локални скриптове; не е установен списък на
+останалите работещи helpers. Тази работа не е достъпвала физически устройства.
+
+Следващ environment: прочетете AGENTS.md, този файл, CODEX_STATE.md и HANDOFF.md
+от codex/automated-cloud-vm / PR #13, не само main. PR #13 е върху #12, който е
+върху #11 и #10; тази работа не ги е merged. Проверете Mac модел, Intel или
+Apple Silicon, RAM, диск, ОС и наличния container runtime/лиценз преди избор на
+image архитектура. Не приемайте amd64 pins за arm64 или emulation за доказана
+native CPU съвместимост. Първият startup кандидат остава оригиналният OpenRemote
+Manager 1.30.0; без тиха смяна към по-стара версия.
+
+Mac има съобщен достъп до RockPi/ESP32, които остават извън изолирания тест.
+Не импортирайте физически inventory, Agents/rules, production volumes, VPN
+конфигурация или credentials. Генерирайте secrets локално за новата среда;
+не прехвърляйте Windows seed/private keys през Git. Подгответе възпроизводима
+инсталация с ясен автоматичен статус и минимална конзолна работа от потребителя.
+Остават: изолиран Compose за шестте услуги, loopback HTTP/HTTPS/API, без публикуван
+MQTT, OIDC, internal token endpoint, изрични миграции, здрави услуги, login,
+API права, persistence и backup/restore. Mac е тестов кандидат; Windows 10
+остава исторически временен staging, а Windows 11 остава планиран production.
+
+### Текуща пречка с правата
+
+Последният background RunAs опит върна operation canceled; потребителят съобщи,
+че всички видими потвърждения са приети. Повторен е веднъж; завършването не е
+установено. Не твърдим, че има видим чакащ UAC. Подготвен е локален Fix-DHCP.cmd
+за директно стартиране от потребителя. Read-only guest-disk проверката намери
+DHCP netplan, authorized_keys и bootstrap unit; това не е успешен SSH/DHCP.
+
+
+### DHCP проверката продължава
+
+VM attach и нормалният рестарт успяха с 22 ACL с уникални приоритети. Няма
+наблюдаван DHCP адрес или успешен SSH. Подготвено е изключение само за DHCP
+отговори (UDP server 67 към client 68 във вътрешния Default Switch), защото
+услугата може да отговаря от различен адрес от host интерфейса. Прилагането
+с повишени права още се чака; DHCP/SSH/Docker не са готови. Другите ACL са запазени.
+
+
+### Поправка в ход: VM работи, DHCP още се чака
+
+Администраторската проверка потвърди работеща gridex-auto с подготвените диск
+и seed, но несвързана карта. Поправени са две грешки: очакваният ACL брой беше
+23 вместо 22; повтарящите се direction/weight двойки причиниха отказ при
+switch attach с 0x800700B7. Уникалните приоритети запазиха ограниченията.
+Реалното свързване успя, после новата VM беше нормално изключена и стартирана.
+DHCP/SSH/Docker приемането още е pending. Регресионната construction проверка
+мина: 22 правила с уникални direction/weight. Не стартирайте отново creation
+launcher-а върху съществуващата VM. Без физически устройства; старата VM е запазена.
+
+
+### Последно: автоматичната VM е подготвена
+
+Потребителят замени ръчната конзолна работа с готова автоматична VM след
+съобщен freeze/reboot. Виж docs/AUTOMATED_CLOUD_VM.md. Общият cloud QCOW
+checksum/signature, VHD full-data roundtrip и seed ISO/YAML са PASS.
+Start-GrideX.cmd е launcher с едно UAC; старата VM се Save-ва, не се изтрива.
+Новите VM/DHCP/SSH/ACL/Docker/image runtime са NOT_RUN. Шестте application услуги
+още не са разгърнати; OIDC, миграции и приемане остават pending. Branch
+codex/automated-cloud-vm следва PR #12. Ключовете и artifacts са само локални.
+
 
 ### Текущ checkpoint — Ubuntu работи; подготовка за offline SSH
 
