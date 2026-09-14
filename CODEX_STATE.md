@@ -4,6 +4,11 @@
 
 ### Current task — 2026-09-14
 
+License/cost evidence added in docs/LICENSE_COST_EVIDENCE.md: included Hyper-V,
+conditional free Desktop, Engine alternative, Windows ESU and upstream licenses.
+Windows reports activated; purchase/ESU rights and Desktop eligibility unverified.
+No blanket zero-cost guarantee or runtime compatibility claim. No purchases.
+
 Research the existing Windows HP Z800 concept and Manager 1.30.0 CPU-compatible
 runtime candidates: docs/X5660_BACKEND_OPTIONS.md and CPU_IMAGE_METADATA.json.
 Preferred option to evaluate is Hyper-V / Ubuntu 24.04 VM / Docker Engine,
@@ -76,6 +81,11 @@ Detailed blockers and source links are retained in HANDOFF.md.
 ## Български
 
 ### Текуща задача — 2026-09-14
+
+Добавени лицензни доказателства в docs/LICENSE_COST_EVIDENCE.md: включен Hyper-V,
+условно безплатен Desktop, Engine алтернатива, Windows ESU и upstream лицензи.
+Windows отчита активиран; purchase/ESU rights и Desktop категорията не са проверени.
+Без обща zero-cost гаранция или runtime съвместимост. Няма покупки.
 
 Проучване на концепцията за наличния Windows HP Z800 и CPU runtime кандидати за
 Manager 1.30.0: docs/X5660_BACKEND_OPTIONS.md и CPU_IMAGE_METADATA.json.

@@ -4,6 +4,15 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### License/cost evidence
+
+[LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) links primary terms.
+Hyper-V is included with valid Windows Enterprise; Desktop is conditionally free.
+Engine/Ubuntu avoids the Desktop gate, not Windows ESU costs or upstream license
+obligations. Local Windows activation was observed without exposing keys.
+Purchase/ESU entitlement, Desktop category and full dependency license audit are
+unverified. No payment, installation or architecture switch was performed.
+
 ### Research: retain Windows host, evaluate Linux VM and Manager 1.30.0 rebase
 
 - [X5660_BACKEND_OPTIONS.md](docs/X5660_BACKEND_OPTIONS.md) separates metadata,
@@ -108,6 +117,15 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Лицензни доказателства
+
+[LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) сочи първичните условия.
+Hyper-V е включен във валиден Windows Enterprise; Desktop е условно безплатен.
+Engine/Ubuntu премахва Desktop gate, не Windows ESU разходите или upstream
+лицензните задължения. Наблюдавана е Windows активация без показване на ключове.
+Purchase/ESU права, Desktop категория и пълен dependency license audit не са
+проверени. Няма плащания, инсталации или смяна на архитектурата.
 
 ### Проучване: запазен Windows host, Linux VM и Manager 1.30.0 rebase
 
