@@ -19,7 +19,7 @@ Preparation dependencies are local pycdlib 1.20.0, PyYAML 6.0.3,
 dissect.hypervisor 3.21 and dissect.extfs 3.15 plus their dependencies.
 
 Network: existing internal Default Switch provides DHCP/NAT. Before attachment
-and boot, 23 Hyper-V extended ACL rules deny inbound traffic by default, deny
+and boot, 22 Hyper-V extended ACL rules deny inbound traffic by default, deny
 IPv6 and outbound private/reserved destinations, allow DHCP and host DNS,
 allow host-initiated SSH, and allow outbound public TCP 80/443 for provisioning.
 No external switch or router forwarding is added. Address discovery and the
@@ -73,7 +73,7 @@ pycdlib 1.20.0, PyYAML 6.0.3, dissect.hypervisor 3.21 и dissect.extfs 3.15 и
 техните зависимости.
 
 Мрежа: съществуващият internal Default Switch предоставя DHCP/NAT. Преди
-свързване и boot 23 Hyper-V extended ACL правила забраняват inbound по подразбиране,
+свързване и boot 22 Hyper-V extended ACL правила забраняват inbound по подразбиране,
 IPv6 и outbound private/reserved дестинации; разрешават DHCP, DNS през host,
 SSH започнат от host и outbound public TCP 80/443 за provisioning.
 Без external switch или router forwarding. Откриването на адреси и изключенията

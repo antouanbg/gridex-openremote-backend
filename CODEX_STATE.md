@@ -2,6 +2,18 @@
 
 ## English
 
+### Live repair: VM running, DHCP still pending
+
+Administrator inspection confirmed gridex-auto running with its prepared disk
+and seed, but a disconnected NIC. Fixed two provisioning defects: expected ACL
+count was 23 instead of 22; repeated direction/weight pairs caused switch attach
+to fail with 0x800700B7. Unique priorities preserved all restrictions. Actual
+attach succeeded, then the new VM was shut down normally and started again.
+DHCP/SSH/Docker acceptance remains pending. Regression construction check passed:
+22 rules with unique direction/weight pairs. Do not rerun the creation launcher
+against the existing VM. No physical devices contacted; old VM preserved.
+
+
 ### Latest: automatic VM prepared
 
 User replaced manual console work with a ready automated VM request after a
@@ -148,6 +160,18 @@ No installation, network change, device command or deployment was performed.
 Detailed blockers and source links are retained in HANDOFF.md.
 
 ## Български
+
+### Поправка в ход: VM работи, DHCP още се чака
+
+Администраторската проверка потвърди работеща gridex-auto с подготвените диск
+и seed, но несвързана карта. Поправени са две грешки: очакваният ACL брой беше
+23 вместо 22; повтарящите се direction/weight двойки причиниха отказ при
+switch attach с 0x800700B7. Уникалните приоритети запазиха ограниченията.
+Реалното свързване успя, после новата VM беше нормално изключена и стартирана.
+DHCP/SSH/Docker приемането още е pending. Регресионната construction проверка
+мина: 22 правила с уникални direction/weight. Не стартирайте отново creation
+launcher-а върху съществуващата VM. Без физически устройства; старата VM е запазена.
+
 
 ### Последно: автоматичната VM е подготвена
 

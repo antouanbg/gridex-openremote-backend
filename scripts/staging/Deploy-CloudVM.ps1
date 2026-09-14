@@ -46,6 +46,7 @@ Add-VMDvdDrive -VMName $name -Path $seed
 # Несвързана карта; ВСИЧКИ ACL преди свързване или старт.
 Add-VMNetworkAdapter -VMName $name -Name 'Provisioning'
 $nic = Get-VMNetworkAdapter -VMName $name -Name 'Provisioning'
+$script:gridexAclWeightCounters=@{}
 function Add-Rule($Action, $Direction, $Weight, $RemoteIP, $Protocol, $LocalPort, $RemotePort, $Stateful = $false) {
     $arguments = @{VMNetworkAdapter=$nic; Action=$Action; Direction=$Direction; Weight=$Weight}
     if ($RemoteIP) { $arguments.RemoteIPAddress=$RemoteIP }
@@ -53,6 +54,9 @@ function Add-Rule($Action, $Direction, $Weight, $RemoteIP, $Protocol, $LocalPort
     if ($LocalPort) { $arguments.LocalPort=$LocalPort }
     if ($RemotePort) { $arguments.RemotePort=$RemotePort }
     if ($Stateful) { $arguments.Stateful=$true }
+    if (-not $script:gridexAclWeightCounters.ContainsKey($Weight)) { $script:gridexAclWeightCounters[$Weight]=0 }
+    $arguments.Weight=$Weight + $script:gridexAclWeightCounters[$Weight]
+    $script:gridexAclWeightCounters[$Weight]++
     Add-VMNetworkAdapterExtendedAcl @arguments
 }
 foreach ($direction in @('Inbound','Outbound')) {
@@ -72,7 +76,7 @@ Add-Rule Allow Outbound 700 $hostPrefix TCP $null 53 $true
 Add-Rule Allow Inbound 700 $hostPrefix TCP 22 $null $true
 foreach ($port in @('80','443')) { Add-Rule Allow Outbound 100 '0.0.0.0/0' TCP $null $port $true }
 $rules = @(Get-VMNetworkAdapterExtendedAcl -VMNetworkAdapter $nic)
-if ($rules.Count -ne 23) { throw 'ACL count mismatch; VM remains off and disconnected' }
+if ($rules.Count -ne 22 -or @($rules | Group-Object Direction,Weight | Where-Object Count -gt 1).Count) { throw 'ACL count mismatch; VM remains off and disconnected' }
 Set-VMNetworkAdapter -VMNetworkAdapter $nic -DhcpGuard On -RouterGuard On -MacAddressSpoofing Off
 Connect-VMNetworkAdapter -VMNetworkAdapter $nic -SwitchName $switch.Name
 Start-VM -Name $name
