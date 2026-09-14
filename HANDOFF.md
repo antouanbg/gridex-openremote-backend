@@ -2,6 +2,26 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Local portal login / Локален вход — 2026-09-14
+
+The portal on http://127.0.0.1:4173/ was rejected with invalid redirect_uri.
+Provisioning now allows exact root, /en/ and /silent-check-sso.html callbacks
+and that web origin; Compose API CORS matches. Applied locally with credentials
+and databases preserved. scripts/test-mac-portal-redirect.mjs tests login forms
+and rejection of a foreign host; this is not a completed browser login test.
+Next: fresh portal login, ordinary gridex user and organization/site permissions.
+Master-realm admin is not automatically a gridex user. Certificate trust remains
+browser-specific. Backup continuation, MQTT/TLS and WireGuard are deferred.
+
+Порталът на http://127.0.0.1:4173/ беше отказван с invalid redirect_uri.
+Provisioning вече разрешава точните root, /en/ и /silent-check-sso.html callbacks
+и web origin; Compose API CORS съвпада. Приложено локално със запазени пароли
+и бази. scripts/test-mac-portal-redirect.mjs проверява формите и отказа на чужд
+host; това не е завършен browser login тест. Следва нов вход от портала,
+обикновен gridex потребител и права по организации/обекти. Master admin не е
+автоматично gridex потребител. Certificate trust зависи от браузъра.
+Продължението на backup, MQTT/TLS и WireGuard е отложено.
+
 ## Port update / Промяна на порт — 2026-09-14
 
 Owner requested OpenRemote on https://localhost:8443/. Compose now publishes
