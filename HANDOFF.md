@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Email policy applied / Приложена имейл политика — 2026-09-15
+
+scripts/provision-email-enrollment.mjs applies gridex invite-only/email verification,
+email login, password recovery and brute-force protection. No master realm changes,
+no emails. Dedicated enrollment client uses query-users/manage-users; this permits
+realm user management and its secret must stay private. Fine-grained restriction
+and administrator MFA commissioning remain security follow-ups. Private runtime
+secret is generated/preserved by prepare-mac-runtime.py. Token/query/policy checks
+passed. SMTP host/from missing; API enrollment stays disabled. UI forms:
+antouanbg/gridex-energy-os branch feat/portal-invitation-forms. Migrations 003/004
+already applied with owner approval; old deployment-blocker notes are historical.
+
+scripts/provision-email-enrollment.mjs настройва gridex само с покани, потвърден
+имейл, вход по имейл, възстановяване на парола и brute-force защита. Без промени
+в master и без имейли. Enrollment клиентът е с query-users/manage-users; това
+позволява realm user management и secret остава частен. По-фини ограничения и
+admin MFA commissioning предстоят. prepare-mac-runtime.py генерира/пази secret
+локално. Token/query/policy проверки минаха. Липсват SMTP host/from; enrollment
+е изключен. UI: antouanbg/gridex-energy-os/feat/portal-invitation-forms. Миграции
+003/004 вече са приложени с одобрение; старият deployment blocker е исторически.
+
 ## Email enrollment foundation / Основа за регистрация — 2026-09-15
 
 See [email enrollment](docs/EMAIL_ENROLLMENT.md). Backend invitation routes,

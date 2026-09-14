@@ -17,6 +17,12 @@ if not env.exists():
         for key in ('OR_ADMIN_PASSWORD', 'OR_DATABASE_PASSWORD',
                     'GRIDEX_DATABASE_PASSWORD', 'OPENREMOTE_SERVICE_CLIENT_SECRET'):
             stream.write(f'{key}={secrets.token_hex(32)}\n')
+# Additional enrollment credential stays private and existing values are preserved.
+existing_keys = {line.split('=', 1)[0] for line in env.read_text().splitlines() if '=' in line}
+if 'GRIDEX_ENROLLMENT_CLIENT_SECRET' not in existing_keys:
+    with open(env, 'a') as stream:
+        stream.write(f'\nGRIDEX_ENROLLMENT_CLIENT_SECRET={secrets.token_hex(32)}\n')
+os.chmod(env, 0o600)
 shutil.copy2(source / 'compose.mac.yml', target / 'compose.mac.yml')
 shutil.copytree(source / 'services' / 'gridex-api', target / 'services' / 'gridex-api',
                 dirs_exist_ok=True, ignore=shutil.ignore_patterns('node_modules', '.env'))
