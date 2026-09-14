@@ -2,6 +2,32 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Database restore rehearsal / DB restore тест — 2026-09-14
+
+Both PostgreSQL server dumps restored successfully with ON_ERROR_STOP into
+fresh network-none containers using the source images. Table inventories
+match. Protected local SQL dumps and checksums are outside Git/synced storage.
+Restore containers are stopped; their volumes retained. Sources were not
+stopped or overwritten. Timescale circular-FK warnings appeared during dump;
+strict restore passed for current data, not proof for future loaded hypertables.
+Script: scripts/test-mac-backup.py. Remaining: row/content verification,
+coordinated application/Portainer volume backup and isolated full-stack restore.
+No scheduled retention or off-host encrypted backup exists yet. Dumps contain
+credentials and must remain operator-only. Chrome login is owner-reported
+working; Safari event bus failure remains unresolved. VPN and MQTT pending.
+
+Двата PostgreSQL dump-а са възстановени с ON_ERROR_STOP в нови network-none
+контейнери със същите images. Списъците с таблици съвпадат. Защитените SQL
+архиви/checksums са извън Git и синхронизирани папки. Restore контейнерите са
+спрени, volumes запазени; източниците не са спирани или презаписвани.
+Timescale circular-FK предупреждения имаше при dump; strict restore мина за
+текущите данни, не е доказателство за бъдещи натоварени hypertables.
+Script: scripts/test-mac-backup.py. Остават проверка на редове/съдържание,
+координиран backup на app/Portainer volumes и изолиран full-stack restore.
+Няма автоматична retention или off-host encrypted backup. Dump-овете съдържат
+credentials и са само за оператора. Chrome вход е потвърден от собственика;
+Safari event bus проблемът е нерешен. VPN и MQTT предстоят.
+
 ## Port update / Промяна на порт — 2026-09-14
 
 Owner requested OpenRemote on https://localhost:8443/. Compose now publishes
