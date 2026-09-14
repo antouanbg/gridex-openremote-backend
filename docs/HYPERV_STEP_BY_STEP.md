@@ -2,6 +2,38 @@
 
 ## English
 
+Final download checkpoint: ISO SHA256 PASS; separate SHA256SUMS signature PASS.
+Actual VM creation attempt failed at initial Get-VM for agent permissions,
+before mutations. Run the following in the user's administrator PowerShell:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\GrideX\gridex-openremote-backend\scripts\staging\New-OfflineUbuntuVM.ps1"
+```
+
+Then use Hyper-V Manager → Connect for the offline installer as described below.
+VM/Ubuntu/Docker/OpenRemote startup remain NOT_RUN.
+
+Latest update: user administrator preflight passed (Elevated and management
+access true; zero VMs). The agent process still fails the same access check,
+including requested elevation. User authorized continuation while away.
+Ubuntu SHA256SUMS detached signature verified with Git's existing GnuPG and
+fingerprint `843938DF228D22F7B3742BC0D94AA3F0EFE21092`, matching the
+[Ubuntu verification guide](https://ubuntu.com/tutorials/how-to-verify-ubuntu).
+The ISO content check remains separate. The earlier observations below are
+dated preparation context. No global execution-policy change is needed: use
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <script>` for one process.
+Scripts now contain a UTF-8 BOM for Windows PowerShell 5.1 Bulgarian messages.
+
+Prepared `scripts/staging/probe-original-images.sh` for the Ubuntu guest after
+Docker installation and reviewed image acquisition. Run with Bash from a copy
+of this repository, without secrets. It uses the six original recorded image
+digests (Node is the API base, not a built API image); no automatic pulls, ports,
+host mounts or container network. Local results go under `.local-staging/`.
+Only binary-version probes are performed: they bypass service entrypoints,
+authentication, databases, extensions and healthchecks. A nonzero exit needs
+stderr analysis; it does not by itself prove a CPU instruction failure.
+All service startup and native integration acceptance tests remain NOT_RUN.
+
 2026-09-14: user selected stepwise testing of Windows → Hyper-V → Ubuntu →
 Docker Engine → OpenRemote. This supersedes the earlier diagnosis-only scope
 and Desktop preference. Windows 10 remains temporary; Windows 11 remains the
@@ -86,6 +118,38 @@ NOT_RUN. ISO download completion/checksum is a separate gate. Licensing evidence
 is in LICENSE_COST_EVIDENCE.md; no paid Desktop is needed for this Engine route.
 
 ## Български
+
+Краен download checkpoint: ISO SHA256 PASS; отделен SHA256SUMS signature PASS.
+Реалният VM creation опит отказа на началния Get-VM поради правата на агента,
+преди промени. Изпълнява се от администраторския PowerShell на потребителя:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\GrideX\gridex-openremote-backend\scripts\staging\New-OfflineUbuntuVM.ps1"
+```
+
+После Hyper-V Manager → Connect за offline installer, както е описано по-долу.
+VM/Ubuntu/Docker/OpenRemote startup остават NOT_RUN.
+
+Последно: администраторският preflight на потребителя е успешен (Elevated и
+management access true; нула VM). Процесът на агента още няма този достъп,
+включително при заявено повишаване. Потребителят разреши продължаване в отсъствие.
+Detached signature на Ubuntu SHA256SUMS е проверен с наличния GnuPG от Git и
+fingerprint `843938DF228D22F7B3742BC0D94AA3F0EFE21092`, съвпадащ с
+[Ubuntu verification guide](https://ubuntu.com/tutorials/how-to-verify-ubuntu).
+Проверката на съдържанието на ISO е отделна. Долните ранни наблюдения са контекст
+от подготовката. Не е нужна глобална промяна на execution policy: използва се
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File <script>` за един процес.
+Скриптовете вече имат UTF-8 BOM за българските съобщения в Windows PowerShell 5.1.
+
+Подготвен е `scripts/staging/probe-original-images.sh` за Ubuntu guest след
+Docker инсталация и прегледано image acquisition. Изпълнява се с Bash от копие
+на repository без secrets. Използва шестте оригинални записани image digests
+(Node е API базата, не built API image); без автоматичен pull, портове,
+host mounts или container мрежа. Резултатите остават в `.local-staging/`.
+Прави само binary-version probes: пропуска service entrypoints, authentication,
+бази данни, extensions и healthchecks. Ненулев exit изисква анализ на stderr;
+сам по себе си не доказва отказ поради CPU инструкции. Всички service startup
+и native integration приемателни тестове остават NOT_RUN.
 
 2026-09-14: потребителят избра последователно тестване на Windows → Hyper-V →
 Ubuntu → Docker Engine → OpenRemote. Това заменя предишния обхват само за

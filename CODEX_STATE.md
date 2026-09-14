@@ -2,6 +2,27 @@
 
 ## English
 
+### Latest unattended result — ISO verified; VM creation blocked
+
+User authorized waiting and continuing while away. Ubuntu Server 24.04.5 ISO
+finished downloading; Get-UbuntuIso.ps1 returned Checksum=PASS and exit 0.
+SHA256: 97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8.
+Separately verified SHA256SUMS.gpg with existing Git GnuPG: VALIDSIG fingerprint
+843938DF228D22F7B3742BC0D94AA3F0EFE21092 matches Ubuntu's published fingerprint.
+The download script's Signature=NOT_VERIFIED describes that script only; the
+separate signature check passed. ISO and keyring remain ignored and local.
+Actual New-OfflineUbuntuVM.ps1 attempt with requested elevation failed at the
+initial Get-VM, before any VM/disk/network mutation. Agent is unelevated; user's
+administrator terminal previously passed. Next: run the prepared VM script in
+that terminal using powershell.exe -NoProfile -ExecutionPolicy Bypass -File.
+No UAC automation, BIOS or network changes; no VM, Ubuntu or Docker startup.
+Prepared offline original-image binary probes (including original Manager
+1.30.0) with pinned digests, no pulls, network, ports or host mounts. Bash and
+PowerShell syntax checks PASS; runtime probes NOT_RUN. Fixed PowerShell 5.1
+Bulgarian encoding using UTF-8 BOM. Full service health, OIDC, migrations,
+permissions, persistence and backup/restore remain pending. PR #12 updated.
+Earlier checkpoints below are historical; ISO is no longer downloading.
+
 ### Latest checkpoint — administrator preflight PASS
 
 User-supplied output confirms Elevated=true, HyperVManagementAccess=true,
@@ -105,6 +126,27 @@ No installation, network change, device command or deployment was performed.
 Detailed blockers and source links are retained in HANDOFF.md.
 
 ## Български
+
+### Последен резултат в отсъствие — ISO проверен; VM creation блокирано
+
+Потребителят разреши изчакване и продължаване в отсъствие. Ubuntu Server 24.04.5
+ISO е изтеглен; Get-UbuntuIso.ps1 върна Checksum=PASS и exit 0.
+SHA256: 97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8.
+Отделно SHA256SUMS.gpg е проверен с наличния Git GnuPG: VALIDSIG fingerprint
+843938DF228D22F7B3742BC0D94AA3F0EFE21092 съвпада с публикувания от Ubuntu.
+Signature=NOT_VERIFIED от download скрипта описва само него; отделната проверка
+на подписа е успешна. ISO и keyring остават локални и игнорирани.
+Реалният опит с New-OfflineUbuntuVM.ps1 при заявено повишаване отказа на началния
+Get-VM, преди VM/disk/network промяна. Агентът е без elevated права; терминалът
+на потребителя премина проверката. Следва: VM скриптът от този терминал чрез
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File.
+Без UAC automation, BIOS или мрежови промени; няма VM, Ubuntu или Docker startup.
+Подготвени са offline binary probes на оригиналните images (вкл. оригинален
+Manager 1.30.0) с фиксирани digests, без pull, мрежа, портове или host mounts.
+Bash и PowerShell синтаксис PASS; runtime probes NOT_RUN. Българската кодировка
+за PowerShell 5.1 е поправена с UTF-8 BOM. Full service health, OIDC, миграции,
+права, persistence и backup/restore остават pending. PR #12 е обновен.
+Долните checkpoints са исторически; ISO вече не се изтегля.
 
 ### Последен checkpoint — администраторски preflight PASS
 

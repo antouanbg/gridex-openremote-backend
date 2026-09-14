@@ -1,4 +1,4 @@
-# Read-only, sanitized output. / Само четене, без адреси и имена на съществуващи VM.
+﻿# Read-only, sanitized output. / Само четене, без адреси и имена на съществуващи VM.
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'

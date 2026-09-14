@@ -1,4 +1,4 @@
-# Download and checksum only; no installation. / Само изтегляне и checksum, без инсталация.
+﻿# Download and checksum only; no installation. / Само изтегляне и checksum, без инсталация.
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'

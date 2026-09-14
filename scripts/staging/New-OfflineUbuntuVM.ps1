@@ -1,4 +1,4 @@
-# Creates and boots only a new offline VM. / Създава и стартира само нова VM без мрежа.
+﻿# Creates and boots only a new offline VM. / Създава и стартира само нова VM без мрежа.
 [CmdletBinding(SupportsShouldProcess)]
 param()
 $ErrorActionPreference = 'Stop'
