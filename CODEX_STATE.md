@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## Deployed checkpoint / Внедрено — 2026-09-15
+
+Owner explicitly approved local migrations 003/004 and API restart. Both applied;
+API healthy, OpenRemote online. Real JWT/JWKS + PostgreSQL test passed: own site
+200, foreign site 404, invalid token 401, filtered list. Synthetic data/client
+removed. enrollmentEnabled=false and writesEnabled=false verified. PRs #18/#19
+merged into main 57787d5. This supersedes the blocked deployment note below.
+Next: SMTP and dedicated enrollment client, frontend invitation/acceptance forms
+and real user login. No real email onboarding has been completed.
+
+Собственикът изрично одобри локални миграции 003/004 и API restart. Приложени;
+API healthy, OpenRemote online. Реален JWT/JWKS + PostgreSQL тест мина: собствен
+обект 200, чужд 404, невалиден token 401, филтриран списък. Тестовите данни/клиент
+са изтрити. Потвърдени enrollmentEnabled=false и writesEnabled=false. PR #18/#19
+са merged в main 57787d5. Заменя бележката за блокирано внедряване по-долу.
+Следва SMTP, отделен enrollment клиент, frontend форми и реален потребителски
+вход. Реална регистрация по имейл още не е завършена.
+
 ## Enrollment checkpoint / Регистрация — 2026-09-15
 
 Implemented database-scoped authorization and invitation backend foundation.

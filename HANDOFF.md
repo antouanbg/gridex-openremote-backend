@@ -2,6 +2,22 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Local deployment confirmed / Локално внедряване — 2026-09-15
+
+After explicit owner approval, migrations 003/004 committed in local gridex DB;
+only API recreated. All six backend services healthy; Portainer remains running.
+JWT/JWKS + database isolation test passed (200/404/401 and filtered sites).
+Test client/data cleaned up. Enrollment and device writes remain disabled.
+Supersedes previous safety-review blocker; PR #18/#19 are merged. SMTP/client
+setup and `antouanbg/gridex-energy-os` onboarding forms/browser tests remain.
+
+След изрично одобрение миграции 003/004 са приложени в локалната gridex база;
+само API е пресъздаден. Шестте backend услуги са healthy, Portainer работи.
+JWT/JWKS + database isolation тест мина (200/404/401 и филтрирани обекти).
+Тестовият клиент/данни са премахнати. Регистрацията и device writes са изключени.
+Заменя стария safety-review blocker; PR #18/#19 са merged. Остават SMTP/client
+настройки и onboarding форми/browser тестове в `antouanbg/gridex-energy-os`.
+
 ## Email enrollment foundation / Основа за регистрация — 2026-09-15
 
 See [email enrollment](docs/EMAIL_ENROLLMENT.md). Backend invitation routes,
