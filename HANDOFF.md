@@ -4,6 +4,17 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Latest: automatic VM prepared
+
+User replaced manual console work with a ready automated VM request after a
+reported freeze/reboot. See docs/AUTOMATED_CLOUD_VM.md. Generic cloud QCOW
+checksum/signature, VHD full-data roundtrip and seed ISO/YAML checks PASS.
+Start-GrideX.cmd is the single UAC launcher; old VM session is saved, not deleted.
+New VM/DHCP/SSH/ACL/Docker/image runtime remain NOT_RUN. Six application services
+are not deployed yet; OIDC, migrations and acceptance remain pending. Branch
+codex/automated-cloud-vm follows PR #12. Keys/artifacts are local only.
+
+
 ### Current checkpoint — Ubuntu running; offline SSH preparation
 
 User evidence: Ubuntu installed, rebooted and logged in; uname reports x86_64.
@@ -174,6 +185,17 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Последно: автоматичната VM е подготвена
+
+Потребителят замени ръчната конзолна работа с готова автоматична VM след
+съобщен freeze/reboot. Виж docs/AUTOMATED_CLOUD_VM.md. Общият cloud QCOW
+checksum/signature, VHD full-data roundtrip и seed ISO/YAML са PASS.
+Start-GrideX.cmd е launcher с едно UAC; старата VM се Save-ва, не се изтрива.
+Новите VM/DHCP/SSH/ACL/Docker/image runtime са NOT_RUN. Шестте application услуги
+още не са разгърнати; OIDC, миграции и приемане остават pending. Branch
+codex/automated-cloud-vm следва PR #12. Ключовете и artifacts са само локални.
+
 
 ### Текущ checkpoint — Ubuntu работи; подготовка за offline SSH
 
