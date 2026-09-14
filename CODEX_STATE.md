@@ -1,5 +1,29 @@
 # CODEX_STATE.md
 
+## Active checkpoint — 2026-09-14 / Активно състояние
+
+Current task: Mac/Linux compatibility research and durable handoff. Owner stopped
+Windows experiments. Baseline origin/main 279745b; branch docs/macos-linux-handoff.
+Completed: host inspection, registry ARM64 checks, Colima/CLI/Compose version
+research, EN/BG docs and handoff. Modified: AGENTS.md, HANDOFF.md, CODEX_STATE.md,
+README.md, docs/MAC_LINUX_HANDOFF.md. Validation: documentation diff and secret/
+identifier review; no runtime tests. No software installed, no VM/containers
+started. 0/6 implementation milestones complete. Known issues: OIDC token
+endpoint, migration execution, staging override and all runtime/restore checks
+pending. Next: install/verify Colima gridex ARM64 profile and implement isolated
+staging in the next task; preserve the recovery backlog below.
+
+Текущо: проучване за Mac/Linux и траен handoff. Windows експериментите са спрени.
+Основа origin/main 279745b; branch docs/macos-linux-handoff. Готови: host проверка,
+ARM64 metadata, Colima/CLI/Compose версии, EN/BG документация. Променени: AGENTS.md,
+HANDOFF.md, CODEX_STATE.md, README.md, docs/MAC_LINUX_HANDOFF.md. Проверки: diff и
+преглед за secrets/идентификатори; без runtime тестове. Няма инсталации или старт
+на VM/контейнери. 0/6 implementation етапа готови. Остават OIDC token endpoint,
+миграции, staging override, runtime/restore проверки. Следва: Colima gridex ARM64
+профил и изолиран staging в следващата задача; recovery backlog по-долу се запазва.
+
+## Previous recovery checkpoint / Предходно recovery състояние
+
 ## Current task
 
 Document the planned recovery ingestion of the ROCK Pi local telemetry journal.
