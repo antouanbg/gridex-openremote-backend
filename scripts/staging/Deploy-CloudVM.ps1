@@ -69,7 +69,7 @@ foreach ($prefix in @('0.0.0.0/8','10.0.0.0/8','100.64.0.0/10','127.0.0.0/8','16
 # DHCP, DNS through host, and host-initiated SSH only. / DHCP, DNS през host и SSH само от host.
 Add-Rule Allow Outbound 700 '255.255.255.255/32' UDP 68 67
 Add-Rule Allow Outbound 700 $hostPrefix UDP 68 67
-Add-Rule Allow Inbound 700 $hostPrefix UDP 68 67
+Add-Rule Allow Inbound 700 '0.0.0.0/0' UDP 68 67
 Add-Rule Allow Outbound 700 $hostPrefix UDP $null 53
 Add-Rule Allow Inbound 700 $hostPrefix UDP $null 53
 Add-Rule Allow Outbound 700 $hostPrefix TCP $null 53 $true

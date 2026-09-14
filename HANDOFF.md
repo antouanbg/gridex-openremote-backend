@@ -4,6 +4,15 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### DHCP follow-up pending
+
+VM attach and normal restart succeeded with 22 uniquely weighted ACLs. No DHCP
+address or SSH success has been observed. Prepared a DHCP-only reply exception
+(UDP server 67 to client 68 on the internal Default Switch) because the service
+may not source replies from the host interface address. Its elevated application
+is awaiting completion; do not claim DHCP/SSH/Docker ready. Other ACLs unchanged.
+
+
 ### Live repair: VM running, DHCP still pending
 
 Administrator inspection confirmed gridex-auto running with its prepared disk
@@ -197,6 +206,15 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### DHCP проверката продължава
+
+VM attach и нормалният рестарт успяха с 22 ACL с уникални приоритети. Няма
+наблюдаван DHCP адрес или успешен SSH. Подготвено е изключение само за DHCP
+отговори (UDP server 67 към client 68 във вътрешния Default Switch), защото
+услугата може да отговаря от различен адрес от host интерфейса. Прилагането
+с повишени права още се чака; DHCP/SSH/Docker не са готови. Другите ACL са запазени.
+
 
 ### Поправка в ход: VM работи, DHCP още се чака
 
