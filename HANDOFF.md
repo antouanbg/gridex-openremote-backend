@@ -4,6 +4,17 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Current checkpoint — Ubuntu running; offline SSH preparation
+
+User evidence: Ubuntu installed, rebooted and logged in; uname reports x86_64.
+User configured an internal staging switch and temporary guest IPv4; ping to
+Windows reportedly succeeds. No NAT/default route configured. SSH service is
+absent; APT failed DNS. Read the verified ISO archive/package index: SSH server,
+SFTP server, libwrap0 and ncurses-term are present. Next: reattach ISO and use
+APT CD-ROM as documented in docs/OFFLINE_SSH_BOOTSTRAP.md. Dependency resolution
+and SSH startup remain untested. Docker/Manager 1.30.0 and all acceptance tests
+remain pending. Addresses, screenshots and keys are not committed. PR #12.
+
 ### Latest unattended result — ISO verified; VM creation blocked
 
 User authorized waiting and continuing while away. Ubuntu Server 24.04.5 ISO
@@ -163,6 +174,17 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Текущ checkpoint — Ubuntu работи; подготовка за offline SSH
+
+Доказателства от потребителя: Ubuntu е инсталиран, рестартиран и има login;
+uname показва x86_64. Потребителят настрои internal staging switch и временен
+guest IPv4; съобщи за успешен ping до Windows. Без настроени NAT/default route.
+SSH услугата липсва; APT отказа по DNS. Провереният ISO архив/package index
+съдържа SSH server, SFTP server, libwrap0 и ncurses-term. Следва: връщане на ISO
+и APT CD-ROM според docs/OFFLINE_SSH_BOOTSTRAP.md. Dependency resolution и SSH
+startup още не са тествани. Docker/Manager 1.30.0 и всички приемателни тестове
+остават pending. Адреси, снимки и ключове не се commit-ват. PR #12.
 
 ### Последен резултат в отсъствие — ISO проверен; VM creation блокирано
 
