@@ -9,8 +9,7 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 User-supplied output confirms Elevated=true, HyperVManagementAccess=true,
 HypervisorPresent=true, zero VMs, 14.43 GiB free RAM and 112.74 GiB free on C.
 Management access works in the user's administrator terminal; the agent remains
-unelevated. LinuxStartup=NOT_RUN. Local download inspection found only a 16 KiB
-partial ISO. Next: complete Get-UbuntuIso.ps1, require Checksum=PASS, then create
+unelevated. LinuxStartup=NOT_RUN. Download is active (~35% per curl); no completed ISO. Next: complete Get-UbuntuIso.ps1, require Checksum=PASS, then create
 the offline VM. Ubuntu/Docker/original Manager 1.30.0 startup tests and all later
 acceptance gates remain pending. Changes continue in PR #12.
 
@@ -149,8 +148,7 @@ treated as journal recovery.
 Резултатът от потребителя потвърждава Elevated=true, HyperVManagementAccess=true,
 HypervisorPresent=true, нула VM, 14,43 GiB свободна RAM и 112,74 GiB на C.
 Management достъпът работи в администраторския терминал на потребителя; агентът
-остава без повишени права. LinuxStartup=NOT_RUN. Локално има само частичен ISO
-от 16 KiB. Следва: завършване на Get-UbuntuIso.ps1 с Checksum=PASS, после offline
+остава без повишени права. LinuxStartup=NOT_RUN. Download е активен (~35% според curl); няма завършен ISO. Следва: завършване на Get-UbuntuIso.ps1 с Checksum=PASS, после offline
 VM. Ubuntu/Docker/оригинален Manager 1.30.0 startup тестовете и всички следващи
 приемателни условия остават pending. Промените продължават в PR #12.
 
