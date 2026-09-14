@@ -57,7 +57,11 @@ async function createClient(body) {
 }
 await createClient({ clientId: 'gridex-portal', protocol: 'openid-connect', enabled: true,
   publicClient: true, standardFlowEnabled: true, directAccessGrantsEnabled: false,
-  redirectUris: ['https://localhost:8443/*'], webOrigins: ['https://localhost:8443'],
+  // Exact local callbacks: login/logout, English entry and silent SSO.
+  // Never allow arbitrary redirect hosts or ports.
+  redirectUris: ['https://localhost:8443/*', 'http://127.0.0.1:4173/',
+    'http://127.0.0.1:4173/en/', 'http://127.0.0.1:4173/silent-check-sso.html'],
+  webOrigins: ['https://localhost:8443', 'http://127.0.0.1:4173'],
   attributes: { 'pkce.code.challenge.method': 'S256' },
   protocolMappers: [{ name: 'gridex-api-audience', protocol: 'openid-connect',
     protocolMapper: 'oidc-audience-mapper', config: {

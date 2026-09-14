@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Local portal callback fix / Корекция на локалния вход — 2026-09-14
+
+Fixed missing loopback 4173 callbacks and API origin; applied to local staging.
+Regression checks: three exact callbacks return login forms; foreign host rejected.
+API health 200. Full browser login, user membership and site rights remain pending.
+Next: start a fresh login from the local portal. MQTT/TLS/WireGuard are deferred.
+
+Добавени липсващите loopback 4173 callbacks и API origin; приложени локално.
+Тестове: трите точни адреса връщат login форма; чужд host е отказан.
+API health 200. Пълен browser вход, membership и права по обекти предстоят.
+Следва нов вход от локалния портал. MQTT/TLS/WireGuard са отложени.
+
 ## Port update / Промяна на порт — 2026-09-14
 
 OpenRemote endpoint changed to https://localhost:8443/ at owner's request.
