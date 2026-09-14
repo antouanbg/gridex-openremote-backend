@@ -2,6 +2,15 @@
 
 ## English
 
+### Current privilege boundary
+
+The last background RunAs attempt returned operation canceled; the user reports
+all visible prompts confirmed. Retried once; completion is not established.
+Do not assert a pending visible UAC prompt. Prepared local Fix-DHCP.cmd for
+user-initiated execution. Read-only guest-disk inspection found DHCP netplan,
+authorized_keys and bootstrap unit present; this is not SSH or DHCP success.
+
+
 ### DHCP follow-up pending
 
 VM attach and normal restart succeeded with 22 uniquely weighted ACLs. No DHCP
@@ -169,6 +178,15 @@ No installation, network change, device command or deployment was performed.
 Detailed blockers and source links are retained in HANDOFF.md.
 
 ## Български
+
+### Текуща пречка с правата
+
+Последният background RunAs опит върна operation canceled; потребителят съобщи,
+че всички видими потвърждения са приети. Повторен е веднъж; завършването не е
+установено. Не твърдим, че има видим чакащ UAC. Подготвен е локален Fix-DHCP.cmd
+за директно стартиране от потребителя. Read-only guest-disk проверката намери
+DHCP netplan, authorized_keys и bootstrap unit; това не е успешен SSH/DHCP.
+
 
 ### DHCP проверката продължава
 
