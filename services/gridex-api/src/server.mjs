@@ -4,6 +4,7 @@ import { createApp } from "./app.mjs";
 import { loadConfig, validateProductionConfig } from "./config.mjs";
 import { OpenRemoteClient } from "./openremote-client.mjs";
 import { createRepository } from "./repository.mjs";
+import { EnrollmentIdentity, InvitationService } from './invitations.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -11,7 +12,9 @@ const repository = createRepository(config);
 if (config.autoMigrate) await repository.migrate();
 const openRemote = new OpenRemoteClient(config);
 const authenticate = createAuthenticator(config);
-const server = createServer(createApp({ config, authenticate, repository, openRemote }));
+const invitations = config.enrollmentEnabled && repository.pool
+  ? new InvitationService(repository.pool, new EnrollmentIdentity(config)) : null;
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 

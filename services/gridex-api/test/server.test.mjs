@@ -56,7 +56,7 @@ test("normalization preserves missing telemetry as null instead of unsafe zero",
 });
 
 test("site listing is filtered by database membership", async () => {
-  const repository = new MemoryRepository({ sites: [site, { ...site, id: "33333333-3333-4333-8333-333333333333", organisationId: "other" }], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
+  const repository = new MemoryRepository({ sites: [site, { ...site, id: "33333333-3333-4333-8333-333333333333", organisationId: "other" }], memberships: [{ subject: "user-1", organisationId: site.organisationId, role: 'administrator', allSites: true }] });
   const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote: { health: async () => true } });
   await withServer(app, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/v1/sites`, { headers: { Authorization: "Bearer test", Origin: "https://portal.example.invalid" } });
@@ -68,7 +68,7 @@ test("site listing is filtered by database membership", async () => {
 });
 
 test("provisions a device in OpenRemote and returns only public configuration", async () => {
-  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
+  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId, role: 'administrator', allSites: true }] });
   let createdAsset;
   const openRemote = { health: async () => true, createAsset: async (asset) => { createdAsset = asset; return { ...asset, id: "openremote-device-1" }; } };
   const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote });
@@ -86,7 +86,7 @@ test("provisions a device in OpenRemote and returns only public configuration", 
 });
 
 test("rejects asset management when the commissioning write lock is closed", async () => {
-  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
+  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId, role: 'administrator', allSites: true }] });
   const app = createApp({ config: { ...baseConfig, writesEnabled: false }, authenticate: async () => principal, repository, openRemote: { health: async () => true } });
   await withServer(app, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/v1/sites/${site.id}/devices`, { method: "POST", headers: { Authorization: "Bearer test", Origin: "https://portal.example.invalid", "Content-Type": "application/json" }, body: JSON.stringify({ type: "meter" }) });
@@ -117,7 +117,7 @@ test("stores per-user preferences with optimistic revision control", async () =>
 });
 
 test("creates a canonical strategy draft with economic loss protection", async () => {
-  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId }] });
+  const repository = new MemoryRepository({ sites: [site], memberships: [{ subject: "user-1", organisationId: site.organisationId, role: 'administrator', allSites: true }] });
   const openRemote = { health: async () => true };
   const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote });
   await withServer(app, async (baseUrl) => {

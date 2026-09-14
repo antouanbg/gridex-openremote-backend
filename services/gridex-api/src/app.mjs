@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { assertAllowedOrigin } from "./config.mjs";
-import { requirePermission } from "./auth.mjs";
+import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
 import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset-blueprints.mjs";
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
@@ -109,7 +109,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -124,12 +124,31 @@ export function createApp({ config, authenticate, repository, openRemote }) {
         return json(res, online ? 200 : 503, { status: online ? "ready" : "degraded", openRemote: online ? "online" : "offline", writesEnabled: config.writesEnabled }, context);
       }
 
-      const principal = await authenticate(req);
+      const identity = await authenticate(req);
+      const memberships = await repository.getMemberships(identity.subject);
+      let principal = withMembershipRoles(identity, memberships.map((m) => m.role));
+
+      if (url.pathname.includes('/invitations')) {
+        if (!invitations) throw new ApiError(503, 'enrollment_unavailable', 'Email enrollment is not configured.');
+        const orgRoute = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/invitations(?:\/([0-9a-f-]{36})\/revoke)?$/i);
+        if (orgRoute && req.method === 'POST') {
+          const result = orgRoute[2] ? await invitations.revoke(identity, orgRoute[1], orgRoute[2])
+            : await invitations.create(identity, orgRoute[1], await readJson(req, config.maximumBodyBytes));
+          return json(res, orgRoute[2] ? 200 : 201, result, context);
+        }
+        if (url.pathname === '/api/v1/me/invitations' && req.method === 'GET') {
+          return json(res, 200, { invitations: await invitations.list(identity) }, context);
+        }
+        const accept = url.pathname.match(/^\/api\/v1\/invitations\/([0-9a-f-]{36})\/accept$/i);
+        if (accept && req.method === 'POST') return json(res, 200, await invitations.accept(identity, accept[1]), context);
+        throw new ApiError(404, 'not_found', 'Invitation route not found.');
+      }
 
       if (req.method === "GET" && url.pathname === "/api/v1/me") {
         return json(res, 200, {
           subject: principal.subject, email: principal.email, name: principal.name,
           preferredUsername: principal.preferredUsername, roles: principal.roles, permissions: principal.permissions,
+          memberships,
         }, context);
       }
 
@@ -165,6 +184,7 @@ export function createApp({ config, authenticate, repository, openRemote }) {
       const siteId = decodeURIComponent(siteRoute[1]);
       const suffix = siteRoute[2] || "";
       const site = await repository.requireSite(principal.subject, siteId);
+      principal = withMembershipRoles(identity, [site.membershipRole]);
 
       if (req.method === "GET" && suffix === "/hardware") {
         requirePermission(principal, "site:read");

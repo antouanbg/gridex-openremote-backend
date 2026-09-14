@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## Enrollment checkpoint / Регистрация — 2026-09-15
+
+Implemented database-scoped authorization and invitation backend foundation.
+16 tests passed; disposable PostgreSQL lifecycle test passed with fake email.
+Docker image built. NOT deployed: safety review rejected live migrations/API
+restart pending explicit owner approval. Active runtime remains previous version.
+Next: approve local migrations 003/004 and API restart; provision dedicated
+enrollment client/SMTP and frontend forms before enabling registration.
+See docs/EMAIL_ENROLLMENT.md. No real email/browser registration demonstrated.
+
+Добавена backend основа за покани и права от базата по организация/обект.
+16 теста и PostgreSQL lifecycle тест със симулиран имейл минаха. Docker image
+е билднат. НЕ е внедрено: защитната проверка отказа live миграции/API restart
+без изрично одобрение. Активната среда е предходната версия. Следва одобрение
+за локални миграции 003/004 и API restart; отделен enrollment клиент/SMTP и
+frontend форми преди активиране. Виж docs/EMAIL_ENROLLMENT.md. Няма доказана
+регистрация с реален имейл/browser.
+
 ## Local portal callback fix / Корекция на локалния вход — 2026-09-14
 
 Fixed missing loopback 4173 callbacks and API origin; applied to local staging.
