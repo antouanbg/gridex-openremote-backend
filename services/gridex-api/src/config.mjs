@@ -19,6 +19,7 @@ export function loadConfig(env = process.env) {
     openRemoteServiceClientId: env.OPENREMOTE_SERVICE_CLIENT_ID || "gridex-api",
     openRemoteServiceClientSecret: env.OPENREMOTE_SERVICE_CLIENT_SECRET || "",
     oidcIssuer,
+    oidcTokenEndpoint: env.OIDC_TOKEN_ENDPOINT || `${oidcIssuer}/protocol/openid-connect/token`,
     oidcJwksUri: env.OIDC_JWKS_URI || `${oidcIssuer}/protocol/openid-connect/certs`,
     oidcAudience,
     oidcClockToleranceSeconds: integer(env.OIDC_CLOCK_TOLERANCE_SECONDS, 10),

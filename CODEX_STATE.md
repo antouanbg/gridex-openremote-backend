@@ -1,5 +1,65 @@
 # CODEX_STATE.md
 
+## Current authoritative checkpoint / Актуално състояние — 2026-09-14
+
+Runtime and OIDC/API tenant tests implemented on feat/macos-linux-runtime.
+See docs/MAC_RUNTIME_ACCEPTANCE.md for the complete current evidence matrix.
+Real own-site 200 / foreign-site 404 / invalid-token 401 passed; temporary test
+data removed. Owner confirmed Portainer container view. Browser login blocked
+by certificate handoff; VPN, MQTT and backup/restore remain incomplete.
+Next: browser certificate handoff and PKCE login/logout; do not claim complete.
+User authorized review and merge of completed changes. No production approval.
+
+Runtime и OIDC/API tenant тестове са внедрени във feat/macos-linux-runtime.
+Актуалната матрица е docs/MAC_RUNTIME_ACCEPTANCE.md. Реални свой обект 200 /
+чужд 404 / невалиден token 401 са успешни; временните данни са премахнати.
+Собственикът потвърди Portainer изгледа. Browser вход чака certificate handoff;
+VPN, MQTT и backup/restore не са завършени. Следва сертификат и PKCE вход/изход.
+Собственикът разреши review/merge на готовите промени. Без production одобрение.
+
+## Portainer checkpoint / Portainer проверка — 2026-09-14
+
+Portainer CE 2.45.0 installed and listening on loopback HTTPS 9443. Owner must
+complete certificate warning and initial admin setup; no credentials entered
+by agent. UI container list not verified. See HANDOFF.md. Next: browser login
+and real tenant authorization; VPN, MQTT and restore still pending.
+
+Portainer CE 2.45.0 е инсталиран и слуша loopback HTTPS 9443. Собственикът
+обработва certificate warning и първоначалния admin setup; агентът не е въвеждал
+credentials. UI списъкът не е проверен. Виж HANDOFF.md. Следва browser вход и
+реална tenant авторизация; VPN, MQTT и restore още предстоят.
+
+## OIDC progress — 2026-09-14 / OIDC напредък
+
+Created gridex realm via OpenRemote, portal PKCE client and API service client.
+Granted only read:assets; real service-token Asset query succeeded (empty realm).
+Temporary bootstrap client removed. Browser login/tenant acceptance pending.
+Next: synthetic test user with membership, browser PKCE login and negative API
+authorization tests. Keep writes disabled. Script: scripts/provision-mac-oidc.mjs.
+
+Създадени gridex realm през OpenRemote, portal PKCE и API service клиент.
+Дадено само read:assets; реална Asset заявка с service token мина (празен realm).
+Временният bootstrap клиент е изтрит. Browser вход/tenancy още не са приети.
+Следва synthetic потребител с membership, PKCE вход и отрицателни API auth
+тестове. Записите остават забранени. Script: scripts/provision-mac-oidc.mjs.
+
+## Latest runtime checkpoint / Последна runtime проверка
+
+2026-09-14: branch `feat/macos-linux-runtime`. Six healthy containers and host
+API health verified; 12 API tests passed; migrations 001/002 applied. See
+`docs/MAC_RUNTIME_CHECKPOINT.md` for evidence, files and ordered remaining work.
+Next: provision/test OIDC clients and tenancy; then TLS and restore acceptance.
+WireGuard is not configured; no Site Router peer exists. Edge read-only checks
+found journal ownership errors and an ESP Modbus response timeout. Earlier
+not-installed checkpoint below is historical. Runtime work is not complete.
+
+2026-09-14: branch `feat/macos-linux-runtime`. Шест healthy контейнера, API от
+host, 12 успешни API теста; миграции 001/002 приложени. Доказателства и оставащи
+задачи: `docs/MAC_RUNTIME_CHECKPOINT.md`. Следва OIDC/tenancy, после TLS/restore.
+WireGuard не е конфигуриран; няма Site Router peer. Read-only Edge проверката
+откри грешни journal права и ESP Modbus timeout. Старото състояние по-долу е
+историческо. Runtime задачата още не е завършена.
+
 ## Active checkpoint — 2026-09-14 / Активно състояние
 
 Current task: Mac/Linux compatibility research and durable handoff. Owner stopped
