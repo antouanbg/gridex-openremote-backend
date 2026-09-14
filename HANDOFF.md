@@ -1,8 +1,55 @@
 # Handoff — GrideX OpenRemote backend
-
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
+
+### CURRENT HANDOFF — Windows attempt unsuccessful; continue on Mac
+
+2026-09-14: user ended Windows troubleshooting and will continue this chat in
+another local environment, expected to be the Mac. Record this as an UNSUCCESSFUL
+backend startup attempt, not a completed or validated deployment. Do not resume
+Windows installers, launchers, networking changes or manual console instructions
+without a new user request. Older checkpoints below are historical.
+
+Proven: Windows Hyper-V runs Ubuntu; the manual VM reached login after install
+and restart, and the user reported x86_64. The automated gridex-auto VM reached
+login; its prepared disk and cloud-init seed were checked. Hyper-V NIC attachment
+succeeded after fixing the agent's wrong ACL count and duplicate priorities.
+
+Not achieved: usable DHCP/SSH access to gridex-auto, verified Docker Linux runtime,
+or a running OpenRemote/backend stack. Latest local DHCP report is
+NO_DHCP_OBSERVED. No successful application startup or actual original Manager
+CPU failure was captured. Manager 1.30.0's UBI 10 CPU baseline mismatch remains
+source/metadata evidence, not an observed startup result. This failure does NOT
+prove Windows/Hyper-V/Ubuntu or OpenRemote is inherently unusable on the host.
+User reported a freeze/reboot of the manual VM; cause remains undiagnosed.
+The agent's provisioning defects, fragmented instructions and elevation failures
+consumed user time; do not repeat that workflow on the next machine.
+
+Windows leftovers: gridex-cpu-staging and gridex-auto, local disks/seeds/SSH keys,
+internal staging switch/address configuration, and Default Switch ACL setup.
+No shutdown or cleanup was verified at handoff; the previous suggestion to leave
+VMs stopped was not an executed shutdown. Do not describe them as stopped or
+removed. Local scripts may have been started by the user; no remaining running
+helper inventory was established. No physical devices were accessed by this work.
+
+Next environment: read AGENTS.md, this file, CODEX_STATE.md and HANDOFF.md from
+codex/automated-cloud-vm / PR #13, not main alone. PR #13 builds on #12, which
+builds on #11 and #10; these changes have not been merged by this work. Inspect
+Mac model, Intel versus Apple Silicon, RAM, disk, OS and existing container
+runtime/license before choosing an image architecture. Do not assume amd64 pins
+apply to arm64 or that emulation proves native CPU compatibility. Keep original
+OpenRemote Manager 1.30.0 as the first startup candidate; no silent downgrade.
+
+Mac has reported access to RockPi/ESP32, which must remain outside this isolated
+test. Do not import physical-device inventory, Agents/rules, production volumes,
+VPN configuration or credentials. Generate environment-specific secrets locally;
+never transfer the Windows seed/private keys through Git. Package a reproducible
+setup with clear automatic status, minimizing user console work. Still pending:
+six-service isolated Compose, loopback HTTP/HTTPS/API, no published MQTT, OIDC,
+internal token endpoint, explicit migrations, healthy services, login, API rights,
+persistence and backup/restore. Mac is a test candidate; Windows 10 remains
+historical temporary staging and Windows 11 remains planned production.
 
 ### Current privilege boundary
 
@@ -215,6 +262,55 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### ТЕКУЩ HANDOFF — Windows опитът е неуспешен; продължаване на Mac
+
+2026-09-14: потребителят прекрати Windows troubleshooting и ще продължи чата в
+друг локален environment, очаквано на Mac. Това е НЕУСПЕШЕН опит за backend
+startup, не завършено или валидирано deployment. Не подновявайте Windows
+installers, launchers, мрежови промени или ръчни конзолни инструкции без ново
+искане от потребителя. Долните checkpoints са исторически.
+
+Доказано: Windows Hyper-V зарежда Ubuntu; ръчната VM достигна login след
+инсталация и рестарт, а потребителят съобщи x86_64. Автоматичната gridex-auto
+достигна login; подготвените диск и cloud-init seed са проверени. Hyper-V NIC
+attachment успя след поправка на грешния ACL брой и дублираните приоритети на агента.
+
+Непостигнато: използваем DHCP/SSH достъп до gridex-auto, проверен Docker Linux
+runtime или работещ OpenRemote/backend stack. Последният локален DHCP резултат
+е NO_DHCP_OBSERVED. Няма успешен application startup или заснет реален CPU отказ
+на оригиналния Manager. Несъответствието на UBI 10 CPU baseline при Manager
+1.30.0 остава source/metadata доказателство, не наблюдаван startup резултат.
+Този неуспех НЕ доказва принципна неизползваемост на Windows/Hyper-V/Ubuntu или
+OpenRemote върху host-а. Потребителят съобщи freeze/reboot на ръчната VM;
+причината не е диагностицирана. Provisioning грешките, разпокъсаните инструкции
+и elevation отказите на агента загубиха време на потребителя; този workflow
+не трябва да се повтаря на следващата машина.
+
+Оставено на Windows: gridex-cpu-staging и gridex-auto, локални дискове/seed/SSH
+ключове, internal staging switch/address конфигурация и Default Switch ACL.
+При handoff не са потвърдени shutdown или cleanup; предишното предложение VM да
+останат спрени не е изпълнен shutdown. Не ги описвайте като спрени или изтрити.
+Потребителят може да е стартирал локални скриптове; не е установен списък на
+останалите работещи helpers. Тази работа не е достъпвала физически устройства.
+
+Следващ environment: прочетете AGENTS.md, този файл, CODEX_STATE.md и HANDOFF.md
+от codex/automated-cloud-vm / PR #13, не само main. PR #13 е върху #12, който е
+върху #11 и #10; тази работа не ги е merged. Проверете Mac модел, Intel или
+Apple Silicon, RAM, диск, ОС и наличния container runtime/лиценз преди избор на
+image архитектура. Не приемайте amd64 pins за arm64 или emulation за доказана
+native CPU съвместимост. Първият startup кандидат остава оригиналният OpenRemote
+Manager 1.30.0; без тиха смяна към по-стара версия.
+
+Mac има съобщен достъп до RockPi/ESP32, които остават извън изолирания тест.
+Не импортирайте физически inventory, Agents/rules, production volumes, VPN
+конфигурация или credentials. Генерирайте secrets локално за новата среда;
+не прехвърляйте Windows seed/private keys през Git. Подгответе възпроизводима
+инсталация с ясен автоматичен статус и минимална конзолна работа от потребителя.
+Остават: изолиран Compose за шестте услуги, loopback HTTP/HTTPS/API, без публикуван
+MQTT, OIDC, internal token endpoint, изрични миграции, здрави услуги, login,
+API права, persistence и backup/restore. Mac е тестов кандидат; Windows 10
+остава исторически временен staging, а Windows 11 остава планиран production.
 
 ### Текуща пречка с правата
 
