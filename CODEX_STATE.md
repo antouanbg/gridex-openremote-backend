@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+## Backup checkpoint / Backup състояние — 2026-09-14
+
+scripts/test-mac-backup.py completed two strict SQL restores and matching
+table inventories. Test containers stopped, volumes/backups retained locally.
+No source data modified. Next: verify restored row content and coordinate
+application-volume/full-stack restore. See newest HANDOFF entry for limits.
+Chrome works per owner; Safari unresolved. VPN/MQTT remain pending.
+
+scripts/test-mac-backup.py изпълни два strict SQL restore-а със съвпадащи
+таблици. Test контейнерите са спрени, volumes/архивите запазени локално.
+Без промяна на изходните данни. Следва проверка на редовете и координиран
+app-volume/full-stack restore. Виж последния HANDOFF за ограниченията.
+Chrome работи според собственика; Safari е нерешен. VPN/MQTT предстоят.
+
 ## Port update / Промяна на порт — 2026-09-14
 
 OpenRemote endpoint changed to https://localhost:8443/ at owner's request.
