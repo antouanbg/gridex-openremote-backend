@@ -1,5 +1,15 @@
 # GrideX OpenRemote backend
 
+Active setup decision (2026-09-14): Windows experiments are stopped. Follow the
+[Linux under macOS handoff](docs/MAC_LINUX_HANDOFF.md) for the Colima ARM64 test
+backend. Image availability is verified; service startup is not yet tested.
+Do not use the generic quick-start below for this isolated staging deployment.
+
+Активно решение (2026-09-14): Windows експериментите спират. Следвайте
+[Linux под macOS handoff](docs/MAC_LINUX_HANDOFF.md) за Colima ARM64 тестов backend.
+Наличието на images е проверено; стартът на услугите още не е тестван. Общият
+quick-start по-долу не е приложим за този изолиран staging deployment.
+
 ## English
 
 Independent OpenRemote deployment and integration contract. The web interface and C++ Edge Gateway are maintained in separate repositories.

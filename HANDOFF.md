@@ -4,6 +4,18 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Active: Linux under macOS, Windows experiments stopped
+
+- Owner decision: 2026-09-14. [Mac/Linux handoff](docs/MAC_LINUX_HANDOFF.md)
+  defines Colima ARM64, candidate versions/digests and six ordered milestones.
+- Evidence: M4 Pro/64 GB; six upstream ARM64 images exist; no Docker runtime
+  installed or tested. 0/6 implementation milestones complete, 6 pending.
+- Dependencies: Colima/Engine, private local storage, staging override and
+  API/OIDC/migration fixes; all six runtime tests and restore remain pending.
+- Next action: install and verify the dedicated Colima profile, then implement
+  isolated staging; do not run base Compose directly or resume Windows/cloud PRs.
+- Keep recovery work below and PR #9 backlog; metadata checks are not deployment.
+
 ### Planned: local telemetry journal recovery ingestion
 
 The ROCK Pi local NDJSON journal is deployed and bounded, but no journal export,
@@ -29,6 +41,18 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Активно: Linux под macOS, Windows експериментите спират
+
+- Решение от 2026-09-14. [Mac/Linux handoff](docs/MAC_LINUX_HANDOFF.md) определя
+  Colima ARM64, candidate версии/digests и шест последователни етапа.
+- Доказателства: M4 Pro/64 GB; шест ARM64 images съществуват; Docker не е
+  инсталиран/тестван. Завършени implementation етапи 0/6, оставащи 6.
+- Зависимости: Colima/Engine, private storage, staging override,
+  API/OIDC/migration fixes; runtime тестовете и restore предстоят.
+- Следва: инсталиране и проверка на отделния Colima profile, после изолиран
+  staging; без директен base Compose старт или продължаване на Windows/cloud PR-и.
+- Запазват се recovery задачите по-долу и backlog PR #9; metadata не е deployment.
 
 ### Планирано: recovery ingestion на local telemetry journal
 

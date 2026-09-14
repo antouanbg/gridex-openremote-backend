@@ -2,7 +2,22 @@
 
 ## Architecture and security
 
-The Windows 11 backend hosts Docker services, GrideX API, PostgreSQL,
+Owner decision, 2026-09-14: Windows experiments are stopped. The active backend
+development/staging target is Linux ARM64 under macOS using Colima and Docker
+Engine. Follow `docs/MAC_LINUX_HANDOFF.md`. Earlier Windows 11 production plans
+are historical context, not an instruction to resume Windows deployment. Final
+production commissioning remains pending. Keep the Site Router VPN and ownership
+boundaries below unchanged. Do not resume PR #10–#13's Windows/cloud execution
+paths without a new owner request.
+
+Решение на собственика от 2026-09-14: Windows експериментите спират. Активната
+backend development/staging среда е Linux ARM64 под macOS с Colima и Docker
+Engine. Следвай `docs/MAC_LINUX_HANDOFF.md`. Предходните Windows 11 production
+планове са исторически контекст, не указание за продължаване на Windows deployment.
+Production commissioning предстои; запазват се Site Router VPN и границите на
+отговорност. Windows/cloud изпълнението от PR #10–#13 не продължава без ново искане.
+
+The central backend hosts Docker services, GrideX API, PostgreSQL,
 OpenRemote, Keycloak and private MQTT ingestion. Each Site Router terminates
 its own WireGuard peer; ROCK Pi and ESP nodes are behind the router. Browser
 clients reach only GrideX API; OpenRemote owns live Assets and rules, while
