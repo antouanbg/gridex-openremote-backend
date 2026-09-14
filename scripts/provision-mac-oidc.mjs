@@ -43,14 +43,21 @@ if (!realms.some(r => r.name === 'gridex')) {
 const admin = `${kc}/admin/realms/gridex`;
 async function createClient(body) {
   const found = await request(`${admin}/clients?clientId=${body.clientId}`, { headers });
-  if (found.length) { console.log(`Existing client preserved: ${body.clientId}`); return found[0]; }
+  if (found.length) {
+    if (body.clientId === 'gridex-portal') {
+      await request(`${admin}/clients/${found[0].id}`, { headers, method: 'PUT',
+        body: JSON.stringify({ ...found[0], redirectUris: body.redirectUris, webOrigins: body.webOrigins }) });
+      console.log('Updated local portal callback origin');
+    } else console.log(`Existing client preserved: ${body.clientId}`);
+    return found[0];
+  }
   await request(`${admin}/clients`, { headers, method: 'POST', body: JSON.stringify(body) });
   console.log(`Created client: ${body.clientId}`);
   return (await request(`${admin}/clients?clientId=${body.clientId}`, { headers }))[0];
 }
 await createClient({ clientId: 'gridex-portal', protocol: 'openid-connect', enabled: true,
   publicClient: true, standardFlowEnabled: true, directAccessGrantsEnabled: false,
-  redirectUris: ['https://localhost/*'], webOrigins: ['https://localhost'],
+  redirectUris: ['https://localhost:8443/*'], webOrigins: ['https://localhost:8443'],
   attributes: { 'pkce.code.challenge.method': 'S256' },
   protocolMappers: [{ name: 'gridex-api-audience', protocol: 'openid-connect',
     protocolMapper: 'oidc-audience-mapper', config: {

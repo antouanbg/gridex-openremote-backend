@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Port update / Промяна на порт — 2026-09-14
+
+Owner requested OpenRemote on https://localhost:8443/. Compose now publishes
+only 8443 for proxy; Keycloak hostname, Manager SSL port, forwarded port, API
+issuer/origin and portal callbacks use 8443. Portainer remains on 9443.
+Previous localhost:443 references are historical. Self-signed certificate
+trust still requires owner action; a port change does not resolve trust.
+
+По искане на собственика OpenRemote е на https://localhost:8443/. Compose
+публикува само 8443 за proxy; Keycloak hostname, Manager SSL port, forwarded
+port, API issuer/origin и portal callbacks ползват 8443. Portainer остава 9443.
+Старите localhost:443 адреси са исторически. Self-signed сертификатът още
+изисква доверие от собственика; новият порт не решава това автоматично.
+
 ## Current acceptance / Актуално приемане
 
 [Authoritative runtime acceptance matrix](docs/MAC_RUNTIME_ACCEPTANCE.md):
