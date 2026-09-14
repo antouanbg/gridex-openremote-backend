@@ -4,6 +4,18 @@
 
 ### Current task — 2026-09-14
 
+Research the existing Windows HP Z800 concept and Manager 1.30.0 CPU-compatible
+runtime candidates: docs/X5660_BACKEND_OPTIONS.md and CPU_IMAGE_METADATA.json.
+Preferred option to evaluate is Hyper-V / Ubuntu 24.04 VM / Docker Engine,
+preserving Manager 1.30.0. No architecture switch or installation was executed.
+Temurin 21/Noble is a candidate, not startup-proven. All five other service image
+paths were inspected through source/registry metadata; native-code tests remain.
+Resolve the latest Java patch tag/digest, build an artifact-identical repackage,
+audit JNI and perform real X5660 guest startups before claiming compatibility.
+Branch: codex/manager130-x5660-research; follows planning PR #10.
+
+### Previous staging plan — retained context
+
 Prepare the isolated six-service staging plan against main 279745b and retain
 the read-only Windows backend diagnosis. Plan: docs/STAGING_STARTUP_PLAN.md.
 Windows 10 is temporary testing; Windows 11 remains planned production.
@@ -40,7 +52,8 @@ or network changes are authorized. Never commit passwords, keys or real addresse
 2. Prepare secrets outside Git, OIDC and OpenRemote configuration; pin tested
    images; validate the six Compose services, migrations, backups and capacity.
 3. Complete private MQTT ingestion and commissioning; keep writes disabled.
-   Compose has no separate MQTT ingestion service or TimescaleDB.
+   Compose has no separate MQTT ingestion or GrideX TimescaleDB service; the
+   selected OpenRemote PostgreSQL image includes TimescaleDB per metadata.
 4. Preserve the earlier recovery task: agree the versioned Edge export/ack
    contract, then implement and test idempotent PostgreSQL ingestion in a
    separate PR. No journal export, acknowledgement, replay or recovery worker
@@ -63,6 +76,18 @@ Detailed blockers and source links are retained in HANDOFF.md.
 ## Български
 
 ### Текуща задача — 2026-09-14
+
+Проучване на концепцията за наличния Windows HP Z800 и CPU runtime кандидати за
+Manager 1.30.0: docs/X5660_BACKEND_OPTIONS.md и CPU_IMAGE_METADATA.json.
+Предпочитан вариант за оценка: Hyper-V / Ubuntu 24.04 VM / Docker Engine със
+запазен Manager 1.30.0. Не е извършена смяна на архитектура или инсталация.
+Temurin 21/Noble е кандидат, без startup доказателство. Проверени са source/registry
+metadata за останалите пет service image пътя; native-code тестовете предстоят.
+Следва: latest Java patch tag/digest, repackage със същите app artifacts, JNI audit
+и реални X5660 guest startups преди заключение за съвместимост.
+Branch: codex/manager130-x5660-research; следва planning PR #10.
+
+### Предходен staging план — запазен контекст
 
 Подготовка на изолиран план за шестте услуги от main 279745b със запазена
 диагностика чрез четене. План: docs/STAGING_STARTUP_PLAN.md.
@@ -101,7 +126,8 @@ Windows 10 е временна тестова среда; Windows 11 остав�
 2. Подготовка на тайни извън Git, OIDC и OpenRemote конфигурация; фиксиране на
    тествани images; проверка на шестте Compose услуги, миграции, архиви и капацитет.
 3. Завършване на private MQTT ingestion и commissioning; записите остават
-   изключени. Compose няма отделна MQTT ingestion услуга или TimescaleDB.
+   изключени. Compose няма отделна MQTT ingestion или GrideX TimescaleDB услуга;
+   избраният OpenRemote PostgreSQL image включва TimescaleDB според metadata.
 4. Запазва се предходната recovery задача: договаряне на versioned Edge export/ack
    договор, после имплементиране и тест на idempotent PostgreSQL ingestion в
    отделен PR. Според предходния handoff още няма journal export,
