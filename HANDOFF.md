@@ -4,6 +4,22 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Active execution preparation — 2026-09-14
+
+User selected stepwise Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote.
+This supersedes diagnosis-only scope and Desktop preference. See
+ docs/HYPERV_STEP_BY_STEP.md and scripts/staging/*.ps1. Branch:
+codex/hyperv-staging-preparation, based on PR #11 (which follows PR #10).
+Syntax and ignore checks PASS; 14.43 GiB free RAM, about 114 GiB free on C.
+Hyper-V management calls failed for permissions, including requested elevation.
+Next: run Test-HyperVHost.ps1 in administrator PowerShell. ISO 24.04.5 download
+started locally; completion/checksum pending at this checkpoint. VM creation,
+Ubuntu boot, Docker, Java and all service tests NOT_RUN. Network acquisition,
+Java rebase, Compose isolation, OIDC, migrations and acceptance remain pending.
+No BIOS/device changes. Windows 10 is temporary; Windows 11 planned production.
+Earlier sections below are historical snapshots. Open PRs: #11, #10, #9, #7,
+#6, #5, #4, #3, #1. No existing PR was merged or changed.
+
 ### License/cost evidence
 
 [LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) links primary terms.
@@ -117,6 +133,22 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Активна подготовка за изпълнение — 2026-09-14
+
+Потребителят избра Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote
+стъпка по стъпка. Това заменя обхвата само диагностика и Desktop предпочитанието.
+Виж docs/HYPERV_STEP_BY_STEP.md и scripts/staging/*.ps1. Branch:
+codex/hyperv-staging-preparation, върху PR #11 (който следва PR #10).
+Синтаксисът и ignore проверките са PASS; 14,43 GiB свободна RAM, около 114 GiB на C.
+Hyper-V management командите отказаха поради права, включително при заявено
+повишаване. Следва: Test-HyperVHost.ps1 в администраторски PowerShell.
+ISO 24.04.5 се изтегля локално; завършването/checksum още не са потвърдени.
+VM creation, Ubuntu boot, Docker, Java и всички service тестове са NOT_RUN.
+Остават network acquisition, Java rebase, Compose изолация, OIDC, миграции и
+приемане. Без BIOS/устройства. Windows 10 е временен; Windows 11 планиран production.
+Долните секции са исторически снимки. Отворени PR: #11, #10, #9, #7, #6, #5,
+#4, #3, #1. Нито един съществуващ PR не е merged или променен.
 
 ### Лицензни доказателства
 
