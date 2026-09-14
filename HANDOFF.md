@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Email enrollment foundation / Основа за регистрация — 2026-09-15
+
+See [email enrollment](docs/EMAIL_ENROLLMENT.md). Backend invitation routes,
+Keycloak adapter and database-scoped permissions implemented, disabled until
+commissioned. Tests: 16 passing; disposable PostgreSQL acceptance/replay/revoke/
+expiry tests passed with fake identity/email. Image built, active API not updated.
+Live migration/restart was blocked by safety review; explicit owner approval
+required. Do not claim real registration. SMTP settings and dedicated enrollment
+service client missing. `antouanbg/gridex-energy-os`: invitation/acceptance forms
+and real browser login remain; membership management and abuse limits remain.
+This branch depends on local callback fix PR #18. No automatic merge.
+
+Виж [регистрация](docs/EMAIL_ENROLLMENT.md). Добавени backend маршрути за покани,
+Keycloak адаптер и права от базата; функцията остава изключена. 16 теста минаха;
+отделна PostgreSQL база доказа приемане/replay/отмяна/срок със симулиран имейл.
+Image е билднат, активният API не е обновен. Защитната проверка блокира live
+миграции/restart; нужно е изрично одобрение. Реална регистрация не е доказана.
+Липсват SMTP и отделен enrollment клиент. За `antouanbg/gridex-energy-os` остават
+форми за покана/приемане и реален browser вход; управление на членства и
+ограничения срещу злоупотреба също предстоят. Зависи от PR #18. Без auto-merge.
+
 ## Local portal login / Локален вход — 2026-09-14
 
 The portal on http://127.0.0.1:4173/ was rejected with invalid redirect_uri.

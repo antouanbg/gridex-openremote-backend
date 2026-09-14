@@ -38,7 +38,7 @@ try {
     await db.query('INSERT INTO organisations(id,name,openremote_realm) VALUES($1,$2,$3)', [org, `Acceptance ${label}`, `acceptance-${org}`]);
     await db.query('INSERT INTO sites(id,organisation_id,name,timezone,openremote_realm) VALUES($1,$2,$3,$4,$5)', [site, org, `Acceptance ${label}`, 'UTC', 'gridex']);
   }
-  await db.query('INSERT INTO organisation_memberships(organisation_id,subject,role) VALUES($1,$2,$3)', [orgA, user.id, 'viewer']);
+  await db.query('INSERT INTO organisation_memberships(organisation_id,subject,role,all_sites) VALUES($1,$2,$3,true)', [orgA, user.id, 'viewer']);
   await db.query('COMMIT');
   const token = await req(`${kc}/realms/gridex/protocol/openid-connect/token`, {
     method: 'POST', body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: secret }),

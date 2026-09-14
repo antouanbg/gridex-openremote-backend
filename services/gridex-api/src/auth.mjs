@@ -22,6 +22,13 @@ function stringArray(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
 }
 
+// Identity-provider roles must never bypass current database membership.
+export function withMembershipRoles(principal, roles) {
+  const trustedRoles = [...new Set(roles.filter((role) => Object.hasOwn(ROLE_PERMISSIONS, role) && role !== 'admin'))];
+  return { ...principal, roles: trustedRoles,
+    permissions: [...new Set(trustedRoles.flatMap((role) => ROLE_PERMISSIONS[role]))] };
+}
+
 export function principalFromClaims(claims, accessToken, audience) {
   const realmRoles = stringArray(claims.realm_access?.roles);
   const clientRoles = stringArray(claims.resource_access?.[audience]?.roles);
@@ -33,6 +40,7 @@ export function principalFromClaims(claims, accessToken, audience) {
   return {
     subject: claims.sub,
     email: typeof claims.email === "string" ? claims.email : undefined,
+    emailVerified: claims.email_verified === true,
     name: typeof claims.name === "string" ? claims.name : undefined,
     preferredUsername: typeof claims.preferred_username === "string" ? claims.preferred_username : undefined,
     roles,

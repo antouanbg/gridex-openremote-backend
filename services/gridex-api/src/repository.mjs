@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationUrl = new URL("../migrations/001_gridex_core.sql", import.meta.url);
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql'];
 
 const siteRow = (row) => ({
   id: row.id,
@@ -18,6 +18,7 @@ const siteRow = (row) => ({
   openremoteSiteAssetId: row.openremote_site_asset_id,
   openremoteStrategyAssetId: row.openremote_strategy_asset_id,
   openremoteControlAssetId: row.openremote_control_asset_id,
+  membershipRole: row.membership_role,
 });
 
 const deviceRow = (row) => ({
@@ -45,20 +46,32 @@ export class PostgresRepository {
   }
 
   async migrate() {
-    const sql = await readFile(fileURLToPath(migrationUrl), "utf8");
-    await this.pool.query(sql);
+    for (const name of migrationNames) {
+      const sql = await readFile(fileURLToPath(new URL(`../migrations/${name}`, import.meta.url)), "utf8");
+      await this.pool.query(sql);
+    }
   }
 
   async close() { await this.pool.end(); }
 
   async listAccessibleSites(subject) {
     const { rows } = await this.pool.query(`
-      SELECT DISTINCT s.*
+      SELECT DISTINCT s.*, m.role AS membership_role
       FROM sites s
       JOIN organisation_memberships m ON m.organisation_id = s.organisation_id
+      JOIN organisations o ON o.id=s.organisation_id AND o.status='active'
       WHERE m.subject = $1 AND s.deleted_at IS NULL
+      AND (m.all_sites OR EXISTS (SELECT 1 FROM membership_site_grants g
+        WHERE g.organisation_id=m.organisation_id AND g.subject=m.subject AND g.site_id=s.id))
       ORDER BY s.name`, [subject]);
     return rows.map(siteRow);
+  }
+
+  async getMemberships(subject) {
+    const { rows } = await this.pool.query(`SELECT m.organisation_id AS "organisationId", m.role,
+      m.all_sites AS "allSites" FROM organisation_memberships m JOIN organisations o
+      ON o.id=m.organisation_id AND o.status='active' WHERE m.subject=$1`, [subject]);
+    return rows;
   }
 
   async getUserPreferences(subject) {
@@ -82,10 +95,13 @@ export class PostgresRepository {
 
   async requireSite(subject, siteId) {
     const { rows } = await this.pool.query(`
-      SELECT s.*
+      SELECT s.*, m.role AS membership_role
       FROM sites s
       JOIN organisation_memberships m ON m.organisation_id = s.organisation_id
+      JOIN organisations o ON o.id=s.organisation_id AND o.status='active'
       WHERE s.id = $1 AND m.subject = $2 AND s.deleted_at IS NULL
+      AND (m.all_sites OR EXISTS (SELECT 1 FROM membership_site_grants g
+        WHERE g.organisation_id=m.organisation_id AND g.subject=m.subject AND g.site_id=s.id))
       LIMIT 1`, [siteId, subject]);
     if (!rows[0]) throw new ApiError(404, "site_not_found", "The site was not found or is not accessible.");
     return siteRow(rows[0]);
@@ -414,9 +430,14 @@ export class MemoryRepository {
   async migrate() {}
   async close() {}
   async listAccessibleSites(subject) {
-    const organisations = new Set(this.memberships.filter((item) => item.subject === subject).map((item) => item.organisationId));
-    return this.sites.filter((site) => organisations.has(site.organisationId));
+    const memberships = await this.getMemberships(subject);
+    return this.sites.flatMap((site) => {
+      const membership = memberships.find((m) => m.organisationId === site.organisationId);
+      return membership && !site.deletedAt && (membership.allSites || membership.siteIds?.includes(site.id))
+        ? [{ ...site, membershipRole: membership.role }] : [];
+    });
   }
+  async getMemberships(subject) { return this.memberships.filter((m) => m.subject === subject && m.status !== 'suspended'); }
   async getUserPreferences(subject) { return this.preferences.get(subject) || { revision: 0, locale: "en", displayTimezone: "site", units: "metric", currency: "EUR", theme: "system", notifications: { channels: ["email"], minimumSeverity: "warning" } }; }
   async updateUserPreferences(subject, preferences, expectedRevision) {
     const current = await this.getUserPreferences(subject);

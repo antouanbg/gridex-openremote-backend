@@ -22,6 +22,10 @@ export function loadConfig(env = process.env) {
     oidcTokenEndpoint: env.OIDC_TOKEN_ENDPOINT || `${oidcIssuer}/protocol/openid-connect/token`,
     oidcJwksUri: env.OIDC_JWKS_URI || `${oidcIssuer}/protocol/openid-connect/certs`,
     oidcAudience,
+    enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
+    enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
+    enrollmentAdminUrl: env.GRIDEX_ENROLLMENT_ADMIN_URL || '',
+    enrollmentRedirectUri: env.GRIDEX_ENROLLMENT_REDIRECT_URI || '',
     oidcClockToleranceSeconds: integer(env.OIDC_CLOCK_TOLERANCE_SECONDS, 10),
     database: env.GRIDEX_DATABASE_URL ? { connectionString: env.GRIDEX_DATABASE_URL } : env.PGHOST ? {
       host: env.PGHOST,
@@ -41,6 +45,10 @@ export function loadConfig(env = process.env) {
 }
 
 export function validateProductionConfig(config) {
+  if (config.enrollmentEnabled && (!config.enrollmentClientSecret || !config.enrollmentAdminUrl
+    || !config.allowedOrigins.has(new URL(config.enrollmentRedirectUri).origin))) {
+    throw new Error('Enrollment requires a dedicated client secret, admin URL and allowed callback origin');
+  }
   if (!config.database && !config.allowMemoryDatabase) {
     throw new Error("GrideX PostgreSQL settings are required unless GRIDEX_ALLOW_MEMORY_DB=true");
   }
