@@ -4,6 +4,16 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Latest checkpoint — administrator preflight PASS
+
+User-supplied output confirms Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, zero VMs, 14.43 GiB free RAM and 112.74 GiB free on C.
+Management access works in the user's administrator terminal; the agent remains
+unelevated. LinuxStartup=NOT_RUN. Local download inspection found only a 16 KiB
+partial ISO. Next: complete Get-UbuntuIso.ps1, require Checksum=PASS, then create
+the offline VM. Ubuntu/Docker/original Manager 1.30.0 startup tests and all later
+acceptance gates remain pending. Changes continue in PR #12.
+
 ### Active execution preparation — 2026-09-14
 
 User selected stepwise Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote.
@@ -133,6 +143,16 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Последен checkpoint — администраторски preflight PASS
+
+Резултатът от потребителя потвърждава Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, нула VM, 14,43 GiB свободна RAM и 112,74 GiB на C.
+Management достъпът работи в администраторския терминал на потребителя; агентът
+остава без повишени права. LinuxStartup=NOT_RUN. Локално има само частичен ISO
+от 16 KiB. Следва: завършване на Get-UbuntuIso.ps1 с Checksum=PASS, после offline
+VM. Ubuntu/Docker/оригинален Manager 1.30.0 startup тестовете и всички следващи
+приемателни условия остават pending. Промените продължават в PR #12.
 
 ### Активна подготовка за изпълнение — 2026-09-14
 

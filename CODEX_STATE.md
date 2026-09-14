@@ -2,6 +2,16 @@
 
 ## English
 
+### Latest checkpoint — administrator preflight PASS
+
+User-supplied output confirms Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, no existing VMs, 14.43 GiB free RAM and 112.74 GiB
+free on C. The earlier management-permission blocker is resolved in the user's
+administrator terminal, not in the agent process. LinuxStartup remains NOT_RUN.
+Local inspection found only a 16 KiB partial ISO, no completed ISO. Next: finish
+Get-UbuntuIso.ps1 and require Checksum=PASS before creating the offline VM.
+Continue in PR #12; no Ubuntu, Docker or OpenRemote compatibility claim yet.
+
 ### Active execution preparation — 2026-09-14
 
 User selected stepwise Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote.
@@ -95,6 +105,16 @@ No installation, network change, device command or deployment was performed.
 Detailed blockers and source links are retained in HANDOFF.md.
 
 ## Български
+
+### Последен checkpoint — администраторски preflight PASS
+
+Резултатът от потребителя потвърждава Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, без съществуващи VM, 14,43 GiB свободна RAM и 112,74 GiB
+свободни на C. Пречката с правата е отстранена в администраторския терминал на
+потребителя, не в процеса на агента. LinuxStartup остава NOT_RUN.
+Локалната проверка намери само частичен ISO от 16 KiB, без завършен ISO. Следва:
+завършване на Get-UbuntuIso.ps1 с Checksum=PASS преди създаване на offline VM.
+Продължаваме в PR #12; още няма доказана Ubuntu, Docker или OpenRemote съвместимост.
 
 ### Активна подготовка за изпълнение — 2026-09-14
 
