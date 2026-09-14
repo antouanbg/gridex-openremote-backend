@@ -2,6 +2,65 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Current acceptance / Актуално приемане
+
+[Authoritative runtime acceptance matrix](docs/MAC_RUNTIME_ACCEPTANCE.md):
+real API tenant tests passed; owner confirmed Portainer. Browser PKCE login,
+VPN, MQTT receipt and backup/restore remain pending. This supersedes older
+pending OIDC provisioning and Portainer setup notes below.
+
+[Актуална runtime матрица](docs/MAC_RUNTIME_ACCEPTANCE.md): реалните API tenant
+тестове минаха; собственикът потвърди Portainer. Browser PKCE вход, VPN, MQTT
+получаване и backup/restore предстоят. Заменя старите бележки по-долу за
+предстоящо OIDC provisioning и Portainer setup.
+
+### Portainer / Portainer — 2026-09-14
+
+Installed Portainer CE 2.45.0 ARM64, container gridex-portainer, published only
+on https://localhost:9443. Docker socket access grants administrative control
+of the VM engine; never publish this UI to LAN/Internet. Persistent named volume
+gridex-portainer-data. Installed with docker run; compose.portainer.yml is its
+reproduction definition, not yet the container's Compose owner. Do not run it
+over the same named container without a controlled migration preserving data.
+Browser blocked by self-signed certificate; owner must handle the warning and
+initial admin credential setup. Container-list UI not yet verified. Backend
+real no-token and invalid-token checks performed; browser login and site-rights
+acceptance remain next, followed by VPN, MQTT and backup/restore.
+
+Инсталиран Portainer CE 2.45.0 ARM64, gridex-portainer, само на
+https://localhost:9443. Docker socket дава административен контрол върху VM
+engine; UI не се публикува към LAN/Интернет. Named volume gridex-portainer-data.
+Инсталиран с docker run; compose.portainer.yml описва възпроизвеждането, но още
+не управлява контейнера. Не го стартирай върху същото име без контролирана
+миграция със запазени данни. Browser е блокиран от self-signed сертификата;
+собственикът трябва да обработи предупреждението и първоначалната admin парола.
+Container-list UI още не е проверен. Изпълнени са реални no-token/invalid-token
+API проби; следват browser вход и права по обекти, после VPN, MQTT и backup/restore.
+
+### OIDC update / OIDC обновяване — 2026-09-14
+
+Realm and PKCE portal/service clients now exist. Service-account Asset query
+passed with read:assets only. No write permission granted; temporary bootstrap
+client removed. Next: browser login and tenant isolation acceptance. Earlier
+client-provisioning pending notes are superseded, not browser acceptance.
+
+Realm и PKCE portal/service клиенти вече съществуват. Service-account Asset
+заявката мина само с read:assets. Без write права; временният bootstrap клиент
+е изтрит. Следва browser вход и tenant isolation приемане. Старите бележки за
+предстоящо създаване на клиенти са заменени, но browser тестовете остават.
+
+## Latest checkpoint / Последна проверка — 2026-09-14
+
+[Runtime results and remaining work](docs/MAC_RUNTIME_CHECKPOINT.md) supersede
+the not-installed baseline below. Six healthy containers; OIDC acceptance,
+VPN and backup/restore pending. Edge follow-up belongs to
+`antouanbg/gridex-edge-gateway`: journal permissions and ESP Modbus timeout.
+
+[Runtime резултати и оставащо](docs/MAC_RUNTIME_CHECKPOINT.md) заменят стария
+неинсталиран baseline по-долу. Шест healthy контейнера; OIDC приемане, VPN и
+backup/restore предстоят. Edge задачите са за `antouanbg/gridex-edge-gateway`:
+journal права и ESP Modbus timeout.
+
 ## English
 
 ### Active: Linux under macOS, Windows experiments stopped

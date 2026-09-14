@@ -1,0 +1,104 @@
+name: gridex-mac
+networks:
+  backend:
+    internal: true
+  ingress: {}
+volumes:
+  gridex-db:
+  openremote-db:
+  manager-data:
+  proxy-data:
+services:
+  gridex-db:
+    image: postgres:17.9-alpine@sha256:faf1338f88c8da3c81a87ebea9d49455e27523f867fee461b9cc1325af200ef3
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend]
+    environment:
+      POSTGRES_USER: gridex
+      POSTGRES_DB: gridex
+      POSTGRES_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+    volumes: [gridex-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U gridex -d gridex']
+      interval: 5s
+      retries: 30
+  postgresql:
+    image: openremote/postgresql:17.9.0.1-slim@sha256:c96d3da9b842d7f383bd06ef0ccdf67f4052d74c03f268f547f879a89109241b
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend]
+    shm_size: 256mb
+    environment:
+      POSTGRES_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
+    volumes:
+      - openremote-db:/var/lib/postgresql/data
+      - manager-data:/storage
+  keycloak:
+    image: openremote/keycloak:26.7.3.0@sha256:ed06ad3dd3bcb95bc58ffe59729d5c4064f2276cce43b299949f816c89c2d027
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend]
+    depends_on:
+      postgresql: {condition: service_healthy}
+    environment:
+      KC_DB_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:?required}
+      KC_HOSTNAME: https://localhost/auth
+  manager:
+    image: openremote/manager:1.30.0@sha256:dcf6c4554a99c9afc3c0fc8d03d8d896d376b36c3f49d31e8a35c38c065355aa
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend]
+    depends_on:
+      keycloak: {condition: service_healthy}
+    environment:
+      OR_DB_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
+      OR_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:?required}
+      OR_HOSTNAME: localhost
+      OR_SSL_PORT: '443'
+      OR_DEV_MODE: 'false'
+      OR_SETUP_TYPE: minimal
+      OR_SETUP_RUN_ON_RESTART: 'false'
+      JAVA_OPTS: '-Xms256m -Xmx2g'
+    volumes: [manager-data:/storage]
+  proxy:
+    image: openremote/proxy:3.2.19.0@sha256:5233fe75c8fe2c4cdecc7236c7d1d61adfc6421abbb7abf7f3da1a315c4c5246
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend, ingress]
+    depends_on:
+      manager: {condition: service_healthy}
+    ports: ['127.0.0.1:80:80', '127.0.0.1:443:443']
+    volumes: [proxy-data:/deployment]
+    environment:
+      DOMAINNAME: localhost
+  gridex-api:
+    build: ./services/gridex-api
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend, ingress]
+    depends_on:
+      gridex-db: {condition: service_healthy}
+      manager: {condition: service_healthy}
+    ports: ['127.0.0.1:8081:8080']
+    environment:
+      PGHOST: gridex-db
+      PGDATABASE: gridex
+      PGUSER: gridex
+      PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+      OPENREMOTE_BASE_URL: http://manager:8080
+      OPENREMOTE_REALM: gridex
+      OPENREMOTE_SERVICE_CLIENT_ID: gridex-api
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${OPENREMOTE_SERVICE_CLIENT_SECRET:?required}
+      OIDC_ISSUER: https://localhost/auth/realms/gridex
+      OIDC_JWKS_URI: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/certs
+      OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
+      OIDC_AUDIENCE: gridex-portal
+      GRIDEX_ALLOWED_ORIGINS: https://localhost
+      GRIDEX_WRITES_ENABLED: 'false'
+      GRIDEX_AUTO_MIGRATE: 'false'
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      retries: 30

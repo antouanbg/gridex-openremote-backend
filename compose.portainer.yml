@@ -1,0 +1,16 @@
+name: gridex-admin
+services:
+  portainer:
+    image: portainer/portainer-ce:lts@sha256:0c2de8463bc5108cfcc9ab0de4efcd9d49f38a3cbe4d683de2f32f2c46bdf350
+    container_name: gridex-portainer
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:9443:9443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+volumes:
+  portainer-data:
+    external: true
+    name: gridex-portainer-data

@@ -76,7 +76,7 @@ export class OpenRemoteClient {
       client_id: this.config.openRemoteServiceClientId,
       client_secret: this.config.openRemoteServiceClientSecret,
     });
-    const response = await this.fetch(`${this.config.oidcIssuer}/protocol/openid-connect/token`, {
+    const response = await this.fetch(this.config.oidcTokenEndpoint || `${this.config.oidcIssuer}/protocol/openid-connect/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body,

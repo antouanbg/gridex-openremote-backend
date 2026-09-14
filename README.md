@@ -134,3 +134,12 @@ GridEx API се публикува зад TLS reverse proxy. По подразб
 ## Граница на отговорност
 
 GrideX API държи browser authorization, tenancy, стабилните DTOs, ревизиите на конфигурациите и audit. OpenRemote държи live Assets, datapoints, rules и Agents. Edge държи device drivers, vendor адресиране/sign/scale, heartbeat, BMS envelope, software fuse и fail-safe.
+# Local Mac runtime / Локална Mac среда
+
+See [current acceptance and remaining tasks](docs/MAC_RUNTIME_ACCEPTANCE.md)
+for the deployed ARM64 staging stack, Portainer and OIDC/API evidence.
+Production acceptance and VPN/MQTT/restore remain pending.
+
+Виж [актуално приемане и оставащи задачи](docs/MAC_RUNTIME_ACCEPTANCE.md)
+за внедрения ARM64 staging стек, Portainer и OIDC/API доказателствата.
+Production приемане и VPN/MQTT/restore предстоят.
