@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## HTTPS local verification / Локална HTTPS проверка — 2026-09-15
+
+Restricted nginx running on loopback 14443 with private 7-day TEST certificate.
+nginx -t passed; verified TLS with explicit certificate trust (no -k).
+API me without token 401, gridex discovery 200, health/metrics/admin/master/
+manager/traversal paths 404. Fixed tmpfs YAML quoting and read-only temp paths.
+Public certificate NOT issued: awaiting owner's ACME email, then DNS TXT proof.
+Next: ACME DNS-01, trusted cert installation and OIDC hostname commissioning.
+No router ports, WireGuard, system trust store or existing services changed.
+
+Ограничен nginx работи на loopback 14443 с частен 7-дневен ТЕСТОВ сертификат.
+nginx -t мина; TLS проверен с изрично доверие към сертификата, без -k.
+API me без token 401, gridex discovery 200; health/metrics/admin/master/manager/
+traversal 404. Поправени tmpfs YAML и readonly temp paths. Публичен сертификат
+НЕ е издаден: чакаме ACME имейл, после DNS TXT. Следва DNS-01, доверен сертификат
+и OIDC hostname. Без промени по рутер, VPN, system trust или други услуги.
+
 ## Reboot recovery / Възстановяване след рестарт — 2026-09-15
 
 Colima gridex restarted; existing backend containers recovered automatically.
