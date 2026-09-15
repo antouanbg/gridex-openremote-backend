@@ -1,5 +1,30 @@
 # CODEX_STATE.md
 
+## MQTT checkpoint / MQTT състояние — 2026-09-15
+
+Implemented and deployed the isolated local Mosquitto mTLS stack. See
+docs/MQTT_TLS_LOCAL.md. Per-site certificate identities and exact topic ACLs;
+persistent data, restart policy, healthcheck and bounded container logs.
+Live synthetic tests passed: trusted delivery, missing certificate/hostname
+rejection, cross-site read/write denial, command denial and retained delivery
+after broker restart. Fixed CA keyUsage for strict TLS validation. No secrets
+or real inventory in Git. API/database and hardware were not changed here.
+Next: enroll real gateway identities securely, establish Site Router VPN-only
+access, then implement/test ingestion into PostgreSQL/OpenRemote. Broker tests
+do NOT prove real device delivery or database ingestion. Earlier entries below
+are historical checkpoints, not a fresh runtime audit.
+
+Изолираният локален Mosquitto mTLS е реализиран и внедрен. Виж
+docs/MQTT_TLS_LOCAL.md. Отделни сертификати и точни topic ACL по обект;
+постоянни данни, restart policy, healthcheck и ограничени контейнерни логове.
+Реални синтетични тестове минаха: доставка, отказ при липсващ сертификат/грешно
+hostname, забрана за чуждо четене/запис и команди, retained доставка след
+рестарт. Поправен CA keyUsage за строг TLS валидатор. Няма secrets или реален
+inventory в Git. API/базата и хардуерът не са променяни в тази задача.
+Следва: сигурно добавяне на реални gateway идентичности, достъп само през Site
+Router VPN, после ingestion към PostgreSQL/OpenRemote. Broker тестът НЕ доказва
+реална телеметрия или запис в базата. По-долните записи са исторически.
+
 ## Enrollment checkpoint / Регистрация — 2026-09-15
 
 Implemented database-scoped authorization and invitation backend foundation.

@@ -1,5 +1,13 @@
 # GrideX OpenRemote backend
 
+MQTT staging update (2026-09-15): local mTLS broker and per-site ACLs are deployed
+and tested with synthetic identities. See [MQTT operational guide](docs/MQTT_TLS_LOCAL.md).
+Real gateway/VPN/database ingestion remains pending.
+
+MQTT staging (2026-09-15): локалният mTLS broker и ACL по обекти са внедрени
+и тествани със синтетични идентичности. Виж [MQTT инструкции](docs/MQTT_TLS_LOCAL.md).
+Реалната gateway/VPN връзка и ingestion към базата предстоят.
+
 Active setup decision (2026-09-14): Windows experiments are stopped. Follow the
 [Linux under macOS handoff](docs/MAC_LINUX_HANDOFF.md) for the Colima ARM64 test
 backend. Image availability is verified; service startup is not yet tested.
