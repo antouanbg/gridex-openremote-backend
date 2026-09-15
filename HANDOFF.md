@@ -2,6 +2,28 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## MQTT mTLS deployment / MQTT mTLS внедряване — 2026-09-15
+
+Local broker implemented, deployed and synthetically tested. Operational guide,
+ACL ownership, private runtime, limits and remaining work:
+[MQTT TLS](docs/MQTT_TLS_LOCAL.md). Only loopback 8883 is published. Separate
+certificates identify sites; backend-reader cannot publish, sites cannot access
+foreign topics or commands. Restart/persistent retained delivery passed.
+Remaining: real gateway enrollment, Site Router VPN-only transport, backend
+ingestion/PostgreSQL/OpenRemote, certificate renewal/revocation and backup drills.
+No real hardware or database ingestion is claimed. Do not expose the listener
+to LAN/public Internet as a shortcut. Historical checkpoints below are retained.
+
+Локалният broker е реализиран, внедрен и синтетично тестван. Инструкции,
+ACL отговорности, частна среда, ограничения и оставащи задачи:
+[MQTT TLS](docs/MQTT_TLS_LOCAL.md). Публикуван е само loopback 8883. Отделни
+сертификати идентифицират обектите; backend-reader не публикува, обектите нямат
+достъп до чужди topics или команди. Рестарт/retained доставка минаха.
+Остават: реални gateway идентичности, Site Router VPN транспорт, backend
+ingestion/PostgreSQL/OpenRemote, подновяване/отмяна на сертификати и backup тест.
+Реална хардуерна доставка или ingestion не са доказани. Не отваряй listener-а
+към LAN/Internet като обходен път. Историческите checkpoints са запазени по-долу.
+
 ## Email enrollment foundation / Основа за регистрация — 2026-09-15
 
 See [email enrollment](docs/EMAIL_ENROLLMENT.md). Backend invitation routes,

@@ -1,0 +1,31 @@
+name: gridex-mqtt
+services:
+  broker:
+    image: eclipse-mosquitto:2.0.22@sha256:212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c
+    platform: linux/arm64
+    user: '${LOCAL_UID:?required}:${LOCAL_GID:?required}'
+    entrypoint: [mosquitto]
+    command: [-c, /mosquitto/config/mosquitto.conf]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ['127.0.0.1:8883:8883']
+    networks: [mqtt]
+    volumes:
+      - ./config:/mosquitto/config:ro
+      - ./server:/mosquitto/server:ro
+      - ./health:/mosquitto/health:ro
+      - ./data:/mosquitto/data
+    mem_limit: 256m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+    healthcheck:
+      test: [CMD, mosquitto_sub, -h, localhost, -p, '8883', --cafile, /mosquitto/server/ca.crt, --cert, /mosquitto/health/client.crt, --key, /mosquitto/health/client.key, -t, '$$SYS/broker/uptime', -C, '1', -W, '15']
+      interval: 30s
+      timeout: 20s
+      retries: 3
+networks:
+  mqtt: {}
