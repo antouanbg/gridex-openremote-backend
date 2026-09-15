@@ -1,5 +1,38 @@
 # CODEX_STATE.md
 
+## Access planning checkpoint / План за управление на достъпа — 2026-09-15
+
+Completed this task: coordinated EN/BG ACCESS_MANAGEMENT_PLAN.md and HANDOFF update.
+Mailgun REST supersedes SMTP next-actions. 0/8 complete-workflow milestones accepted;
+existing implementation remains foundation only. No runtime/UI changes or email sent.
+Next: BE-01 Mailgun provider compatibility, private region/domain/sender configuration;
+BE-03 admin list contracts and FE-01 screens may proceed without credentials.
+Validation: identical plan copies, Markdown diff/secret review; no runtime tests needed.
+
+Готово в тази задача: общ EN/BG ACCESS_MANAGEMENT_PLAN.md и HANDOFF. Mailgun REST
+заменя SMTP задачите. 0/8 пълни етапа приети; кодът остава основа. Без runtime/UI
+промени или изпратен имейл. Следва BE-01 съвместимост, регион/домейн/подател;
+BE-03 договори и FE-01 екрани могат без ключове. Проверки: идентични копия,
+Markdown diff и secrets; не са нужни runtime тестове за тази документация.
+
+## Keycloak email policy / Имейл политика — 2026-09-15
+
+Applied gridex-only email login/verification/recovery, invite-only and brute-force
+protection. Created dedicated confidential gridex-enrollment client with query-users
+and manage-users (realm user management, not master/Asset administration).
+Private secret generated outside Git; service token/query verified. Master unchanged.
+Migrations 003/004 were approved/applied earlier; API healthy. Enrollment remains
+disabled: SMTP missing. Frontend forms are in gridex-energy-os/feat/portal-invitation-forms.
+Next: SMTP, admin MFA commissioning, invitation delivery and real browser acceptance.
+
+Приложени само за gridex: вход/потвърждение/възстановяване по имейл, покани и
+brute-force защита. Отделен confidential gridex-enrollment клиент с query-users
+и manage-users (realm user management, без master/Asset администрация).
+Secret е извън Git; service token/query са проверени. Master е непроменен.
+Миграции 003/004 вече са одобрени/приложени; API healthy. Регистрацията остава
+изключена поради липса на SMTP. Frontend: gridex-energy-os/feat/portal-invitation-forms.
+Следва SMTP, admin MFA commissioning, доставка на покана и реален browser тест.
+
 ## Enrollment checkpoint / Регистрация — 2026-09-15
 
 Implemented database-scoped authorization and invitation backend foundation.

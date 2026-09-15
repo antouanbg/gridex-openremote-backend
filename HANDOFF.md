@@ -2,6 +2,46 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Active access-management backlog / Активен план за достъп — 2026-09-15
+
+Owner selected Mailgun REST API, not SMTP. Follow [the coordinated plan](docs/ACCESS_MANAGEMENT_PLAN.md):
+BE-01 delivery integration, BE-02 delivery reliability, BE-03 admin lists,
+BE-04 membership mutations, BE-05 invitation lifecycle, FE-01 menus/forms,
+SEC-01 identity hardening, QA-01 end-to-end acceptance. 0/8 full milestones accepted.
+Backend owns canonical plan; frontend carries an identical copy. Keep both in sync.
+Existing foundation is not complete registration; keep enrollment disabled.
+Next: Mailgun compatibility/provider work, then admin APIs and menus. SMTP next-actions
+below are historical. No runtime, email, DNS or UI changes in this documentation task.
+
+Избран е Mailgun REST API, не SMTP. Следвай [общия план](docs/ACCESS_MANAGEMENT_PLAN.md):
+BE-01 интеграция, BE-02 надеждност, BE-03 списъци, BE-04 членства, BE-05 покани,
+FE-01 менюта/форми, SEC-01 сигурност, QA-01 целият процес. 0/8 пълни етапа приети.
+Backend е водещ, frontend пази идентично копие; обновявай и двете заедно.
+Наличната основа не е готова регистрация; остава изключена. Следва Mailgun provider,
+после admin API и менюта. Старите SMTP задачи са исторически. Тук няма промени
+в runtime, имейли, DNS или интерфейс.
+
+## Email policy applied / Приложена имейл политика — 2026-09-15
+
+scripts/provision-email-enrollment.mjs applies gridex invite-only/email verification,
+email login, password recovery and brute-force protection. No master realm changes,
+no emails. Dedicated enrollment client uses query-users/manage-users; this permits
+realm user management and its secret must stay private. Fine-grained restriction
+and administrator MFA commissioning remain security follow-ups. Private runtime
+secret is generated/preserved by prepare-mac-runtime.py. Token/query/policy checks
+passed. SMTP host/from missing; API enrollment stays disabled. UI forms:
+antouanbg/gridex-energy-os branch feat/portal-invitation-forms. Migrations 003/004
+already applied with owner approval; old deployment-blocker notes are historical.
+
+scripts/provision-email-enrollment.mjs настройва gridex само с покани, потвърден
+имейл, вход по имейл, възстановяване на парола и brute-force защита. Без промени
+в master и без имейли. Enrollment клиентът е с query-users/manage-users; това
+позволява realm user management и secret остава частен. По-фини ограничения и
+admin MFA commissioning предстоят. prepare-mac-runtime.py генерира/пази secret
+локално. Token/query/policy проверки минаха. Липсват SMTP host/from; enrollment
+е изключен. UI: antouanbg/gridex-energy-os/feat/portal-invitation-forms. Миграции
+003/004 вече са приложени с одобрение; старият deployment blocker е исторически.
+
 ## Email enrollment foundation / Основа за регистрация — 2026-09-15
 
 See [email enrollment](docs/EMAIL_ENROLLMENT.md). Backend invitation routes,
