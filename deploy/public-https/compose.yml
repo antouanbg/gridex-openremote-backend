@@ -1,0 +1,28 @@
+name: gridex-public-https
+services:
+  public-proxy:
+    image: '${PUBLIC_PROXY_IMAGE:?Reviewed ARM64 nginx digest required}'
+    entrypoint: [nginx]
+    command: [-g, 'daemon off;']
+    platform: linux/arm64
+    user: '${LOCAL_UID:?required}:${LOCAL_GID:?required}'
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ['${PUBLIC_BIND_IP:?Explicit bind IP required}:443:8443']
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/certs:ro
+    tmpfs: [/tmp:size=32m,mode=1777]
+    networks: [backend, ingress]
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+networks:
+  backend:
+    external: true
+    name: gridex-mac_backend
+  ingress:
+    external: true
+    name: gridex-mac_ingress
