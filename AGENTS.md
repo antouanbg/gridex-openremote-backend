@@ -2,6 +2,17 @@
 
 ## Architecture and security
 
+2026-09-15: WireGuard is PREPARATION ONLY until the owner confirms ROCK Pi
+relocation and explicitly approves activation. Do not start VPN/relay resources,
+open ports or alter Mac routes. Follow docs/WIREGUARD_ISOLATION_PREPARED.md.
+Only selected MQTT/approved future OTA communication belongs behind VPN;
+do not route the whole backend through it.
+
+2026-09-15: WireGuard е САМО ПОДГОТОВКА до потвърдено преместване на ROCK Pi
+и изрично разрешение за активиране. Не стартирай VPN/TCP ресурси, не отваряй
+портове и не променяй Mac маршрути. Следвай docs/WIREGUARD_ISOLATION_PREPARED.md.
+Само MQTT/бъдеща одобрена OTA комуникация минава през VPN, не целият backend.
+
 Owner decision, 2026-09-14: Windows experiments are stopped. The active backend
 development/staging target is Linux ARM64 under macOS using Colima and Docker
 Engine. Follow `docs/MAC_LINUX_HANDOFF.md`. Earlier Windows 11 production plans

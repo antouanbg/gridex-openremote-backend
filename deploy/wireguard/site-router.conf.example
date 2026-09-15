@@ -1,0 +1,12 @@
+# TEMPLATE ONLY / САМО ШАБЛОН
+[Interface]
+Address = <SITE_ROUTER_VPN_IPV4>/32
+PrivateKey = <SITE_ROUTER_PRIVATE_KEY>
+
+[Peer]
+PublicKey = <HUB_PUBLIC_KEY>
+Endpoint = <APPROVED_HUB_DNS>:51820
+AllowedIPs = <HUB_VPN_IPV4>/32
+PersistentKeepalive = 25
+# Router firewall/routing to ROCK Pi must be commissioned separately.
+# Firewall/маршрутите към ROCK Pi се проверяват отделно.

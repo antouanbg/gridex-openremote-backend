@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## WireGuard: prepared, NOT active / Подготвен, НЕ активен
+
+2026-09-15: [Selective VPN plan](docs/WIREGUARD_ISOLATION_PREPARED.md) and
+deploy/wireguard templates added. No runtime changes or keys generated. Activation
+requires owner confirmation after ROCK Pi relocation. Kernel/image selection,
+UDP path, deny-default firewall, TCP relay, VPN SAN and live tests remain.
+Do not route all containers or change Mac Ethernet. This work builds on PR #22.
+
+2026-09-15: Добавени [изолиран VPN план](docs/WIREGUARD_ISOLATION_PREPARED.md)
+и deploy/wireguard шаблони. Без runtime промени/ключове. Активиране само след
+потвърждение от собственика след преместване на ROCK Pi. Остават kernel/image,
+UDP път, firewall, TCP препращане, VPN SAN и реални тестове. Без общ VPN за
+контейнерите или промени в Mac Ethernet. Стъпва върху PR #22.
+
 ## MQTT mTLS deployment / MQTT mTLS внедряване — 2026-09-15
 
 Local broker implemented, deployed and synthetically tested. Operational guide,
