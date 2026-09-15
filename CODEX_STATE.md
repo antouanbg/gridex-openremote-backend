@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+## Reboot recovery / Възстановяване след рестарт — 2026-09-15
+
+Colima gridex restarted; existing backend containers recovered automatically.
+Public api/auth DNS now resolves to the owner-confirmed address. Added user
+LaunchAgent deploy/macos/tech.gridex.colima.plist for login startup; no root boot
+service or automatic login. Reboot test pending. Next: TLS certificates and
+restricted ingress commissioning; WireGuard remains disabled.
+
+Colima gridex е стартиран; съществуващите backend контейнери се възстановиха.
+Публичните api/auth DNS вече сочат към потвърдения адрес. Добавен потребителски
+LaunchAgent deploy/macos/tech.gridex.colima.plist за старт при вход, не root boot
+услуга/автоматичен login. Реален reboot тест предстои. Следва TLS/ограничен ingress;
+WireGuard остава изключен.
+
 ## Public HTTPS / Публичен HTTPS — 2026-09-15
 
 Current task: public API/auth ingress and GitHub Pages live login. Prepared

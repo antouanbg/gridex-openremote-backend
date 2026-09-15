@@ -2,6 +2,26 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Recovery update / Възстановяване — 2026-09-15
+
+Colima gridex resumed after host reboot; containers recovered using existing
+restart policies. api/auth DNS now resolves. Login startup: install
+deploy/macos/tech.gridex.colima.plist under the user's Library/LaunchAgents and
+bootstrap with launchctl in that user's GUI domain. Runs once at login; does not
+override an intentional later stop. Requires user login/FileVault unlock after
+reboot, not unattended pre-login startup. Real reboot acceptance remains pending.
+Uninstall by bootout of tech.gridex.colima and removing only its plist; volumes
+remain. Public TLS/ingress still pending; older stopped/DNS notes are historical.
+
+Colima gridex е възстановен след reboot; контейнерите тръгнаха със съществуващите
+restart policies. api/auth DNS вече работи. За старт при вход: инсталира се
+deploy/macos/tech.gridex.colima.plist в потребителския Library/LaunchAgents и
+launchctl bootstrap в неговия GUI domain. Изпълнява се веднъж при вход, не отменя
+последващо умишлено спиране. След reboot е нужен login/FileVault unlock; не е
+автоматичен старт преди login. Реален reboot тест предстои. Премахване: bootout
+на tech.gridex.colima и само неговия plist, без volumes. TLS/ingress предстои;
+старите бележки за спрян runtime/липсващ DNS са исторически.
+
 ## Public HTTPS blocked / Публичен HTTPS блокиран — 2026-09-15
 
 Prepared separate restricted API/auth TLS proxy templates; not deployed.
