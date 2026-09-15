@@ -1,5 +1,18 @@
 # CODEX_STATE.md
 
+## Public HTTPS / Публичен HTTPS — 2026-09-15
+
+Current task: public API/auth ingress and GitHub Pages live login. Prepared
+deploy/public-https templates and docs/PUBLIC_HTTPS_HANDOFF.md. Not deployed:
+Colima stopped, DNS records absent, no public certificate/runtime test. Compose
+schema and diff checks only. Next: restore runtime and obtain DNS/certificates,
+then follow handoff before frontend publication. WireGuard remains inactive.
+
+Задача: публичен API/auth и GitHub Pages live вход. Подготвени
+deploy/public-https и docs/PUBLIC_HTTPS_HANDOFF.md. Не е внедрено: спрян Colima,
+липсващи DNS записи/сертификат/runtime тест. Само Compose schema/diff проверки.
+Следва runtime, DNS/сертификати и handoff преди frontend публикация. VPN е изключен.
+
 ## WireGuard preparation / WireGuard подготовка — 2026-09-15
 
 Prepared dormant Compose scaffold, hub/router templates and bilingual selective

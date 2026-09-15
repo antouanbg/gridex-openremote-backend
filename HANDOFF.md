@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Public HTTPS blocked / Публичен HTTPS блокиран — 2026-09-15
+
+Prepared separate restricted API/auth TLS proxy templates; not deployed.
+See [public HTTPS handoff](docs/PUBLIC_HTTPS_HANDOFF.md). Colima is stopped and
+API/auth DNS has no A answers. Need certificates, runtime validation, OIDC/CORS
+configuration and authenticated frontend readiness before GitHub Pages deployment.
+No public ports, router/DNS, existing runtime or frontend changes made.
+
+Подготвени отделни ограничени API/auth TLS proxy шаблони, без deployment.
+Виж [публичен HTTPS](docs/PUBLIC_HTTPS_HANDOFF.md). Colima е спрян, API/auth DNS
+няма A отговори. Нужни са сертификати, runtime тест, OIDC/CORS и автентикирана
+frontend проверка преди GitHub Pages deployment. Без промени по публични портове,
+рутер/DNS, съществуваща среда или frontend.
+
 ## WireGuard: prepared, NOT active / Подготвен, НЕ активен
 
 2026-09-15: [Selective VPN plan](docs/WIREGUARD_ISOLATION_PREPARED.md) and
