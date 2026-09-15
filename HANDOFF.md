@@ -2,6 +2,21 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## HTTPS test proxy / HTTPS тестов proxy — 2026-09-15
+
+scripts/prepare-public-https.py creates private loopback-only 14443 runtime and
+7-day self-signed TEST certificate, never a public certificate. nginx -t and
+8 TLS route tests passed (API 401, discovery 200; restricted paths 404).
+Waiting for ACME contact email and manual DNS TXT validation. DNS-01 avoids
+opening 80; manual certificates require manual renewal unless DNS automation
+is configured. Public 443 and OIDC hostname changes remain unapplied.
+
+scripts/prepare-public-https.py създава частна loopback 14443 среда и 7-дневен
+самоподписан ТЕСТОВ сертификат, не публичен. nginx -t и 8 TLS route теста минаха
+(API 401, discovery 200, забранени пътища 404). Чакаме ACME имейл и ръчни DNS TXT.
+DNS-01 не отваря 80; подновяването е ръчно без DNS автоматизация. Публичен 443
+и OIDC hostname промените още не са приложени.
+
 ## Recovery update / Възстановяване — 2026-09-15
 
 Colima gridex resumed after host reboot; containers recovered using existing
