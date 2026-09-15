@@ -1,5 +1,18 @@
 # CODEX_STATE.md
 
+## WireGuard preparation / WireGuard подготовка — 2026-09-15
+
+Prepared dormant Compose scaffold, hub/router templates and bilingual selective
+network plan in docs/WIREGUARD_ISOLATION_PREPARED.md. No runtime/network changes.
+Activation intentionally blocked; kernel/image/UDP/firewall/relay tests pending.
+Next action: wait for owner relocation confirmation and activation approval,
+then perform the documented preflight. MQTT PR #22 is the parent dependency.
+
+Подготвени неактивен Compose, hub/router шаблони и двуезичен план в
+docs/WIREGUARD_ISOLATION_PREPARED.md. Без runtime/мрежови промени. Активирането
+е блокирано; kernel/image/UDP/firewall/TCP тестове предстоят. Следва: потвърждение
+за преместване и разрешение за активиране, после описаните проверки. Основа: PR #22.
+
 ## MQTT checkpoint / MQTT състояние — 2026-09-15
 
 Implemented and deployed the isolated local Mosquitto mTLS stack. See

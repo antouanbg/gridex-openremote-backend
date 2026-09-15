@@ -1,0 +1,13 @@
+# TEMPLATE ONLY; private rendered file must stay outside Git.
+# САМО ШАБЛОН; реалният файл остава извън Git.
+[Interface]
+Address = <HUB_VPN_IPV4>/32
+ListenPort = 51820
+PrivateKey = <HUB_PRIVATE_KEY>
+Table = off
+
+# One unique peer per Site Router, never ROCK Pi/ESP.
+# Отделен peer за всеки Site Router, не за ROCK Pi/ESP.
+[Peer]
+PublicKey = <SITE_ROUTER_PUBLIC_KEY>
+AllowedIPs = <SITE_ROUTER_VPN_IPV4>/32, <ROCK_PI_MANAGEMENT_IPV4>/32

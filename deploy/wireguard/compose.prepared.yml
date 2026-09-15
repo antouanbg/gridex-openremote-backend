@@ -1,0 +1,15 @@
+# Preparation ONLY. No running tunnel, published ports or restart policy.
+# Само подготовка. Без активен тунел, публикувани портове или auto-start.
+name: gridex-vpn-prepared
+services:
+  wireguard:
+    profiles: [manual-vpn-commissioning]
+    image: '${GRIDEX_WG_IMAGE:?Set a reviewed ARM64 digest-pinned image only after approval}'
+    entrypoint: [/bin/sh, -c]
+    command: ['echo "Prepared only: activation requires owner approval and commissioned firewall" >&2; exit 78']
+    restart: 'no'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    network_mode: none
+    # No NET_ADMIN, host networking, ports, secrets or shared namespaces yet.
