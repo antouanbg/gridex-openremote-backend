@@ -4,6 +4,35 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### License/cost evidence
+
+[LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) links primary terms.
+Hyper-V is included with valid Windows Enterprise; Desktop is conditionally free.
+Engine/Ubuntu avoids the Desktop gate, not Windows ESU costs or upstream license
+obligations. Local Windows activation was observed without exposing keys.
+Purchase/ESU entitlement, Desktop category and full dependency license audit are
+unverified. No payment, installation or architecture switch was performed.
+
+### Research: retain Windows host, evaluate Linux VM and Manager 1.30.0 rebase
+
+- [X5660_BACKEND_OPTIONS.md](docs/X5660_BACKEND_OPTIONS.md) separates metadata,
+  source evidence, assumptions and mandatory unexecuted startups for all six
+  services. [CPU_IMAGE_METADATA.json](docs/CPU_IMAGE_METADATA.json) contains
+  public OCI config/manifest identifiers and selected build evidence only.
+- User is considering a concept change on this Windows machine. Proposed, not
+  adopted: Hyper-V / Ubuntu 24.04 / Docker Engine. Keep Manager 1.30.0; copy its
+  immutable app artifacts onto maintained Java 21/glibc, do not downgrade the app.
+- Temurin Noble candidate exists; current patch naming/digest must be resolved.
+  No image is declared compatible before actual X5660 startup. JNI libraries,
+  Keycloak v2 baseline, PostgreSQL extensions and proxy/API native paths remain
+  untested. No image build, VM, installation, network or device changes occurred.
+- Guest loopback differs from Windows loopback; future management forwarding
+  must preserve loopback-only access without exposing applications to the LAN.
+- Correction: OpenRemote PostgreSQL candidate contains TimescaleDB per metadata;
+  a dedicated GrideX TimescaleDB service is still absent. Activation is untested.
+- Next: review concept and finish Java base lock; then separately authorize
+  implementation/start tests. Branch codex/manager130-x5660-research follows PR #10.
+
 ### Planned: isolated staging of the six main services
 
 - Plan: [STAGING_STARTUP_PLAN.md](docs/STAGING_STARTUP_PLAN.md), baseline main
@@ -35,7 +64,8 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
   locations, services or processes. LanmanServer is running / Automatic.
 - Missing: local .env and validated container runtime. Compose defines API,
   GrideX PostgreSQL, proxy, OpenRemote PostgreSQL, Keycloak and manager, but no
-  separate MQTT ingestion service or TimescaleDB. No containers were started.
+  separate MQTT ingestion or GrideX TimescaleDB service. The OpenRemote database
+  image includes TimescaleDB per subsequent metadata research. No containers started.
 - Next: use the Hyper-V-first staging plan before separately authorized installation;
   prepare secrets outside Git and OIDC/OpenRemote integration; pin tested images;
   test services, migrations, backups and telemetry capacity. Keep command writes
@@ -88,6 +118,35 @@ treated as journal recovery.
 
 ## Български
 
+### Лицензни доказателства
+
+[LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) сочи първичните условия.
+Hyper-V е включен във валиден Windows Enterprise; Desktop е условно безплатен.
+Engine/Ubuntu премахва Desktop gate, не Windows ESU разходите или upstream
+лицензните задължения. Наблюдавана е Windows активация без показване на ключове.
+Purchase/ESU права, Desktop категория и пълен dependency license audit не са
+проверени. Няма плащания, инсталации или смяна на архитектурата.
+
+### Проучване: запазен Windows host, Linux VM и Manager 1.30.0 rebase
+
+- [X5660_BACKEND_OPTIONS.md](docs/X5660_BACKEND_OPTIONS.md) разделя metadata,
+  source доказателства, предположения и задължителните неизпълнени startups за
+  шестте услуги. [CPU_IMAGE_METADATA.json](docs/CPU_IMAGE_METADATA.json) съдържа
+  само публични OCI config/manifest identifiers и избрани build доказателства.
+- Потребителят обмисля смяна на концепцията на тази Windows машина. Предложение,
+  не прието решение: Hyper-V / Ubuntu 24.04 / Docker Engine. Запазен Manager 1.30.0;
+  immutable app artifacts върху поддържана Java 21/glibc, без app downgrade.
+- Има Temurin Noble кандидат; current patch име/digest остава за уточняване.
+  Без съвместимост преди реален X5660 startup. JNI, Keycloak v2 baseline,
+  PostgreSQL extensions и proxy/API native paths не са тествани. Няма build,
+  VM, инсталации, мрежови или device промени.
+- Guest loopback е различен от Windows loopback; бъдещ management forwarding
+  трябва да запази loopback-only достъп без application публикация към LAN.
+- Корекция: OpenRemote PostgreSQL кандидатът съдържа TimescaleDB по metadata;
+  отделна GrideX TimescaleDB услуга липсва. Активацията не е тествана.
+- Следва: преглед на концепцията и Java base lock; после отделно разрешение за
+  реализация/start тестове. Branch codex/manager130-x5660-research следва PR #10.
+
 ### Планирано: изолиран staging на шестте main услуги
 
 - План: [STAGING_STARTUP_PLAN.md](docs/STAGING_STARTUP_PLAN.md), main 279745b.
@@ -119,7 +178,8 @@ treated as journal recovery.
   или процеси. LanmanServer е Running / Automatic.
 - Липсват локален .env и проверен container runtime. Compose определя API,
   GrideX PostgreSQL, proxy, OpenRemote PostgreSQL, Keycloak и manager, но няма
-  отделна MQTT ingestion услуга или TimescaleDB. Не са стартирани контейнери.
+  отделна MQTT ingestion или GrideX TimescaleDB услуга. OpenRemote DB image включва
+  TimescaleDB според последващото metadata проучване. Няма стартирани контейнери.
 - Следва: Hyper-V staging планът преди отделно разрешена инсталация;
   подготовка на тайни извън Git и OIDC/OpenRemote интеграция; фиксиране на тествани
   images; тест на услуги, миграции, архиви и капацитет за телеметрия. Командните

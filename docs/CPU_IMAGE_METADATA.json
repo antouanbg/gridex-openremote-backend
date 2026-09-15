@@ -1,0 +1,335 @@
+{
+  "checkedAt": "2026-09-14",
+  "images": [
+    {
+      "image": "openremote/manager:1.30.0",
+      "amd64Digest": "sha256:a23e9070f999349b76c4a744e4591a79265d74779ed76394b059720b3c57d386",
+      "configDigest": "sha256:9107b5e8a4501e0420bdf0815c06376bf9c6127f18f4b82b9ed105a367cadead",
+      "created": "2026-09-02T15:05:53.076856356Z",
+      "labels": {
+        "architecture": "x86_64",
+        "build-date": "2026-08-21T12:23:21Z",
+        "com.redhat.component": "openjdk-21-runtime-ubi10-container",
+        "com.redhat.license_terms": "https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI",
+        "cpe": "cpe:/o:redhat:enterprise_linux:10.2",
+        "description": "Image for Red Hat OpenShift providing OpenJDK 21 runtime",
+        "distribution-scope": "public",
+        "git-commit": "bf6ea01acd63552bfc9eaae07d44d10dd4000424",
+        "io.buildah.version": "1.44.0",
+        "io.cekit.version": "4.17.0.dev0",
+        "io.k8s.description": "Platform for running plain Java applications (fat-jar and flat classpath)",
+        "io.k8s.display-name": "Java Applications",
+        "io.openshift.expose-services": "",
+        "io.openshift.tags": "java",
+        "maintainer": "Red Hat OpenJDK <openjdk@redhat.com>",
+        "name": "ubi10/openjdk-21-runtime",
+        "org.jboss.product": "openjdk",
+        "org.jboss.product.openjdk.version": "21",
+        "org.jboss.product.version": "21",
+        "org.opencontainers.image.created": "2026-08-21T12:23:21Z",
+        "org.opencontainers.image.documentation": "https://rh-openjdk.github.io/redhat-openjdk-containers/",
+        "org.opencontainers.image.revision": "30f739c39781e6e3da8c6309ff00c65066656b71",
+        "org.opencontainers.image.source": "https://gitlab.cee.redhat.com/openjdk/openjdk-container-konflux",
+        "release": "1787204459",
+        "summary": "Image for Red Hat OpenShift providing OpenJDK 21 runtime",
+        "url": "https://catalog.redhat.com/en/search?searchType=containers",
+        "usage": "https://rh-openjdk.github.io/redhat-openjdk-containers/",
+        "vcs-ref": "30f739c39781e6e3da8c6309ff00c65066656b71",
+        "vcs-type": "git",
+        "vcs-url": "https://gitlab.cee.redhat.com/openjdk/openjdk-container-konflux",
+        "vendor": "Red Hat, Inc.",
+        "version": "1.24"
+      },
+      "versionEnv": [
+        "JAVA_HOME=/usr/lib/jvm/java-21-openjdk",
+        "JAVA_VERSION=21",
+        "LANG=C.utf8",
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/libexec/s2i"
+      ],
+      "entrypoint": [
+        "/entrypoint.sh"
+      ],
+      "healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "curl --fail --silent http://localhost:8080 || exit 1"
+        ],
+        "Interval": 5000000000,
+        "Timeout": 60000000000,
+        "StartPeriod": 5000000000,
+        "Retries": 120
+      },
+      "user": "root",
+      "history": [
+        "/bin/sh -c #(nop) LABEL description=\"The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.\"",
+        "/bin/sh -c #(nop) LABEL io.k8s.description=\"The Universal Base Image Minimal is a stripped down image that uses microdnf as a package manager. This base image is freely redistributable, but Red Hat only supports Red Hat technologies through subscriptions for Red Hat products. This image is maintained by Red Hat and updated regularly.\"",
+        "/bin/sh -c #(nop) COPY dir:9f021fb13f2371556f5330777fa50b285029910699c8db1352c33ddbfc4aa6e0 in /      ",
+        "/bin/sh -c #(nop) COPY file:5de33b5fc08b00635bccf9134a18978dba13e2250aa51838f9969515a3957847 in /etc/yum.repos.d/.      ",
+        "/bin/sh -c #(nop) COPY dir:bf294f09ff82d16384bebbac392bb5b44f58ff0fde6056277f77e6dc82df16e4 in /usr/share/buildinfo/      ",
+        "/bin/sh -c #(nop) COPY dir:bf294f09ff82d16384bebbac392bb5b44f58ff0fde6056277f77e6dc82df16e4 in /root/buildinfo/      ",
+        "/bin/sh -c :         && microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y tar             && rpm -q tar         && :",
+        "/bin/sh -c #(nop) COPY dir:743dfd45ecdf001bc16b88523368df74521770cc27cf003e673a26a15325b829 in /tmp/scripts/jboss.container.user      ",
+        "/bin/sh -c :         && microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y shadow-utils             && rpm -q shadow-utils         && :",
+        "/bin/sh -c :         && microdnf --setopt=install_weak_deps=0 --setopt=tsflags=nodocs install -y java-21-openjdk-headless             && rpm -q java-21-openjdk-headless         && :",
+        "/bin/sh -c #(nop) ENV             JAVA_HOME=\"/usr/lib/jvm/java-21-openjdk\"             JAVA_VENDOR=\"openjdk\"             JAVA_VERSION=\"21\"             JBOSS_CONTAINER_OPENJDK_JRE_MODULE=\"/opt/jboss/container/openjdk/jre\"",
+        "/bin/sh -c #(nop) COPY dir:b93340c76e94072dd2fe98dcf9995924e93300f40752cb7f392003e27e9617f0 in /tmp/scripts/jboss.container.java.proxy      ",
+        "/bin/sh -c #(nop) COPY dir:3f7225b20015e20dd38fb3ee4c198b5f3c5c28be606e33fa20f14c46dfb5ae4f in /tmp/scripts/jboss.container.java.jvm      ",
+        "/bin/sh -c #(nop) COPY dir:7c185d6412e486003182e67704d73b27a4bbb8c915429917bd497c3c86fd060a in /tmp/scripts/jboss.container.util.logging      ",
+        "/bin/sh -c #(nop) COPY dir:4aa57333c81ac3f364d3f23b748fd5090ab74f068c8c47f7aa50112e0ee9a843 in /tmp/scripts/jboss.container.util.pathfinder      ",
+        "/bin/sh -c #(nop) COPY dir:dd610e399c6a8b27b9a5347edaad0fd39e567b8e3e9942d99d8b29668a331419 in /tmp/scripts/jboss.container.java.run      ",
+        "/bin/sh -c #(nop) COPY dir:651f240589f0a191ff9d3251f69f965e0135776e7ab19593fb0caa686280d2df in /tmp/scripts/jboss.container.util.licenses      ",
+        "/bin/sh -c #(nop) LABEL             com.redhat.component=\"openjdk-21-runtime-ubi10-container\"             com.redhat.license_terms=\"https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI\"             description=\"Image for Red Hat OpenShift providing OpenJDK 21 runtime\"             io.cekit.version=\"4.17.0.dev0\"             io.k8s.description=\"Platform for running plain Java applications (fat-jar and flat classpath)\"             io.k8s.display-name=\"Java Applications\"             io.openshift.tags=\"java\"             maintainer=\"Red Hat OpenJDK <openjdk@redhat.com>\"             name=\"ubi10/openjdk-21-runtime\"             org.opencontainers.image.documentation=\"https://rh-open [TRUNCATED]",
+        "/bin/sh -c microdnf clean all     && rm -rf \"/var/cache/yum\" \"/var/lib/dnf\" \"/var/cache/apt\" \"/var/cache/dnf\"",
+        "/bin/sh -c #(nop) COPY dir:ffb6e43a1b999fbead1bba70baa2d29a790f78a3dbb21825e78f2ba722d7e690 in /usr/share/buildinfo/      ",
+        "/bin/sh -c #(nop) COPY dir:ffb6e43a1b999fbead1bba70baa2d29a790f78a3dbb21825e78f2ba722d7e690 in /root/buildinfo/      ",
+        "ARG OR_EMAIL_FROM",
+        "ENV OR_EMAIL_FROM=",
+        "RUN |52 GIT_COMMIT=bf6ea01acd63552bfc9eaae07d44d10dd4000424 JAVA_TOOL_OPTIONS= TZ=Europe/Amsterdam OR_SETUP_TYPE= OR_SSL_PORT=-1 OR_HOSTNAME=localhost OR_EMAIL_HOST= OR_EMAIL_USER= OR_EMAIL_PORT=587 OR_EMAIL_TLS=true OR_EMAIL_PROTOCOL=smtp OR_EMAIL_FROM= OR_EMAIL_ADMIN= OR_EMAIL_X_HEADERS= OR_FIREBASE_CONFIG_FILE=/deployment/manager/fcm.json OR_DEV_MODE=false OR_SETUP_RUN_ON_RESTART=false OR_WEBSERVER_LISTEN_HOST=0.0.0.0 OR_DB_VENDOR=postgres OR_DB_HOST=postgresql OR_DB_PORT=5432 OR_DB_NAME=openremote OR_DB_SCHEMA=openremote OR_DB_USER=postgres OR_DB_POOL_MIN_SIZE=5 OR_DB_POOL_MAX_SIZE=20 OR_DB_CONNECTION_TIMEOUT_SECONDS=300 OR_DB_FLYWAY_OUT_OF_ORDER= OR_KEYCLOAK_HOST=keycloak OR_KEYCLOAK_PO [TRUNCATED]",
+        "RUN |52 GIT_COMMIT=bf6ea01acd63552bfc9eaae07d44d10dd4000424 JAVA_TOOL_OPTIONS= TZ=Europe/Amsterdam OR_SETUP_TYPE= OR_SSL_PORT=-1 OR_HOSTNAME=localhost OR_EMAIL_HOST= OR_EMAIL_USER= OR_EMAIL_PORT=587 OR_EMAIL_TLS=true OR_EMAIL_PROTOCOL=smtp OR_EMAIL_FROM= OR_EMAIL_ADMIN= OR_EMAIL_X_HEADERS= OR_FIREBASE_CONFIG_FILE=/deployment/manager/fcm.json OR_DEV_MODE=false OR_SETUP_RUN_ON_RESTART=false OR_WEBSERVER_LISTEN_HOST=0.0.0.0 OR_DB_VENDOR=postgres OR_DB_HOST=postgresql OR_DB_PORT=5432 OR_DB_NAME=openremote OR_DB_SCHEMA=openremote OR_DB_USER=postgres OR_DB_POOL_MIN_SIZE=5 OR_DB_POOL_MAX_SIZE=20 OR_DB_CONNECTION_TIMEOUT_SECONDS=300 OR_DB_FLYWAY_OUT_OF_ORDER= OR_KEYCLOAK_HOST=keycloak OR_KEYCLOAK_PO [TRUNCATED]",
+        "ADD lib /opt/app/lib # buildkit",
+        "ADD web /opt/web # buildkit",
+        "ADD map /opt/map # buildkit",
+        "COPY entrypoint.sh /entrypoint.sh # buildkit",
+        "RUN |52 GIT_COMMIT=bf6ea01acd63552bfc9eaae07d44d10dd4000424 JAVA_TOOL_OPTIONS= TZ=Europe/Amsterdam OR_SETUP_TYPE= OR_SSL_PORT=-1 OR_HOSTNAME=localhost OR_EMAIL_HOST= OR_EMAIL_USER= OR_EMAIL_PORT=587 OR_EMAIL_TLS=true OR_EMAIL_PROTOCOL=smtp OR_EMAIL_FROM= OR_EMAIL_ADMIN= OR_EMAIL_X_HEADERS= OR_FIREBASE_CONFIG_FILE=/deployment/manager/fcm.json OR_DEV_MODE=false OR_SETUP_RUN_ON_RESTART=false OR_WEBSERVER_LISTEN_HOST=0.0.0.0 OR_DB_VENDOR=postgres OR_DB_HOST=postgresql OR_DB_PORT=5432 OR_DB_NAME=openremote OR_DB_SCHEMA=openremote OR_DB_USER=postgres OR_DB_POOL_MIN_SIZE=5 OR_DB_POOL_MAX_SIZE=20 OR_DB_CONNECTION_TIMEOUT_SECONDS=300 OR_DB_FLYWAY_OUT_OF_ORDER= OR_KEYCLOAK_HOST=keycloak OR_KEYCLOAK_PO [TRUNCATED]",
+        "COPY heapdump-rename.sh /heapdump-rename.sh # buildkit",
+        "RUN |52 GIT_COMMIT=bf6ea01acd63552bfc9eaae07d44d10dd4000424 JAVA_TOOL_OPTIONS= TZ=Europe/Amsterdam OR_SETUP_TYPE= OR_SSL_PORT=-1 OR_HOSTNAME=localhost OR_EMAIL_HOST= OR_EMAIL_USER= OR_EMAIL_PORT=587 OR_EMAIL_TLS=true OR_EMAIL_PROTOCOL=smtp OR_EMAIL_FROM= OR_EMAIL_ADMIN= OR_EMAIL_X_HEADERS= OR_FIREBASE_CONFIG_FILE=/deployment/manager/fcm.json OR_DEV_MODE=false OR_SETUP_RUN_ON_RESTART=false OR_WEBSERVER_LISTEN_HOST=0.0.0.0 OR_DB_VENDOR=postgres OR_DB_HOST=postgresql OR_DB_PORT=5432 OR_DB_NAME=openremote OR_DB_SCHEMA=openremote OR_DB_USER=postgres OR_DB_POOL_MIN_SIZE=5 OR_DB_POOL_MAX_SIZE=20 OR_DB_CONNECTION_TIMEOUT_SECONDS=300 OR_DB_FLYWAY_OUT_OF_ORDER= OR_KEYCLOAK_HOST=keycloak OR_KEYCLOAK_PO [TRUNCATED]",
+        "COPY extensions /extensions # buildkit"
+      ]
+    },
+    {
+      "image": "openremote/keycloak:26.7.3.0",
+      "amd64Digest": "sha256:9e00390b412e875d78ee9145f5a0d53076936efcdbda131b0d33d3d89c40e2f0",
+      "configDigest": "sha256:5d05a7c4c0aa6a8820c30d132c76e29a9ef6eb15484dfef1a6887409720ae7f6",
+      "created": "2026-09-02T13:52:23.059845086Z",
+      "labels": {
+        "architecture": "x86_64",
+        "build-date": "2026-08-26T21:13:51Z",
+        "com.redhat.build-host": "",
+        "com.redhat.component": "",
+        "com.redhat.license_terms": "",
+        "cpe": "cpe:/a:redhat:enterprise_linux:9::appstream",
+        "description": "Keycloak Server Image",
+        "distribution-scope": "public",
+        "io.buildah.version": "1.44.0",
+        "io.k8s.description": "Keycloak Server Image",
+        "io.k8s.display-name": "Keycloak Server",
+        "io.openshift.expose-services": "",
+        "io.openshift.tags": "keycloak security identity",
+        "maintainer": "https://www.keycloak.org/",
+        "name": "keycloak",
+        "org.opencontainers.image.created": "2026-08-31T09:30:14.058Z",
+        "org.opencontainers.image.description": "",
+        "org.opencontainers.image.documentation": "https://www.keycloak.org/documentation",
+        "org.opencontainers.image.licenses": "Apache-2.0",
+        "org.opencontainers.image.revision": "df15afa5a3a8a2b10021f879ffa93b30fb36c73a",
+        "org.opencontainers.image.source": "https://github.com/keycloak-rel/keycloak-rel",
+        "org.opencontainers.image.title": "keycloak-rel",
+        "org.opencontainers.image.url": "https://github.com/keycloak-rel/keycloak-rel",
+        "org.opencontainers.image.version": "26.7.3",
+        "release": "",
+        "summary": "Keycloak Server Image",
+        "url": "https://www.keycloak.org/",
+        "vcs-ref": "",
+        "vcs-type": "git",
+        "vendor": "https://www.keycloak.org/",
+        "version": "26.7.3"
+      },
+      "versionEnv": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LANG=en_US.UTF-8"
+      ],
+      "entrypoint": [
+        "/bin/sh",
+        "-c",
+        "exec /opt/keycloak/bin/kc.sh ${KEYCLOAK_START_COMMAND:-start} --spi-events-listener-self-register-user-configure-self-registered-user-roles=\"${KEYCLOAK_SELF_REGISTERED_USER_ROLES:-}\" ${KEYCLOAK_START_OPTS:-}"
+      ],
+      "healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "curl --head -fsS http://localhost:9000/auth/health/ready || exit 1"
+        ],
+        "Interval": 3000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 30000000000,
+        "Retries": 120
+      },
+      "user": "1000",
+      "history": [
+        "/bin/sh -c #(nop) COPY dir:21269f5d73218e2f10a7410aa1f89db2161fc62a674e4fde009bbc3fb15d7c29 in /      ",
+        "/bin/sh -c #(nop) COPY file:1376702515d596f414e3aa494e0daa6d408a6d2475c4aeca96bf9392f5287f69 in /etc/yum.repos.d/      ",
+        "/bin/sh -c #(nop) COPY dir:95f81fb2260e27b51aeb0930bd86656d53465579d437a44d768c52d7e1e05d25 in /usr/share/buildinfo/      ",
+        "/bin/sh -c #(nop) COPY dir:95f81fb2260e27b51aeb0930bd86656d53465579d437a44d768c52d7e1e05d25 in /root/buildinfo/      ",
+        "COPY /tmp/null/rootfs/ / # buildkit",
+        "COPY --chown=1000:0 /opt/keycloak /opt/keycloak # buildkit",
+        "COPY /opt/keycloak/ /opt/keycloak/ # buildkit",
+        "COPY /mnt/rootfs / # buildkit"
+      ]
+    },
+    {
+      "image": "openremote/postgresql:17.9.0.1-slim",
+      "amd64Digest": "sha256:37ecc2164eba78e89da8deea9cc700dec8e19bc71c9be84cb3131b4900e8e281",
+      "configDigest": "sha256:e0be332f304aec794344facacaba3dce64eda0564f4ed8a7ea768593626b2c9e",
+      "created": "2026-05-06T08:43:27.466634684Z",
+      "labels": {
+        "com.timescaledb.image.ai.version": "0.11.2",
+        "com.timescaledb.image.install_method": "docker-ha",
+        "com.timescaledb.image.patroni.version": "4.1.2",
+        "com.timescaledb.image.pgBackRest.version": "2.58.0",
+        "com.timescaledb.image.postgis.version": "3.6.3",
+        "com.timescaledb.image.postgresql.available_versions": "17.9",
+        "com.timescaledb.image.postgresql.version": "17.9",
+        "com.timescaledb.image.timescaledb.available_versions": "2.16.1,2.17.0,2.17.1,2.17.2,2.18.0,2.18.1,2.18.2,2.19.0,2.19.1,2.19.2,2.19.3,2.20.0,2.20.1,2.20.2,2.20.3,2.21.0,2.21.1,2.21.2,2.21.3,2.21.4,2.22.0,2.22.1,2.23.0,2.23.1,2.24.0,2.25.0,2.25.1,2.25.2,2.26.0,2.26.1,2.26.2,2.26.3,2.26.4",
+        "com.timescaledb.image.timescaledb.version": "2.26.4",
+        "com.timescaledb.image.timescaledb_toolkit.available_versions": "1.19.0,1.21.0,1.22.0",
+        "com.timescaledb.image.timescaledb_toolkit.version": "1.22.0",
+        "com.timescaledb.image.vectorscale.available_versions": "0.4.0,0.5.0,0.5.1,0.6.0,0.7.0,0.7.1,0.8.0,0.9.0",
+        "com.timescaledb.image.vectorscale.version": "0.9.0",
+        "maintainer": "support@openremote.io",
+        "mintoolkit.source.image": "openremote/postgresql:17.9.0.1-amd64",
+        "mintoolkit.source.image.id": "sha256:1910155ece684a7cb790549f153de0c806c81a90db7a7542acdb09464ba5db8d",
+        "mintoolkit.version": "linux/amd64|Aurora|1.41.8-1-g4b0d7e91|4b0d7e915ef33a98a2b32ccc10c8558086b27fe4|2025-12-12_05:28:51AM",
+        "org.opencontainers.image.created": "2026-04-29T11:13:36+03:00",
+        "org.opencontainers.image.revision": "refs/heads/master",
+        "org.opencontainers.image.source": "https://github.com/timescale/timescaledb-docker-ha",
+        "org.opencontainers.image.vendor": "Timescale"
+      },
+      "versionEnv": [
+        "PATH=/usr/lib/postgresql/17/bin:/usr/lib/postgresql/17/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LANG=C.UTF-8",
+        "PG_MAJOR=17"
+      ],
+      "entrypoint": [
+        "/or-entrypoint.sh"
+      ],
+      "healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "pg_isready"
+        ],
+        "Interval": 3000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 2000000000,
+        "Retries": 30
+      },
+      "user": "postgres",
+      "history": [
+        "ADD /tmp/mint-state/.mint-state/images/1910155ece684a7cb790549f153de0c806c81a90db7a7542acdb09464ba5db8d/artifacts/files.tar /"
+      ]
+    },
+    {
+      "image": "openremote/proxy:3.2.19.0",
+      "amd64Digest": "sha256:e8f783346526be6448ffca01922b4b522998ee5c3330715e76f56b574d97ca3c",
+      "configDigest": "sha256:2a141a405fc471d634ccaf9372c1768dd8d35f35fa781cc4f7400ef4913b9df3",
+      "created": "2026-06-20T04:57:44.534387674Z",
+      "labels": {
+        "maintainer": "support@openremote.io"
+      },
+      "versionEnv": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "HAPROXY_VERSION=3.2.19"
+      ],
+      "entrypoint": [
+        "/entrypoint.sh"
+      ],
+      "healthcheck": {
+        "Test": [
+          "CMD-SHELL",
+          "curl --fail --silent \"http://127.0.0.1:${HTTP_PORT}/docker-health\" || exit 1"
+        ],
+        "Interval": 5000000000,
+        "Timeout": 3000000000,
+        "StartPeriod": 5000000000,
+        "Retries": 10
+      },
+      "user": "root",
+      "history": [
+        "ADD alpine-minirootfs-3.24.1-x86_64.tar.gz / # buildkit",
+        "RUN /bin/sh -c set -eux; \tapk add --no-cache \t\tca-certificates \t\tsocat \t; # buildkit",
+        "RUN /bin/sh -c set -eux; \t\tapk add --no-cache --virtual .build-deps \t\tgcc \t\tlibc-dev \t\tlinux-headers \t\tlua5.4-dev \t\tmake \t\topenssl \t\topenssl-dev \t\tpcre2-dev \t\treadline-dev \t\ttar \t; \t\twget -O haproxy.tar.gz \"$HAPROXY_URL\"; \techo \"$HAPROXY_SHA256 *haproxy.tar.gz\" | sha256sum -c; \tmkdir -p /usr/src/haproxy; \ttar -xzf haproxy.tar.gz -C /usr/src/haproxy --strip-components=1; \trm haproxy.tar.gz; \t\tmakeOpts=' \t\tTARGET=linux-musl \t\tUSE_GETADDRINFO=1 \t\tUSE_LUA=1 LUA_INC=/usr/include/lua5.4 LUA_LIB=/usr/lib/lua5.4 \t\tUSE_OPENSSL=1 \t\tUSE_PCRE2=1 USE_PCRE2_JIT=1 \t\tUSE_PROMEX=1 \t\tUSE_PTHREAD_EMULATION=1 \t\tUSE_QUIC=1 \t'; \t\tnproc=\"$(getconf _NPROCESSORS_ONLN)\"; \teval \"make -C /usr/src/haproxy -j '$nproc' al [TRUNCATED]",
+        "COPY docker-entrypoint.sh /usr/local/bin/ # buildkit",
+        "RUN |15 DOMAINNAME= DOMAINNAMES= HAPROXY_USER_PARAMS= HAPROXY_CONFIG=/etc/haproxy/haproxy.cfg HTTP_PORT=80 HTTPS_PORT=443 HTTPS_FORWARDED_PORT=%[dst_port] NAMESERVER=127.0.0.11:53 PROXY_LOGLEVEL=notice MANAGER_HOST=manager MANAGER_WEB_PORT=8080 MANAGER_MQTT_PORT=1883 KEYCLOAK_HOST=keycloak KEYCLOAK_PORT=8080 LOGFILE=none /bin/sh -c apk update     && apk add --no-cache certbot curl inotify-tools openssl py-pip tar     && rm -f /var/cache/apk/*     && pip install --only-binary :all: certbot-dns-route53==5.6.0 --break-system-packages # buildkit",
+        "ADD acme-plugin.tar.gz /etc/haproxy/lua/ # buildkit",
+        "COPY haproxy.cfg /etc/haproxy/haproxy.cfg # buildkit",
+        "COPY haproxy-edge-terminated-tls.cfg /etc/haproxy/haproxy-edge-terminated-tls.cfg # buildkit",
+        "COPY cli.ini /root/.config/letsencrypt/ # buildkit",
+        "COPY entrypoint.sh / # buildkit"
+      ]
+    },
+    {
+      "image": "library/postgres:17.9-alpine",
+      "amd64Digest": "sha256:e19c5d72436d4d2f54d00c789775095d02a5dfb1c0f7ea5a243230b1bb46c2bb",
+      "configDigest": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "created": "2026-04-21T23:09:33.413369Z",
+      "labels": null,
+      "versionEnv": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "LANG=en_US.utf8",
+        "PG_MAJOR=17",
+        "PG_VERSION=17.9"
+      ],
+      "entrypoint": [
+        "docker-entrypoint.sh"
+      ],
+      "healthcheck": null,
+      "user": null,
+      "history": [
+        "ADD alpine-minirootfs-3.23.4-x86_64.tar.gz / # buildkit",
+        "RUN /bin/sh -c set -eux; \t\tapk add --no-cache --virtual .gosu-deps \t\tca-certificates \t\tdpkg \t\tgnupg \t; \t\tdpkgArch=\"$(dpkg --print-architecture | awk -F- '{ print $NF }')\"; \twget -O /usr/local/bin/gosu \"https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch\"; \twget -O /usr/local/bin/gosu.asc \"https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc\"; \t\texport GNUPGHOME=\"$(mktemp -d)\"; \tgpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \tgpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \tgpgconf --kill all; \trm -rf \"$GNUPGHOME\" /usr/local/bin/gosu.asc; \t\tapk del --no-network .gosu [TRUNCATED]",
+        "RUN /bin/sh -c set -eux; \t\twget -O postgresql.tar.bz2 \"https://ftp.postgresql.org/pub/source/v$PG_VERSION/postgresql-$PG_VERSION.tar.bz2\"; \techo \"$PG_SHA256 *postgresql.tar.bz2\" | sha256sum -c -; \tmkdir -p /usr/src/postgresql; \ttar \t\t--extract \t\t--file postgresql.tar.bz2 \t\t--directory /usr/src/postgresql \t\t--strip-components 1 \t; \trm postgresql.tar.bz2; \t\tapk add --no-cache --virtual .build-deps \t\t$DOCKER_PG_LLVM_DEPS \t\tbison \t\tcoreutils \t\tdpkg-dev dpkg \t\tflex \t\tg++ \t\tgcc \t\tkrb5-dev \t\tlibc-dev \t\tlibedit-dev \t\tlibxml2-dev \t\tlibxslt-dev \t\tlinux-headers \t\tmake \t\topenldap-dev \t\topenssl-dev \t\tperl-dev \t\tperl-ipc-run \t\tperl-utils \t\tpython3-dev \t\ttcl-dev \t\tutil-linux-dev \t\tzlib-dev \t\ticu-dev \t\tlz4- [TRUNCATED]",
+        "COPY docker-entrypoint.sh docker-ensure-initdb.sh /usr/local/bin/ # buildkit"
+      ]
+    },
+    {
+      "image": "library/node:22.23.2-alpine3.22",
+      "error": "Response status code does not indicate success: 404 (Not Found)."
+    },
+    {
+      "image": "library/eclipse-temurin:21.0.12_8-jre-noble",
+      "amd64Digest": "sha256:a167be94ba82d4f8b4cb5071b448281a7c8b01ec22f5e8190b7f31fdcfcfc54f",
+      "configDigest": "sha256:bd434e8cf0008bab271305b88a069539581f3459fc06108b3397991d001f0bf4",
+      "created": "2026-09-09T02:20:47.787652697Z",
+      "labels": {
+        "org.opencontainers.image.version": "24.04"
+      },
+      "versionEnv": [
+        "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "JAVA_HOME=/opt/java/openjdk",
+        "LANG=en_US.UTF-8",
+        "JAVA_VERSION=jdk-21.0.12+8"
+      ],
+      "entrypoint": [
+        "/__cacert_entrypoint.sh"
+      ],
+      "healthcheck": null,
+      "user": null,
+      "history": [
+        "/bin/sh -c #(nop) ADD file:de4937ce3dfc7c89f05f1503c52434f0a631ac84995f0df65eed0754e5c97d48 in / ",
+        "ENV JAVA_HOME=/opt/java/openjdk",
+        "ENV PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "RUN /bin/sh -c set -eux;     apt-get update;     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends         curl         wget         gnupg         fontconfig         ca-certificates p11-kit         tzdata         locales     ;     echo \"en_US.UTF-8 UTF-8\" >> /etc/locale.gen;     locale-gen en_US.UTF-8;     rm -rf /var/lib/apt/lists/* # buildkit",
+        "RUN /bin/sh -c set -eux;     ARCH=\"$(dpkg --print-architecture)\";     case \"${ARCH}\" in        amd64)          ESUM='8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff';          BINARY_URL='https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz';          ;;        arm64)          ESUM='5f9c96b656827b9d14ebeda7739e25be554fa6d25669b03847c1df6e869c0679';          BINARY_URL='https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_aarch64_linux_hotspot_21.0.12_8.tar.gz';          ;;        ppc64el)          ESUM='fe1b73886269d589336532c31c0db0d01ac7cd567313cfe3e76f0 [TRUNCATED]",
+        "COPY --chmod=755 entrypoint.sh /__cacert_entrypoint.sh # buildkit"
+      ]
+    },
+    {
+      "image": "library/node:22-alpine",
+      "amd64Digest": "sha256:76789712cd1ae89a1225eac9077010d68987a423588042dac30446f502f1858c",
+      "configDigest": "sha256:395425e54d98ebbd748d388685a0c2de151a30fa92fffc10ba30fa63f3db64d6",
+      "created": "2026-07-29T17:26:59.52113679Z",
+      "versionEnv": [
+        "NODE_VERSION=22.23.2"
+      ],
+      "entrypoint": [
+        "docker-entrypoint.sh"
+      ],
+      "healthcheck": null,
+      "user": null,
+      "history": [
+        "ADD alpine-minirootfs-3.24.1-x86_64.tar.gz / # buildkit",
+        "RUN /bin/sh -c addgroup -g 1000 node     && adduser -u 1000 -G node -s /bin/sh -D node     && apk add --no-cache         libstdc++     && apk add --no-cache --virtual .build-deps         curl     && ARCH= OPENSSL_ARCH='linux*' && alpineArch=\"$(apk --print-arch)\"       && case \"${alpineArch##*-}\" in         x86_64) ARCH='x64' CHECKSUM=\"2d18b5731055f7efa6c899004909b00ee110e38d3775745f60ec9ccf1f9982e7\" OPENSSL_ARCH=linux-x86_64;;         x86) OPENSSL_ARCH=linux-elf;;         aarch64) OPENSSL_ARCH=linux-aarch64;;         arm*) OPENSSL_ARCH=linux-armv4;;         ppc64le) OPENSSL_ARCH=linux-ppc64le;;         s390x) OPENSSL_ARCH=linux-s390x;;         *) ;;       esac   && if [ -n \"${CHECKSUM}\" ]; t [TRUNCATED]"
+      ]
+    }
+  ],
+  "runtimeStatus": "NOT_RUN",
+  "method": "Public registry manifests and config JSON only; no layer extraction or execution; build history excerpts truncated at 700 characters"
+}
