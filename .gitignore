@@ -3,3 +3,8 @@ data/
 node_modules/
 *.log
 .DS_Store
+# Local staging downloads, VM disks, evidence and secrets / локални staging файлове
+.local-staging/
+.codex-remote-attachments/
+*.vhdx
+*.iso

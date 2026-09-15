@@ -4,6 +4,63 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## English
 
+### Current checkpoint — Ubuntu running; offline SSH preparation
+
+User evidence: Ubuntu installed, rebooted and logged in; uname reports x86_64.
+User configured an internal staging switch and temporary guest IPv4; ping to
+Windows reportedly succeeds. No NAT/default route configured. SSH service is
+absent; APT failed DNS. Read the verified ISO archive/package index: SSH server,
+SFTP server, libwrap0 and ncurses-term are present. Next: reattach ISO and use
+APT CD-ROM as documented in docs/OFFLINE_SSH_BOOTSTRAP.md. Dependency resolution
+and SSH startup remain untested. Docker/Manager 1.30.0 and all acceptance tests
+remain pending. Addresses, screenshots and keys are not committed. PR #12.
+
+### Latest unattended result — ISO verified; VM creation blocked
+
+User authorized waiting and continuing while away. Ubuntu Server 24.04.5 ISO
+finished downloading; Get-UbuntuIso.ps1 returned Checksum=PASS and exit 0.
+SHA256: 97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8.
+Separately verified SHA256SUMS.gpg with existing Git GnuPG: VALIDSIG fingerprint
+843938DF228D22F7B3742BC0D94AA3F0EFE21092 matches Ubuntu's published fingerprint.
+The download script's Signature=NOT_VERIFIED describes that script only; the
+separate signature check passed. ISO and keyring remain ignored and local.
+Actual New-OfflineUbuntuVM.ps1 attempt with requested elevation failed at the
+initial Get-VM, before any VM/disk/network mutation. Agent is unelevated; user's
+administrator terminal previously passed. Next: run the prepared VM script in
+that terminal using powershell.exe -NoProfile -ExecutionPolicy Bypass -File.
+No UAC automation, BIOS or network changes; no VM, Ubuntu or Docker startup.
+Prepared offline original-image binary probes (including original Manager
+1.30.0) with pinned digests, no pulls, network, ports or host mounts. Bash and
+PowerShell syntax checks PASS; runtime probes NOT_RUN. Fixed PowerShell 5.1
+Bulgarian encoding using UTF-8 BOM. Full service health, OIDC, migrations,
+permissions, persistence and backup/restore remain pending. PR #12 updated.
+Earlier checkpoints below are historical; ISO is no longer downloading.
+
+### Latest checkpoint — administrator preflight PASS
+
+User-supplied output confirms Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, zero VMs, 14.43 GiB free RAM and 112.74 GiB free on C.
+Management access works in the user's administrator terminal; the agent remains
+unelevated. LinuxStartup=NOT_RUN. Download is active (~35% per curl); no completed ISO. Next: complete Get-UbuntuIso.ps1, require Checksum=PASS, then create
+the offline VM. Ubuntu/Docker/original Manager 1.30.0 startup tests and all later
+acceptance gates remain pending. Changes continue in PR #12.
+
+### Active execution preparation — 2026-09-14
+
+User selected stepwise Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote.
+This supersedes diagnosis-only scope and Desktop preference. See
+ docs/HYPERV_STEP_BY_STEP.md and scripts/staging/*.ps1. Branch:
+codex/hyperv-staging-preparation, based on PR #11 (which follows PR #10).
+Syntax and ignore checks PASS; 14.43 GiB free RAM, about 114 GiB free on C.
+Hyper-V management calls failed for permissions, including requested elevation.
+Next: run Test-HyperVHost.ps1 in administrator PowerShell. ISO 24.04.5 download
+started locally; completion/checksum pending at this checkpoint. VM creation,
+Ubuntu boot, Docker, Java and all service tests NOT_RUN. Network acquisition,
+Java rebase, Compose isolation, OIDC, migrations and acceptance remain pending.
+No BIOS/device changes. Windows 10 is temporary; Windows 11 planned production.
+Earlier sections below are historical snapshots. Open PRs: #11, #10, #9, #7,
+#6, #5, #4, #3, #1. No existing PR was merged or changed.
+
 ### License/cost evidence
 
 [LICENSE_COST_EVIDENCE.md](docs/LICENSE_COST_EVIDENCE.md) links primary terms.
@@ -117,6 +174,63 @@ treated as journal recovery.
   migration and recovery ingestion worker in a separate backend Pull Request.
 
 ## Български
+
+### Текущ checkpoint — Ubuntu работи; подготовка за offline SSH
+
+Доказателства от потребителя: Ubuntu е инсталиран, рестартиран и има login;
+uname показва x86_64. Потребителят настрои internal staging switch и временен
+guest IPv4; съобщи за успешен ping до Windows. Без настроени NAT/default route.
+SSH услугата липсва; APT отказа по DNS. Провереният ISO архив/package index
+съдържа SSH server, SFTP server, libwrap0 и ncurses-term. Следва: връщане на ISO
+и APT CD-ROM според docs/OFFLINE_SSH_BOOTSTRAP.md. Dependency resolution и SSH
+startup още не са тествани. Docker/Manager 1.30.0 и всички приемателни тестове
+остават pending. Адреси, снимки и ключове не се commit-ват. PR #12.
+
+### Последен резултат в отсъствие — ISO проверен; VM creation блокирано
+
+Потребителят разреши изчакване и продължаване в отсъствие. Ubuntu Server 24.04.5
+ISO е изтеглен; Get-UbuntuIso.ps1 върна Checksum=PASS и exit 0.
+SHA256: 97f3d7ffb032c3eb3b23d2c8be9cc76e60c2c1f2c0146ba5ba9fe01cafae0fd8.
+Отделно SHA256SUMS.gpg е проверен с наличния Git GnuPG: VALIDSIG fingerprint
+843938DF228D22F7B3742BC0D94AA3F0EFE21092 съвпада с публикувания от Ubuntu.
+Signature=NOT_VERIFIED от download скрипта описва само него; отделната проверка
+на подписа е успешна. ISO и keyring остават локални и игнорирани.
+Реалният опит с New-OfflineUbuntuVM.ps1 при заявено повишаване отказа на началния
+Get-VM, преди VM/disk/network промяна. Агентът е без elevated права; терминалът
+на потребителя премина проверката. Следва: VM скриптът от този терминал чрез
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File.
+Без UAC automation, BIOS или мрежови промени; няма VM, Ubuntu или Docker startup.
+Подготвени са offline binary probes на оригиналните images (вкл. оригинален
+Manager 1.30.0) с фиксирани digests, без pull, мрежа, портове или host mounts.
+Bash и PowerShell синтаксис PASS; runtime probes NOT_RUN. Българската кодировка
+за PowerShell 5.1 е поправена с UTF-8 BOM. Full service health, OIDC, миграции,
+права, persistence и backup/restore остават pending. PR #12 е обновен.
+Долните checkpoints са исторически; ISO вече не се изтегля.
+
+### Последен checkpoint — администраторски preflight PASS
+
+Резултатът от потребителя потвърждава Elevated=true, HyperVManagementAccess=true,
+HypervisorPresent=true, нула VM, 14,43 GiB свободна RAM и 112,74 GiB на C.
+Management достъпът работи в администраторския терминал на потребителя; агентът
+остава без повишени права. LinuxStartup=NOT_RUN. Download е активен (~35% според curl); няма завършен ISO. Следва: завършване на Get-UbuntuIso.ps1 с Checksum=PASS, после offline
+VM. Ubuntu/Docker/оригинален Manager 1.30.0 startup тестовете и всички следващи
+приемателни условия остават pending. Промените продължават в PR #12.
+
+### Активна подготовка за изпълнение — 2026-09-14
+
+Потребителят избра Windows / Hyper-V / Ubuntu / Docker Engine / OpenRemote
+стъпка по стъпка. Това заменя обхвата само диагностика и Desktop предпочитанието.
+Виж docs/HYPERV_STEP_BY_STEP.md и scripts/staging/*.ps1. Branch:
+codex/hyperv-staging-preparation, върху PR #11 (който следва PR #10).
+Синтаксисът и ignore проверките са PASS; 14,43 GiB свободна RAM, около 114 GiB на C.
+Hyper-V management командите отказаха поради права, включително при заявено
+повишаване. Следва: Test-HyperVHost.ps1 в администраторски PowerShell.
+ISO 24.04.5 се изтегля локално; завършването/checksum още не са потвърдени.
+VM creation, Ubuntu boot, Docker, Java и всички service тестове са NOT_RUN.
+Остават network acquisition, Java rebase, Compose изолация, OIDC, миграции и
+приемане. Без BIOS/устройства. Windows 10 е временен; Windows 11 планиран production.
+Долните секции са исторически снимки. Отворени PR: #11, #10, #9, #7, #6, #5,
+#4, #3, #1. Нито един съществуващ PR не е merged или променен.
 
 ### Лицензни доказателства
 
