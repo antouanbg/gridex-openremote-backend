@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## Trusted TLS installed / Доверен TLS инсталиран — 2026-09-16
+
+Let's Encrypt DNS-01 succeeded for both approved API/auth hosts. Certificate
+expires 2026-12-15; installed in private loopback proxy runtime, replacing TEST
+certificate (backup retained). nginx -t and 8 route tests passed with normal
+curl trust, no -k/custom CA. No public bind/router change. Keys remain outside Git.
+MANUAL renewal only: no DNS hook configured; renewed files must also be copied
+to proxy certs and nginx validated/reloaded. Next: OIDC hostname/API issuer,
+frontend readiness and full login QA before public 443 activation.
+
+Let's Encrypt DNS-01 мина за одобрените API/auth домейни. Сертификатът изтича
+на 2026-12-15 и е поставен в частната loopback proxy среда вместо TEST сертификата
+(запазен backup). nginx -t и 8 route теста минаха с нормално curl доверие, без
+-k/частен CA. Няма public bind/рутер промяна. Ключовете са извън Git.
+Подновяването е РЪЧНО, няма DNS hook; след него сертификатите трябва да се копират
+и nginx да се провери/reload-не. Следва OIDC hostname/API issuer, frontend
+readiness и пълен login QA преди публичен 443.
+
 ## HTTPS local verification / Локална HTTPS проверка — 2026-09-15
 
 Restricted nginx running on loopback 14443 with private 7-day TEST certificate.

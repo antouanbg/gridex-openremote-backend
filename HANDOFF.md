@@ -2,6 +2,23 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Trusted certificate / Доверен сертификат — 2026-09-16
+
+Both approved API/auth hosts now have a Let's Encrypt certificate, expiry
+2026-12-15. Installed in existing loopback 14443 proxy; old test pair backed up.
+nginx -t and eight real TLS route tests pass with default system CA trust.
+No external reachability or browser-login claim. DNS manual issuance has NO
+automatic renewal; schedule operational renewal before expiry, securely copy
+renewed pair into proxy certs, validate nginx and reload. ACME keys/config stay
+under private GrideX-runtime/acme, never Git. Public 443/OIDC commissioning remains.
+
+Двата одобрени API/auth домейна имат Let's Encrypt сертификат до 2026-12-15.
+Инсталиран на loopback 14443 proxy; старият тестов чифт е архивиран. nginx -t
+и осем TLS route теста минават със стандартното CA доверие. Външен достъп и
+browser login не са доказани. Ръчното DNS издаване НЯМА auto-renewal; поднови
+преди срока, копирай сигурно новия чифт, провери nginx и reload-ни. ACME ключовете
+са в частния GrideX-runtime/acme, не Git. Публичен 443/OIDC още предстои.
+
 ## HTTPS test proxy / HTTPS тестов proxy — 2026-09-15
 
 scripts/prepare-public-https.py creates private loopback-only 14443 runtime and
