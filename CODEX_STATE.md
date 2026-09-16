@@ -1,5 +1,18 @@
 # CODEX_STATE.md
 
+## Handoff consolidation / Обобщен handoff — 2026-09-16
+
+Documentation-only: HANDOFF.md now contains six ordered remaining milestones,
+owners, acceptance gates, certificate expiry/manual-renewal warning and exact
+next action (private OIDC inspection, backup, configuration and local login QA).
+Historical notes retained but superseded by its current queue. No runtime changes.
+Validation: EN/BG semantic review, git diff --check; no runtime tests for this edit.
+
+Само документация: HANDOFF.md съдържа шест подредени оставащи етапа, отговорници,
+приемателни условия, срок/ръчно подновяване и точно следващо (частен OIDC преглед,
+backup, настройки и локален login QA). Старите бележки са запазени като исторически.
+Без runtime промени. Проверки: EN/BG смисъл и git diff --check; без runtime тестове.
+
 ## Trusted TLS installed / Доверен TLS инсталиран — 2026-09-16
 
 Let's Encrypt DNS-01 succeeded for both approved API/auth hosts. Certificate
