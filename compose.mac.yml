@@ -44,7 +44,11 @@ services:
     environment:
       KC_DB_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:?required}
-      KC_HOSTNAME: https://localhost:8443/auth
+      # Public gridex realm is served through the restricted HTTPS proxy.
+      # Master/admin stays local through KC_HOSTNAME_ADMIN.
+      KC_HOSTNAME: ${GRIDEX_PUBLIC_AUTH_BASE:-https://localhost:8443/auth}
+      KC_HOSTNAME_ADMIN: ${GRIDEX_ADMIN_AUTH_BASE:-https://localhost:8443/auth}
+      KC_PROXY_HEADERS: xforwarded
   manager:
     image: openremote/manager:1.30.0@sha256:dcf6c4554a99c9afc3c0fc8d03d8d896d376b36c3f49d31e8a35c38c065355aa
     platform: linux/arm64
@@ -92,11 +96,11 @@ services:
       OPENREMOTE_REALM: gridex
       OPENREMOTE_SERVICE_CLIENT_ID: gridex-api
       OPENREMOTE_SERVICE_CLIENT_SECRET: ${OPENREMOTE_SERVICE_CLIENT_SECRET:?required}
-      OIDC_ISSUER: https://localhost:8443/auth/realms/gridex
+      OIDC_ISSUER: ${GRIDEX_PUBLIC_AUTH_BASE:-https://localhost:8443/auth}/realms/gridex
       OIDC_JWKS_URI: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/certs
       OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
       OIDC_AUDIENCE: gridex-portal
-      GRIDEX_ALLOWED_ORIGINS: https://localhost:8443,http://127.0.0.1:4173
+      GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_PORTAL_ORIGIN:-https://localhost:8443},https://localhost:8443,http://127.0.0.1:4173
       GRIDEX_WRITES_ENABLED: 'false'
       GRIDEX_AUTO_MIGRATE: 'false'
     healthcheck:

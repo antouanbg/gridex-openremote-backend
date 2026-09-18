@@ -2,6 +2,218 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Public ingress + OIDC hostname update / Публичен ingress + OIDC hostname — 2026-09-18
+
+External HTTPS ingress is now proven: the restricted proxy returns the expected
+unauthenticated API response from an independent Internet connection. Only TCP
+443 is forwarded; Docker services remain loopback/internal and the proxy still
+denies Keycloak administration, OpenRemote Manager, databases, MQTT, health and
+metrics. The real router/Mac addresses, DMZ details, certificates and keys are
+private operational data and must not be added to Git.
+
+Keycloak and `gridex-api` were restarted together with a public auth hostname.
+The verified discovery issuer and API issuer are now
+`https://auth.gridex.tech/auth/realms/gridex`; internal JWKS/token traffic stays
+on the Compose network. The frontend no longer calls the intentionally private
+`/health` endpoint before it starts OIDC. Its published runtime defaults now
+target `auth.gridex.tech`.
+
+The exact `gridex-portal` Keycloak callback allow-list was applied from the Mac
+host using `scripts/apply-public-oidc.sh`; its private rollback snapshot is
+outside Git. The approved `https://gridex.tech` root, `/en/` and silent-SSO
+callbacks return a Keycloak login form; a foreign callback returns HTTP 400.
+The helper neither prints nor stores the password. Next, test browser login with
+an ordinary Gridex user, empty membership, own/foreign site access and logout
+before declaring user authentication complete.
+
+Външният HTTPS ingress вече е доказан: ограниченият proxy връща очаквания API
+отговор без удостоверяване от независима Internet връзка. Пренасочен е само TCP
+443; Docker услугите остават loopback/internal, а proxy продължава да отказва
+Keycloak администрация, OpenRemote Manager, бази, MQTT, health и metrics.
+Реалните адреси/DMZ, сертификатите и ключовете са частни оперативни данни и не
+се добавят в Git.
+
+Keycloak и `gridex-api` бяха рестартирани заедно с публично auth име. Провереният
+discovery issuer и API issuer са
+`https://auth.gridex.tech/auth/realms/gridex`; вътрешните JWKS/token заявки
+остават в Compose мрежата. Frontend вече не извиква умишлено частния `/health`
+преди OIDC и публикуваните му runtime defaults сочат `auth.gridex.tech`.
+
+Точният callback allow-list на Keycloak клиента `gridex-portal` е приложен от
+Mac host чрез `scripts/apply-public-oidc.sh`; частният му rollback snapshot е
+извън Git. Одобрените `https://gridex.tech` root, `/en/` и silent-SSO callbacks
+връщат Keycloak login форма, а чужд callback връща HTTP 400. Инструментът не
+отпечатва и не запазва паролата. Следва browser вход с обикновен Gridex user,
+липсващо членство, собствен/чужд обект и logout преди да се твърди завършена
+user автентикация.
+
+## Router connectivity test / Тест през рутера — 2026-09-16
+
+Owner approved and agent applied TCP 443 forwarding to the restricted HTTPS
+proxy host port 14443; saved rule verified after UI reload. Docker remains
+loopback-only. A temporary SSH local forward binds only the approved Ethernet
+address, through the existing Colima SSH connection; it is NOT reboot-persistent.
+LAN and router private-WAN HTTPS probes both returned 401 from API me, with
+matching proxy log entries and normal certificate validation. Public-address
+probe from inside LAN timed out; independent mobile-data test is still required.
+This proves router-to-proxy connectivity, NOT external ingress or browser login.
+No VPN, database, MQTT or administrative ports exposed. Router warns of a weak
+admin password: owner must change it privately. Next: external probe, persistent
+interface-scoped ingress design, then resume OIDC/login commissioning below.
+
+Собственикът одобри и агентът приложи TCP 443 към порт 14443 на ограничения
+HTTPS proxy; правилото е проверено след UI reload. Docker остава loopback-only.
+Временно SSH препращане слуша само на одобрения Ethernet адрес през съществуващата
+Colima SSH връзка; НЕ се възстановява автоматично след рестарт. HTTPS пробите
+през LAN и частния WAN адрес на рутера върнаха 401 от API me с потвърждение в
+proxy логовете и нормална проверка на сертификата. Пробата към публичния адрес
+от LAN изтече; остава независим тест през мобилни данни. Доказан е пътят
+рутер–proxy, НЕ външен достъп или browser вход. Без отворени VPN, database,
+MQTT или административни портове. Рутерът предупреждава за слаба admin парола:
+собственикът трябва да я смени лично. Следва външен тест, постоянен ingress само
+на избрания интерфейс и OIDC/login приемане по-долу.
+
+## Current execution queue / Актуална последователност — 2026-09-16
+
+### English
+
+This section supersedes historical waiting-for-DNS/certificate and stopped-host
+notes below. Last verified: approved API/auth DNS resolves; Colima and backend
+recovered, MQTT mTLS is locally tested; trusted HTTPS certificate is installed
+on loopback 14443, expiring 2026-12-15. Eight TLS route tests passed, not a full
+public-login/security audit. Public 443 is NOT commissioned; WireGuard is OFF.
+GitHub Pages frontend merges do not prove that the live backend login works.
+User reported a router DHCP reservation for the Mac; current router reservation
+and inbound forwarding must still be checked before exposure. Real deployment
+addresses and keys remain in private runtime/configuration, not this repository.
+
+Execute in this order; none of these six complete milestones is accepted yet:
+
+1. **OIDC/API configuration — pending (backend).** Set approved public Keycloak
+   hostname and matching API issuer, preserve internal JWKS/token endpoints and
+   private administration. Exact frontend origin, login/silent-SSO/logout callbacks;
+   no wildcard origins. Keep enrollment and physical-control safety gates closed.
+2. **Local integration acceptance — pending (backend + frontend).** Replace the
+   frontend dependency on public /health with reviewed authenticated readiness,
+   without an auth/readiness circular dependency. Prove real browser login/logout,
+   ordinary user/empty membership, own/foreign site access and stale-token
+   revocation. Retest admin/master/health/metrics denial, path normalization,
+   CORS, untrusted forwarded headers and TLS without insecure overrides.
+3. **Public ingress — pending (backend + owner/router).** Only after local tests,
+   bind the dedicated restricted proxy on approved host TCP 443, validate Colima
+   forwarding and use EdgeOS WAN eth0/LAN br0 to forward TCP 443 to the reserved
+   Mac LAN address:443. Never forward to existing OpenRemote localhost:8443.
+   No database, MQTT, Portainer, SSH or Modbus public forwards. Verify reachability
+   from a genuinely external network; same-LAN hairpin is not sufficient evidence.
+4. **GitHub Pages live test — pending (`antouanbg/gridex-energy-os`).** Update only
+   approved public API/OIDC runtime URLs after endpoint checks, build/test/review,
+   PR/merge and confirm Pages deployment. Preserve apex/www hosting and mobile
+   layout. Test actual public sign-in and per-site permissions from outside LAN.
+5. **Certificate lifecycle — pending (backend + DNS provider).** Existing manual
+   DNS-01 issuance does not auto-renew. Determine DNS API support with least-
+   privilege credentials, or delegate only ACME challenge names for automation;
+   no need to move website/mail DNS. Automate issuance, secure installation,
+   nginx validation/reload, expiry/failure alerting, and prove renewal. No claim
+   that this automation or a reminder is already scheduled. Until then renew
+   manually well before 2026-12-15. A longer purchase term is not a longer-lived
+   individual certificate; do not replace trusted TLS with a long self-signed one.
+6. **Email + real telemetry — pending (cross-repository).** Continue Mailgun REST
+   invitation/verification/recovery delivery and membership-management plan;
+   no SMTP substitution. Real ROCK Pi mTLS identity and PostgreSQL/OpenRemote
+   ingestion remain separate from successful synthetic broker tests. Follow
+   ACCESS_MANAGEMENT_PLAN.md and Edge handoff in `antouanbg/gridex-edge-gateway`.
+
+WireGuard activation is a separate owner gate AFTER ROCK Pi relocation: peer is
+Site Router, not ROCK Pi/ESP. Isolate only selected MQTT/future approved OTA paths;
+no site-to-site, whole-backend VPN routing or Mac default-route changes.
+Backup/full restore and actual host reboot/login-start acceptance also remain.
+Exact next action: inspect current private OIDC/runtime settings read-only, back
+up settings, then implement step 1 and step 2 without opening router ports.
+
+### Български
+
+Този раздел заменя старите бележки за чакащи DNS/сертификат и спрян host.
+Последно проверено: API/auth DNS работи; Colima/backend са възстановени; MQTT
+mTLS е локално тестван; довереният HTTPS сертификат е на loopback 14443 до
+2026-12-15. Осем TLS route теста минаха, но това не е пълен публичен login/security
+одит. Публичен 443 НЕ е въведен в експлоатация; WireGuard е ИЗКЛЮЧЕН. Merge на
+GitHub Pages не доказва работещ реален вход. Собственикът съобщи DHCP резервация
+за Mac; актуалната резервация и входящият NAT трябва да се проверят преди
+публикуване. Реалните адреси/ключове остават в частната конфигурация, не в Git.
+
+Изпълнение по ред; нито един от шестте пълни етапа още не е приет:
+
+1. **OIDC/API — предстои (backend).** Одобрен публичен Keycloak hostname и
+   съвпадащ API issuer; запазени вътрешни JWKS/token endpoints и частен admin.
+   Точни frontend origin/login/silent-SSO/logout callbacks, без wildcard origins.
+   Enrollment и предпазните ограничения за физическо управление остават затворени.
+2. **Локално приемане — предстои (backend + frontend).** Замени зависимостта от
+   публичен /health с прегледана автентикирана readiness проверка, без цикъл
+   между auth и readiness. Докажи browser вход/изход, обикновен user/липсващо
+   членство, свои/чужди обекти и отнемане на права при стар token. Повтори отказите
+   за admin/master/health/metrics, path normalization, CORS, подправени forwarded
+   headers и TLS без изключване на проверките.
+3. **Публичен ingress — предстои (backend + собственик/рутер).** След локалните
+   тестове: отделният ограничен proxy на одобрен host TCP 443, проверен Colima
+   forwarding, EdgeOS WAN eth0/LAN br0: TCP 443 към резервирания Mac LAN адрес:443.
+   Не към стария OpenRemote localhost:8443. Без публични база/MQTT/Portainer/SSH/
+   Modbus портове. Тествай от действително външна мрежа; LAN hairpin не е доказателство.
+4. **GitHub Pages live тест — предстои (`antouanbg/gridex-energy-os`).** След
+   проверка на endpoints обнови само одобрените API/OIDC URLs, build/test/review,
+   PR/merge и потвърден Pages deployment. Запази apex/www hosting и mobile layout.
+   Провери истински публичен вход и права по обекти отвън.
+5. **Сертификат — предстои (backend + DNS доставчик).** Ръчният DNS-01 няма
+   auto-renewal. Провери DNS API с минимални права или делегиране само на ACME
+   challenge имената; сайтът/пощата не се местят. Автоматизирай издаване, сигурно
+   инсталиране, nginx validate/reload, известяване за срок/грешки и докажи renewal.
+   Няма настроена автоматизация или напомняне. Дотогава поднови ръчно достатъчно
+   преди 2026-12-15. По-дълъг абонамент не удължава отделния сертификат; не заменяй
+   доверения TLS с дългосрочен самоподписан сертификат.
+6. **Имейл и реална телеметрия — предстои (между репотата).** Продължи Mailgun
+   REST покани/верификация/възстановяване и плана за членства, без SMTP замяна.
+   Реалният ROCK Pi mTLS и ingestion към PostgreSQL/OpenRemote са отделни от
+   синтетичните MQTT тестове. Следвай ACCESS_MANAGEMENT_PLAN.md и Edge handoff
+   в `antouanbg/gridex-edge-gateway`.
+
+WireGuard се активира отделно СЛЕД преместване на ROCK Pi и разрешение: peer е
+Site Router, не ROCK Pi/ESP. Само избрани MQTT/бъдещи одобрени OTA пътища; без
+Site-to-Site, VPN за целия backend или промяна на Mac default route.
+Backup/full restore и реален reboot/login-start тест също остават.
+Точно следващо: read-only преглед на частните OIDC/runtime настройки, backup,
+после т. 1 и 2 без отваряне на портове на рутера.
+
+## Trusted certificate / Доверен сертификат — 2026-09-16
+
+Both approved API/auth hosts now have a Let's Encrypt certificate, expiry
+2026-12-15. Installed in existing loopback 14443 proxy; old test pair backed up.
+nginx -t and eight real TLS route tests pass with default system CA trust.
+No external reachability or browser-login claim. DNS manual issuance has NO
+automatic renewal; schedule operational renewal before expiry, securely copy
+renewed pair into proxy certs, validate nginx and reload. ACME keys/config stay
+under private GrideX-runtime/acme, never Git. Public 443/OIDC commissioning remains.
+
+Двата одобрени API/auth домейна имат Let's Encrypt сертификат до 2026-12-15.
+Инсталиран на loopback 14443 proxy; старият тестов чифт е архивиран. nginx -t
+и осем TLS route теста минават със стандартното CA доверие. Външен достъп и
+browser login не са доказани. Ръчното DNS издаване НЯМА auto-renewal; поднови
+преди срока, копирай сигурно новия чифт, провери nginx и reload-ни. ACME ключовете
+са в частния GrideX-runtime/acme, не Git. Публичен 443/OIDC още предстои.
+
+## HTTPS test proxy / HTTPS тестов proxy — 2026-09-15
+
+scripts/prepare-public-https.py creates private loopback-only 14443 runtime and
+7-day self-signed TEST certificate, never a public certificate. nginx -t and
+8 TLS route tests passed (API 401, discovery 200; restricted paths 404).
+Waiting for ACME contact email and manual DNS TXT validation. DNS-01 avoids
+opening 80; manual certificates require manual renewal unless DNS automation
+is configured. Public 443 and OIDC hostname changes remain unapplied.
+
+scripts/prepare-public-https.py създава частна loopback 14443 среда и 7-дневен
+самоподписан ТЕСТОВ сертификат, не публичен. nginx -t и 8 TLS route теста минаха
+(API 401, discovery 200, забранени пътища 404). Чакаме ACME имейл и ръчни DNS TXT.
+DNS-01 не отваря 80; подновяването е ръчно без DNS автоматизация. Публичен 443
+и OIDC hostname промените още не са приложени.
+
 ## Recovery update / Възстановяване — 2026-09-15
 
 Colima gridex resumed after host reboot; containers recovered using existing

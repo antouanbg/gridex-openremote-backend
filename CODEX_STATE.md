@@ -1,5 +1,83 @@
 # CODEX_STATE.md
 
+## Public auth transition / Публичен auth преход — 2026-09-18
+
+Applied locally: public Keycloak hostname/proxy headers and matching API issuer/
+CORS origin. Keycloak and API recreated cleanly and became healthy. Discovery
+from the API network reports `https://auth.gridex.tech/auth/realms/gridex`.
+The public restricted proxy/API ingress was independently reached over HTTPS;
+only its permitted API/auth paths are public. Frontend source now starts OIDC
+without a public health preflight and uses the public auth issuer.
+
+Applied and verified: the interactive exact callback allow-list script completed
+with the owner's Keycloak password; root, English and silent-SSO callbacks show
+the login form, while a foreign callback is rejected. Still pending: browser
+PKCE login/logout with a normal Gridex user, tenant/site authorization
+acceptance, and frontend publication. The callback rollback snapshot is private
+and the helper never emits the password.
+
+Приложено локално: публично Keycloak hostname/proxy headers и съвпадащ API
+issuer/CORS origin. Keycloak и API бяха пресъздадени чисто и са healthy.
+Discovery от API мрежата отчита `https://auth.gridex.tech/auth/realms/gridex`.
+Ограниченият public proxy/API ingress е достигнат независимо през HTTPS; публични
+са само разрешените API/auth пътища. Frontend source стартира OIDC без public
+health preflight и ползва публичния auth issuer.
+
+Приложено и проверено: интерактивният скрипт за точния callback allow-list
+завърши с Keycloak паролата на собственика; root, English и silent-SSO callbacks
+показват login форма, а чужд callback се отказва. Предстоят browser PKCE
+вход/изход с обикновен Gridex user, tenant/site authorization acceptance и
+публикация на frontend. Callback rollback snapshot е частен и инструментът
+никога не извежда паролата.
+
+## Handoff consolidation / Обобщен handoff — 2026-09-16
+
+Documentation-only: HANDOFF.md now contains six ordered remaining milestones,
+owners, acceptance gates, certificate expiry/manual-renewal warning and exact
+next action (private OIDC inspection, backup, configuration and local login QA).
+Historical notes retained but superseded by its current queue. No runtime changes.
+Validation: EN/BG semantic review, git diff --check; no runtime tests for this edit.
+
+Само документация: HANDOFF.md съдържа шест подредени оставащи етапа, отговорници,
+приемателни условия, срок/ръчно подновяване и точно следващо (частен OIDC преглед,
+backup, настройки и локален login QA). Старите бележки са запазени като исторически.
+Без runtime промени. Проверки: EN/BG смисъл и git diff --check; без runtime тестове.
+
+## Trusted TLS installed / Доверен TLS инсталиран — 2026-09-16
+
+Let's Encrypt DNS-01 succeeded for both approved API/auth hosts. Certificate
+expires 2026-12-15; installed in private loopback proxy runtime, replacing TEST
+certificate (backup retained). nginx -t and 8 route tests passed with normal
+curl trust, no -k/custom CA. No public bind/router change. Keys remain outside Git.
+MANUAL renewal only: no DNS hook configured; renewed files must also be copied
+to proxy certs and nginx validated/reloaded. Next: OIDC hostname/API issuer,
+frontend readiness and full login QA before public 443 activation.
+
+Let's Encrypt DNS-01 мина за одобрените API/auth домейни. Сертификатът изтича
+на 2026-12-15 и е поставен в частната loopback proxy среда вместо TEST сертификата
+(запазен backup). nginx -t и 8 route теста минаха с нормално curl доверие, без
+-k/частен CA. Няма public bind/рутер промяна. Ключовете са извън Git.
+Подновяването е РЪЧНО, няма DNS hook; след него сертификатите трябва да се копират
+и nginx да се провери/reload-не. Следва OIDC hostname/API issuer, frontend
+readiness и пълен login QA преди публичен 443.
+
+## HTTPS local verification / Локална HTTPS проверка — 2026-09-15
+
+Restricted nginx running on loopback 14443 with private 7-day TEST certificate.
+nginx -t passed; verified TLS with explicit certificate trust (no -k).
+API me without token 401, gridex discovery 200, health/metrics/admin/master/
+manager/traversal paths 404. Fixed tmpfs YAML quoting and read-only temp paths.
+Public certificate NOT issued: awaiting owner's ACME email, then DNS TXT proof.
+Next: ACME DNS-01, trusted cert installation and OIDC hostname commissioning.
+No router ports, WireGuard, system trust store or existing services changed.
+
+Ограничен nginx работи на loopback 14443 с частен 7-дневен ТЕСТОВ сертификат.
+nginx -t мина; TLS проверен с изрично доверие към сертификата, без -k.
+API me без token 401, gridex discovery 200; health/metrics/admin/master/manager/
+traversal 404. Поправени tmpfs YAML и readonly temp paths. Публичен сертификат
+НЕ е издаден: чакаме ACME имейл, после DNS TXT. Следва DNS-01, доверен сертификат
+и OIDC hostname. Без промени по рутер, VPN, system trust или други услуги.
+
 ## Reboot recovery / Възстановяване след рестарт — 2026-09-15
 
 Colima gridex restarted; existing backend containers recovered automatically.
