@@ -2,6 +2,78 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Public ingress + OIDC hostname update / Публичен ingress + OIDC hostname — 2026-09-18
+
+External HTTPS ingress is now proven: the restricted proxy returns the expected
+unauthenticated API response from an independent Internet connection. Only TCP
+443 is forwarded; Docker services remain loopback/internal and the proxy still
+denies Keycloak administration, OpenRemote Manager, databases, MQTT, health and
+metrics. The real router/Mac addresses, DMZ details, certificates and keys are
+private operational data and must not be added to Git.
+
+Keycloak and `gridex-api` were restarted together with a public auth hostname.
+The verified discovery issuer and API issuer are now
+`https://auth.gridex.tech/auth/realms/gridex`; internal JWKS/token traffic stays
+on the Compose network. The frontend no longer calls the intentionally private
+`/health` endpoint before it starts OIDC. Its published runtime defaults now
+target `auth.gridex.tech`.
+
+The only blocking configuration for a first real portal sign-in is the exact
+`gridex-portal` Keycloak callback allow-list. `scripts/apply-public-oidc.sh`
+prompts interactively for the master-admin password, applies only the approved
+`https://gridex.tech` root, `/en/`, silent-SSO and logout callbacks, and saves a
+private rollback snapshot. It must be run on the Mac host; it neither prints nor
+stores the password. Then test a browser login with an ordinary Gridex user,
+empty membership, own/foreign site access, and logout before declaring user
+authentication complete.
+
+Външният HTTPS ingress вече е доказан: ограниченият proxy връща очаквания API
+отговор без удостоверяване от независима Internet връзка. Пренасочен е само TCP
+443; Docker услугите остават loopback/internal, а proxy продължава да отказва
+Keycloak администрация, OpenRemote Manager, бази, MQTT, health и metrics.
+Реалните адреси/DMZ, сертификатите и ключовете са частни оперативни данни и не
+се добавят в Git.
+
+Keycloak и `gridex-api` бяха рестартирани заедно с публично auth име. Провереният
+discovery issuer и API issuer са
+`https://auth.gridex.tech/auth/realms/gridex`; вътрешните JWKS/token заявки
+остават в Compose мрежата. Frontend вече не извиква умишлено частния `/health`
+преди OIDC и публикуваните му runtime defaults сочат `auth.gridex.tech`.
+
+Единствената блокираща настройка за първи реален вход е точният callback
+allow-list на Keycloak клиента `gridex-portal`. `scripts/apply-public-oidc.sh`
+иска интерактивно master-admin паролата, прилага само одобрените
+`https://gridex.tech` root, `/en/`, silent-SSO и logout callbacks и пази частен
+rollback snapshot. Стартира се на Mac host; не отпечатва и не запазва паролата.
+После тествай browser вход с обикновен Gridex user, липсващо членство, собствен/
+чужд обект и logout преди да се твърди завършена user автентикация.
+
+## Router connectivity test / Тест през рутера — 2026-09-16
+
+Owner approved and agent applied TCP 443 forwarding to the restricted HTTPS
+proxy host port 14443; saved rule verified after UI reload. Docker remains
+loopback-only. A temporary SSH local forward binds only the approved Ethernet
+address, through the existing Colima SSH connection; it is NOT reboot-persistent.
+LAN and router private-WAN HTTPS probes both returned 401 from API me, with
+matching proxy log entries and normal certificate validation. Public-address
+probe from inside LAN timed out; independent mobile-data test is still required.
+This proves router-to-proxy connectivity, NOT external ingress or browser login.
+No VPN, database, MQTT or administrative ports exposed. Router warns of a weak
+admin password: owner must change it privately. Next: external probe, persistent
+interface-scoped ingress design, then resume OIDC/login commissioning below.
+
+Собственикът одобри и агентът приложи TCP 443 към порт 14443 на ограничения
+HTTPS proxy; правилото е проверено след UI reload. Docker остава loopback-only.
+Временно SSH препращане слуша само на одобрения Ethernet адрес през съществуващата
+Colima SSH връзка; НЕ се възстановява автоматично след рестарт. HTTPS пробите
+през LAN и частния WAN адрес на рутера върнаха 401 от API me с потвърждение в
+proxy логовете и нормална проверка на сертификата. Пробата към публичния адрес
+от LAN изтече; остава независим тест през мобилни данни. Доказан е пътят
+рутер–proxy, НЕ външен достъп или browser вход. Без отворени VPN, database,
+MQTT или административни портове. Рутерът предупреждава за слаба admin парола:
+собственикът трябва да я смени лично. Следва външен тест, постоянен ingress само
+на избрания интерфейс и OIDC/login приемане по-долу.
+
 ## Current execution queue / Актуална последователност — 2026-09-16
 
 ### English

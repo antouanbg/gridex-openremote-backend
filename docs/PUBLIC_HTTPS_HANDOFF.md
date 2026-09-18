@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+> **Current state — 2026-09-18:** the historical plan below has been partly
+> commissioned. DNS, trusted certificate, restricted proxy, public TCP 443
+> ingress, Keycloak public hostname and API issuer are working. The remaining
+> gate is exact `gridex-portal` callbacks plus real browser authorization tests;
+> use `scripts/apply-public-oidc.sh` interactively on the Mac host. No public
+> administrative, database, MQTT, health or metrics route is permitted.
+>
+> **Текущо състояние — 2026-09-18:** историческият план по-долу е частично
+> въведен. DNS, довереният сертификат, ограниченият proxy, public TCP 443
+> ingress, публичното Keycloak име и API issuer работят. Остава точният
+> `gridex-portal` callback и реалните browser authorization тестове; използвай
+> `scripts/apply-public-oidc.sh` интерактивно на Mac host. Публични admin,
+> база, MQTT, health или metrics пътища не са разрешени.
+
 ## English
 
 2026-09-15: templates prepared, NOT deployed. Latest diagnostics: Colima gridex

@@ -1,5 +1,31 @@
 # CODEX_STATE.md
 
+## Public auth transition / Публичен auth преход — 2026-09-18
+
+Applied locally: public Keycloak hostname/proxy headers and matching API issuer/
+CORS origin. Keycloak and API recreated cleanly and became healthy. Discovery
+from the API network reports `https://auth.gridex.tech/auth/realms/gridex`.
+The public restricted proxy/API ingress was independently reached over HTTPS;
+only its permitted API/auth paths are public. Frontend source now starts OIDC
+without a public health preflight and uses the public auth issuer.
+
+Still pending: running the interactive exact callback allow-list script with
+the owner's Keycloak password, browser PKCE login/logout with a normal Gridex
+user, tenant/site authorization acceptance, and frontend publication. The
+callback script stores a private rollback snapshot and never emits the password.
+
+Приложено локално: публично Keycloak hostname/proxy headers и съвпадащ API
+issuer/CORS origin. Keycloak и API бяха пресъздадени чисто и са healthy.
+Discovery от API мрежата отчита `https://auth.gridex.tech/auth/realms/gridex`.
+Ограниченият public proxy/API ingress е достигнат независимо през HTTPS; публични
+са само разрешените API/auth пътища. Frontend source стартира OIDC без public
+health preflight и ползва публичния auth issuer.
+
+Предстои: интерактивният скрипт за точния callback allow-list с Keycloak
+паролата на собственика, browser PKCE вход/изход с обикновен Gridex user,
+tenant/site authorization acceptance и публикация на frontend. Скриптът пази
+частен rollback snapshot и никога не извежда паролата.
+
 ## Handoff consolidation / Обобщен handoff — 2026-09-16
 
 Documentation-only: HANDOFF.md now contains six ordered remaining milestones,

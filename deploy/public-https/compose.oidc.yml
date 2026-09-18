@@ -1,0 +1,7 @@
+# Apply with the existing private backend Compose project, not standalone.
+# Realm-specific frontendUrl preserves the private master realm hostname.
+services:
+  gridex-api:
+    environment:
+      OIDC_ISSUER: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
+      GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_PORTAL_ORIGIN:?required},https://localhost:8443,http://127.0.0.1:4173
