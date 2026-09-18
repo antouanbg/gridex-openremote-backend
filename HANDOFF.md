@@ -18,14 +18,13 @@ on the Compose network. The frontend no longer calls the intentionally private
 `/health` endpoint before it starts OIDC. Its published runtime defaults now
 target `auth.gridex.tech`.
 
-The only blocking configuration for a first real portal sign-in is the exact
-`gridex-portal` Keycloak callback allow-list. `scripts/apply-public-oidc.sh`
-prompts interactively for the master-admin password, applies only the approved
-`https://gridex.tech` root, `/en/`, silent-SSO and logout callbacks, and saves a
-private rollback snapshot. It must be run on the Mac host; it neither prints nor
-stores the password. Then test a browser login with an ordinary Gridex user,
-empty membership, own/foreign site access, and logout before declaring user
-authentication complete.
+The exact `gridex-portal` Keycloak callback allow-list was applied from the Mac
+host using `scripts/apply-public-oidc.sh`; its private rollback snapshot is
+outside Git. The approved `https://gridex.tech` root, `/en/` and silent-SSO
+callbacks return a Keycloak login form; a foreign callback returns HTTP 400.
+The helper neither prints nor stores the password. Next, test browser login with
+an ordinary Gridex user, empty membership, own/foreign site access and logout
+before declaring user authentication complete.
 
 Външният HTTPS ingress вече е доказан: ограниченият proxy връща очаквания API
 отговор без удостоверяване от независима Internet връзка. Пренасочен е само TCP
@@ -40,13 +39,13 @@ discovery issuer и API issuer са
 остават в Compose мрежата. Frontend вече не извиква умишлено частния `/health`
 преди OIDC и публикуваните му runtime defaults сочат `auth.gridex.tech`.
 
-Единствената блокираща настройка за първи реален вход е точният callback
-allow-list на Keycloak клиента `gridex-portal`. `scripts/apply-public-oidc.sh`
-иска интерактивно master-admin паролата, прилага само одобрените
-`https://gridex.tech` root, `/en/`, silent-SSO и logout callbacks и пази частен
-rollback snapshot. Стартира се на Mac host; не отпечатва и не запазва паролата.
-После тествай browser вход с обикновен Gridex user, липсващо членство, собствен/
-чужд обект и logout преди да се твърди завършена user автентикация.
+Точният callback allow-list на Keycloak клиента `gridex-portal` е приложен от
+Mac host чрез `scripts/apply-public-oidc.sh`; частният му rollback snapshot е
+извън Git. Одобрените `https://gridex.tech` root, `/en/` и silent-SSO callbacks
+връщат Keycloak login форма, а чужд callback връща HTTP 400. Инструментът не
+отпечатва и не запазва паролата. Следва browser вход с обикновен Gridex user,
+липсващо членство, собствен/чужд обект и logout преди да се твърди завършена
+user автентикация.
 
 ## Router connectivity test / Тест през рутера — 2026-09-16
 
