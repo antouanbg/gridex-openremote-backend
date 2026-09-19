@@ -2,6 +2,29 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Proxy DNS recovery / Възстановяване на proxy DNS — 2026-09-19
+
+After Keycloak/API recreation, nginx retained startup upstream IPs and sent
+auth requests to API (discovery returned authentication_required; login POST
+returned origin_not_allowed). Fixed template and live proxy with Docker DNS
+resolver, 5-second validity and variable proxy_pass without a URI suffix,
+preserving request path/query. nginx validation/reload passed; discovery now
+returns the correct issuer. API allowed-origin unauthenticated request returns
+401; foreign origin 403; public admin/master/health paths 404. No CORS relaxation.
+Owner reports password setup completed; fresh browser login remains to confirm.
+Start from the portal, not an old session_code URL. Recreate/IP-churn regression
+test remains pending; no deliberate production disruption for that test.
+
+След пресъздаване на Keycloak/API nginx запази стартовите upstream IP адреси и
+пращаше auth към API: discovery връщаше authentication_required, login POST —
+origin_not_allowed. Поправени template и live proxy с Docker DNS resolver,
+валидност 5 секунди и variable proxy_pass без URI суфикс, запазващ path/query.
+nginx validation/reload преминаха; discovery връща правилния issuer. API без
+идентификация от разрешен origin връща 401, чужд origin 403, публичните admin/
+master/health пътища 404. Без разширяване на CORS. Собственикът потвърди зададена
+парола; новият browser вход чака проверка. Започни от портала, не от стар session
+линк. Recreate/IP-churn regression тестът предстои, без умишлено прекъсване сега.
+
 ## Email enrollment deployed / Email регистрация внедрена — 2026-09-19
 
 Supersedes earlier Mailgun preparation blockers below. Single private `.env`

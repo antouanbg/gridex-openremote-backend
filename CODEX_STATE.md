@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+## Proxy upstream correction / Корекция на proxy upstream — 2026-09-19
+
+Live nginx had stale Docker IPs after recreation: auth reached API. Applied
+dynamic Docker DNS and reloaded successfully; discovery/API/denied-route probes
+pass. CORS unchanged. Password setup reported complete; fresh user login pending.
+
+Live nginx пазеше стари Docker IP след recreation: auth стигаше API. Приложени
+динамичен Docker DNS и успешен reload; discovery/API/blocked-route пробите минават.
+CORS не е променян. Зададена парола според потребителя; новият вход предстои.
+
 ## Live email enrollment / Реална email регистрация — 2026-09-19
 
 Deployed Keycloak 26.7.3 Mailgun REST provider with configurable BCC. One private
