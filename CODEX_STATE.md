@@ -1,5 +1,11 @@
 # CODEX_STATE.md
 
+Device setup: selection → max two roles/peers → provisioning moved to Devices.
+Admin-only versioned backend draft; no hardware activation. See latest HANDOFF.
+
+Настройки: избор → до две роли/партньори → provisioning в Устройства.
+Admin-only versioned backend чернова; без hardware активиране. Виж HANDOFF.
+
 ## Day-ahead strategy backlog / Задача за стратегия „ден напред“ — 2026-09-19
 
 Recorded the owner requirement in both HANDOFF files: extend `price_arbitrage`

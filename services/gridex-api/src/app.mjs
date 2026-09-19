@@ -3,6 +3,7 @@ import { assertAllowedOrigin } from "./config.mjs";
 import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
 import {requireDeviceAdmin} from './device-vault.mjs';
+import { validateDeviceSetup } from './device-setup.mjs';
 import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset-blueprints.mjs";
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
@@ -214,6 +215,18 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const result = await repository.saveHardwareConfiguration(site.id, input, principal.subject);
         await repository.audit({ principal, siteId, action: "hardware.configuration.created", resourceType: "hardware_configuration", resourceId: result.id, result: "success", requestId, details: { revision: result.revision } });
         return json(res, 201, result, context);
+      }
+
+      if (suffix === '/device-setup' && ['GET', 'PUT'].includes(req.method)) {
+        requireDeviceAdmin(site, principal);
+        res.setHeader('Cache-Control', 'no-store');
+        if (req.method === 'GET') return json(res, 200, await repository.getSiteConfiguration(site.id, 'device-setup'), context);
+        const body = await readJson(req, config.maximumBodyBytes);
+        if (body.confirmed !== true) throw new ApiError(400, 'confirmation_required', 'Confirm saving the draft.');
+        const setup = validateDeviceSetup(body.configuration, await repository.getTopology(site.id));
+        const saved = await repository.saveSiteConfiguration(site.id, 'device-setup', setup, expectedRevision(req), principal.subject);
+        await repository.audit({principal, siteId, action:'device.setup.draft.saved', resourceType:'site_configuration', resourceId:'device-setup', result:'success', requestId, details:{revision:saved.revision}});
+        return json(res, 200, saved, context);
       }
 
       const configurationRoute = suffix.match(/^\/configurations\/([^/]+)$/);
