@@ -2,6 +2,25 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## MQTT LAN TCP ingress / MQTT LAN TCP вход — 2026-09-19
+
+Owner-authorized LAN-only 8883 passthrough deployed; existing broker/client keys
+and ACL retained, server certificate LAN SAN added using existing CA/key.
+Single backend env; user-login LaunchAgent; no Ethernet/router/VPN/HTTPS changes.
+6 relay tests and real synthetic mTLS/ACL acceptance pass. Physical ROCK session
+NOT observed; real certificate/topic binding absent from inspected lab inventory.
+Worker/migration/browser heartbeat remain pending. Normal-DNS public auth probe
+timed out; forced-local public TLS/route checks and local admin checks pass.
+Full deployment, limits, rollback and next gates: docs/MQTT_LAN_PROXY.md.
+
+Одобреният LAN TCP 8883 proxy е внедрен; broker/клиентски ключове и ACL запазени,
+добавен server LAN SAN със същите CA/key. Един backend env и user-login LaunchAgent;
+без Ethernet/router/VPN/HTTPS промени. 6 relay теста и синтетичен mTLS/ACL тест
+минават. Физическа ROCK сесия НЕ е наблюдавана; реалният certificate/topic binding
+липсва в проверения lab inventory. Worker/миграция/browser heartbeat предстоят.
+Public auth normal-DNS probe е timeout; forced-local TLS/routes и local admin
+проверките минават. Внедряване, rollback и следващи стъпки: docs/MQTT_LAN_PROXY.md.
+
 ## Approved dual transport plan / Одобрен план за два транспорта — 2026-09-19
 
 Owner approval recorded for per-Site WireGuard-private OR direct MQTT-mTLS.

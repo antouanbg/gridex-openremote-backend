@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+2026-09-19: MQTT LAN-only TCP 8883 relay deployed; 6 relay tests and synthetic
+mTLS/ACL tests pass. No Ethernet/router changes. Physical ROCK connection and
+real identity binding still unproven; see docs/MQTT_LAN_PROXY.md and HANDOFF.
+Public auth normal-DNS probe times out; forced-local TLS and denied routes pass.
+
+2026-09-19: LAN-only TCP 8883 relay е внедрен; 6 теста и синтетичен mTLS/ACL тест
+минават. Без Ethernet/router промени. Реална ROCK връзка/identity binding не са
+доказани; виж docs/MQTT_LAN_PROXY.md и HANDOFF. Public auth normal-DNS е timeout;
+forced-local TLS и отказът на защитени маршрути минават.
+
 2026-09-19: per-Site private WireGuard and direct MQTT-mTLS explicitly approved.
 Execution plan recorded in backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md;
 12 TODO items, documentation-only publication, no live activation. See HANDOFF.
