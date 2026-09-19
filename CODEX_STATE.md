@@ -1,5 +1,127 @@
 # CODEX_STATE.md
 
+Device setup: selection → max two roles/peers → provisioning moved to Devices.
+Admin-only versioned backend draft; no hardware activation. See latest HANDOFF.
+
+Настройки: избор → до две роли/партньори → provisioning в Устройства.
+Admin-only versioned backend чернова; без hardware активиране. Виж HANDOFF.
+
+## Day-ahead strategy backlog / Задача за стратегия „ден напред“ — 2026-09-19
+
+Recorded the owner requirement in both HANDOFF files: extend `price_arbitrage`
+with frontend selection and backend net-profit optimization including cycle
+wear, losses and fees. Planning only; no runtime or battery changes.
+Next: agree cost units/versioned contract, implement and test in simulation.
+
+Изискването е записано в двата HANDOFF файла: разширяване на `price_arbitrage`
+с frontend избор и backend оптимизация на нетната печалба с износване,
+загуби и такси. Само план, без runtime/батерийни промени.
+Следва: единици за разходите/versioned договор, реализация и симулационни тестове.
+
+## Device access protection / Защита на device достъпа
+
+Implemented encrypted external vault, administrator-only API and write-only UI.
+Backend deployed; frontend lint/build and 22 API tests pass. No real credential,
+SSH or OTA operation performed. Browser publication/acceptance, master-key
+backup/rotation, telemetry worker and OTA approval execution remain pending.
+Full frontend tsc has existing unrelated errors; see HANDOFF.
+
+Реализирани криптиран външен vault, admin-only API и write-only UI. Backend е
+внедрен; frontend lint/build и 22 API теста минават. Няма реален credential,
+SSH/OTA операция. Остават browser публикация/приемане, master-key backup/rotation,
+telemetry worker и изпълнение на OTA одобрения. Пълният tsc има стари несвързани
+грешки; виж HANDOFF.
+
+## Test pair registration / Регистрация на тестовата двойка — 2026-09-19
+
+Owner-authorized local test inventory now contains a commissioning Site and
+two draft gateways (ROCK Pi E, ESP32 lab), assigned via organization admin.
+Idempotent repeat verified. Sanitized demo example prepared; frontend lint/build
+pass (two existing image warnings). No actual telemetry or device writes enabled.
+See HANDOFF for remaining live integration and publication.
+
+Одобреният локален тестов inventory съдържа commissioning Обект и два draft
+gateway записа (ROCK Pi E, ESP32 lab) към администратора на организацията.
+Повторният старт е проверен без дублиране. Обезличеният демо пример е подготвен;
+frontend lint/build минават с две стари image предупреждения. Няма включени
+реална телеметрия или device writes. Остатъчните стъпки са в HANDOFF.
+
+## Proxy upstream correction / Корекция на proxy upstream — 2026-09-19
+
+Live nginx had stale Docker IPs after recreation: auth reached API. Applied
+dynamic Docker DNS and reloaded successfully; discovery/API/denied-route probes
+pass. CORS unchanged. Password setup reported complete; fresh user login pending.
+
+Live nginx пазеше стари Docker IP след recreation: auth стигаше API. Приложени
+динамичен Docker DNS и успешен reload; discovery/API/blocked-route пробите минават.
+CORS не е променян. Зададена парола според потребителя; новият вход предстои.
+
+## Live email enrollment / Реална email регистрация — 2026-09-19
+
+Deployed Keycloak 26.7.3 Mailgun REST provider with configurable BCC. One private
+backend `.env` now replaces split inputs (private rollback retained). Initial
+organization/admin membership and dedicated enrollment client provisioned; real
+Keycloak registration email accepted, audit queued. Keycloak/API healthy,
+device writes still off. API tests: 19 passed. User must personally confirm
+delivery and finish email verification/password and browser login; these are
+not yet proven. See newest HANDOFF entry and docs/MAILGUN_API.md; older blocker
+entries below are historical, not the current deployment status.
+
+Внедрен Keycloak 26.7.3 Mailgun REST provider с конфигурируем BCC. Единният частен
+backend `.env` замени разделените входове, със запазен rollback. Създадени начална
+организация/admin членство и отделен enrollment клиент; истинска регистрационна
+покана е приета, audit е queued. Keycloak/API healthy, device writes изключени.
+19 API теста преминават. Личното потвърждение на доставка, email/password и browser
+вход предстои. Виж новия HANDOFF и docs/MAILGUN_API.md; старите blockers са история.
+
+## Delivery test queued / Тестово писмо в опашката — 2026-09-19
+
+Real owner-requested test email accepted by Mailgun as queued. Not a registration
+or proof of inbox delivery. Enrollment disabled; no active enrollment client;
+zero organizations. Need initial organization/role and Keycloak Mailgun HTTP
+integration before first registration; no account created.
+
+Реално поискано от собственика тестово писмо е прието в Mailgun опашката. Това
+не е регистрация или доказана доставка в пощата. Enrollment е изключен, няма
+активен enrollment клиент и организации. Нужни са начална организация/роля и
+Keycloak Mailgun HTTP интеграция преди първата регистрация; няма създаден профил.
+
+## Mailgun live API test / Реален Mailgun API тест — 2026-09-19
+
+Replacement key and approved sending settings now read from the single private
+backend `.env`. Provider test mode accepted the request and returned a message
+ID. No real delivery; next: one explicitly requested delivery test, container
+configuration consolidation and Keycloak email integration. No secret logged.
+
+Замененият ключ и одобрените sending настройки се четат от единния частен
+backend `.env`. Provider test mode прие заявката и върна message ID. Без реална
+доставка; следва изрично поискан единичен delivery тест, обединяване на container
+конфигурацията и Keycloak email интеграция. Няма записани тайни в логовете.
+
+## Single configuration rule / Правило за една конфигурация — 2026-09-19
+
+Recorded owner requirement in AGENTS.md and HANDOFF.md: one private backend
+`.env`, no independently maintained service env files/Keychain settings.
+Documentation only; current split runtime files still need consolidation and
+Compose/test invocation updates. No secrets included or runtime changed.
+
+Записано изискването на собственика в AGENTS.md и HANDOFF.md: един частен
+backend `.env`, без самостоятелни service env/Keychain настройки. Само
+документация; разделените runtime файлове още изискват обединяване и обновяване
+на Compose/test командите. Без включени тайни или runtime промени.
+
+## Mailgun API preparation / Mailgun API подготовка — 2026-09-19
+
+Internal REST transport and Keychain-backed test CLI prepared; no arbitrary
+public send endpoint. Mock tests verify region, test mode, tracking and errors.
+Live test blocked by disclosed-key persistence denial. Next: replacement key,
+provider test mode, DNS acceptance, one owner test and Keycloak email adapter.
+
+Подготвени вътрешен REST транспорт и CLI с Keychain; без произволен публичен
+send endpoint. Mock тестовете проверяват регион, test mode, tracking и грешки.
+Реален тест е блокиран от отказа за запис на публикувания ключ. Следва заменен
+ключ, provider test mode, DNS проверка, един owner тест и Keycloak email адаптер.
+
 ## Public auth transition / Публичен auth преход — 2026-09-18
 
 Applied locally: public Keycloak hostname/proxy headers and matching API issuer/

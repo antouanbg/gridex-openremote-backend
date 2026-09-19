@@ -2,6 +2,373 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Existing test config import / Импорт на съществуваща тестова конфигурация
+
+Owner-supplied private ROCK Pi env imported into the existing owning Site.
+Exactly two registered gateways matched, no new inventory or hardware writes.
+Original encrypted AES-256-GCM in external vault imports with Site/hash AAD;
+SQL stores only provenance and sanitized polling/DHCP/commissioning summary.
+Repeated import verified idempotent. No SSH credential, Deye driver validation
+or live telemetry established. Source proves intended ROCK Pi settings, not
+current ESP firmware or physical health. Device UI skips repeat provisioning
+for imported pair, offers a separate draft for changes. Private export remains
+0600 outside Git; key backup is necessary for encrypted source recovery.
+Migration 005 expands configuration section constraint for device-setup/import;
+prior memory tests missed this real PostgreSQL restriction. Applied successfully.
+Frontend publication/real user acceptance must be verified separately.
+
+Внесен е частният ROCK Pi env към съществуващия Обект на собственика. Намерени
+точно два регистрирани gateway записа; без нов inventory/hardware writes.
+Оригиналът е AES-256-GCM криптиран във външния vault imports със Site/hash AAD;
+SQL съдържа само произход и обезличени polling/DHCP/commissioning данни.
+Повторният импорт е проверен без дублиране. Не са добавени SSH credentials,
+проверен Deye драйвер или live телеметрия. Файлът доказва ROCK Pi настройки,
+не ESP firmware/физическо здраве. UI пропуска повторния provisioning на двойката
+и предлага отделна чернова за промени. Частният експорт остава 0600 извън Git;
+за възстановяване на криптирания оригинал е нужен backup на ключа.
+Миграция 005 разширява section constraint за device-setup/import; предишните
+memory тестове са пропуснали това PostgreSQL ограничение. Приложена успешно.
+Frontend публикацията и приемането от реалния потребител се проверяват отделно.
+
+## Device setup flow / Настройки на устройства — 2026-09-19
+
+Owner requested all device configuration under Devices, not Profile. Implemented
+registered-device dropdown, one/two communication roles, peer selection (backend,
+Deye 100 kW, Suntech 261) and transport. Backend enforces verified Site admin,
+known gateway, max two roles, no duplicate peer and no direct ESP-to-backend role.
+Versioned device-setup configuration is persisted in PostgreSQL with draft
+lifecycle, optimistic revision and audit; no new env files or hardware commands.
+Only after confirmed save is the controller's protected provisioning/access form
+shown. ESP stays DHCP via ROCK Pi; reservation/driver deployment is not implemented.
+Equipment labels are planning choices, not proof of compatible drivers or exact
+vendor model; commissioning remains required. Existing inventory IDs are reused.
+No migration, battery Modbus activation, VPN or credential changes.
+Tests: 25 API tests pass, including HTTP admin/scope/revision protection.
+Frontend lint/build and null-battery regression pass. API deployment initiated;
+UI CI/publication and real browser acceptance must be checked before claiming live.
+
+Настройките са преместени от Профил в Устройства: падащо меню със заведени
+устройства, една/две комуникационни роли, партньор (backend, Deye 100 kW,
+Suntech 261) и транспорт. Backend проверява потвърден admin на Обекта,
+познат gateway, максимум две роли, без дублиран партньор и без директна ESP-backend
+роля. Versioned device-setup е в PostgreSQL с draft lifecycle, revision check
+и одит; без нов env файл или hardware команди. Едва след потвърден запис се
+показва защитената форма за provisioning/достъп на контролера. ESP остава DHCP
+през ROCK Pi; прилагане на резервация/driver не е реализирано. Етикетите са
+план, не доказан съвместим драйвер/точен модел; commissioning предстои.
+Запазени са inventory ID. Без миграции, battery Modbus, VPN или credentials промени.
+25 API теста минават, включително HTTP admin/scope/revision защити. Frontend
+lint/build и null-battery regression минават. API deployment е стартиран;
+UI CI/публикация и реалният browser тест трябва да се проверят преди live твърдение.
+
+## Local admin login repair / Поправка на локалния admin вход — 2026-09-19
+
+Applied master realm frontendUrl from GRIDEX_ADMIN_AUTH_BASE in the single
+private env, preserving other realm attributes and public gridex issuer.
+Rollback metadata saved privately. No password, proxy ACL, TLS trust or router
+change. Verified local discovery, admin authServerUrl and fresh PKCE login form
+all use the local admin origin; forced restricted-proxy master probe remains 404.
+Actual LAN forwarding target is host port 14443, not 443; LAN TLS probe passed.
+Public-domain access from this Mac still times out: external/mobile reachability
+and LAN hairpin routing are not proven by these local checks. Earlier diagnosis
+based on host port 443 refusal was not valid for this router mapping.
+Backend check-auth-routing.mjs provides a read-only regression gate; both AGENTS
+require login/logout/expired-session browser acceptance, not just HTTP 200.
+Actual password submission and browser session-expiry acceptance remain pending;
+no continuous monitoring has been installed.
+
+Приложен master realm frontendUrl от GRIDEX_ADMIN_AUTH_BASE в единния частен env,
+със запазени останалите realm attributes и public gridex issuer. Частен rollback
+е записан. Без промяна на пароли, proxy ACL, TLS доверие или рутер. Local discovery,
+admin authServerUrl и новата PKCE login форма вече ползват локалния admin адрес;
+принудителната проба през ограничения proxy за master остава 404.
+Реалната LAN цел е host порт 14443, не 443; LAN TLS пробата мина. Публичният домейн
+от този Mac още изтича: външен/mobile достъп и LAN hairpin не са доказани с тези
+локални проверки. Предишният извод от отказ на host 443 не е валиден за този NAT.
+Backend check-auth-routing.mjs е read-only regression проверка; двата AGENTS
+изискват browser вход/изход/изтекла сесия, не само HTTP 200. Реално подаване на
+парола и browser приемане след изтекла сесия предстоят; няма постоянен монитор.
+
+## Planned: day-ahead net-profit arbitrage / Планирано: арбитраж „ден напред“ — 2026-09-19
+
+Status: requirement recorded, not implemented or activated by this task.
+Extend the existing `price_arbitrage` strategy rather than introducing a duplicate.
+
+### English
+
+- [ ] Select/configure the strategy per Site in the frontend, persist a versioned
+  configuration in the backend, enforce Site administrator permissions and audit
+  approval. Deployment settings remain in the single backend configuration file;
+  no hard-coded operational settings or secrets in frontend/Git.
+- [ ] Backend jointly optimizes next-day charging and later discharging windows
+  for maximum expected **net profit**, not merely the lowest/highest spot price.
+  Use published day-ahead intervals, currency/energy units, timezone and DST;
+  distinguish actual published prices from forecasts and validate source freshness.
+- [ ] Net profit = export revenue minus purchased energy, applicable grid/market
+  fees and taxes, and battery degradation cost. Model charge/discharge efficiency
+  in the energy balance, without charging losses twice.
+- [ ] Configure battery cost per equivalent full cycle (EFC), or an equivalent
+  throughput cost with an explicit kWh basis. Allocate partial-cycle wear to each
+  dispatch interval and show hourly costs; cycle cost is not an arbitrary fixed
+  cost per clock hour. Document the conversion and avoid double-counting wear.
+- [ ] Respect initial/final SOC, reserve, usable capacity, charge/discharge power,
+  grid import/export limits, cycle budget, availability and the Edge safety
+  envelope. Prevent simultaneous charge/discharge; do not schedule trades below
+  the configured minimum net margin. Missing/stale prices or telemetry must
+  block new automatic dispatch and follow an approved safe fallback.
+- [ ] UI displays buy/sell windows, kWh, prices, losses, fees, cycle cost and
+  expected net profit by interval and total. Support preview/simulation, explicit
+  administrator approval and an audited plan/configuration revision. Compare
+  forecasts with actual metered results; predicted profit is not guaranteed.
+- [ ] Acceptance: tests for low spread, negative prices, efficiency/degradation,
+  partial cycles, SOC/power/reserve limits, DST/missing intervals, stale inputs
+  and unauthorized changes; then read-only simulation with real price data.
+  Physical battery dispatch remains disabled until separate commissioning and
+  approval. No Suntech 261 Modbus activation is authorized by this task.
+
+Next: agree the versioned strategy inputs, cost units and plan API contract,
+then implement backend optimization and frontend selection/preview together.
+
+### Български
+
+- [ ] Избор/настройка на стратегията по Обект през frontend, versioned конфигурация
+  в backend, права на администратор на Обекта и одит на одобрението. Deployment
+  настройките остават в единния backend конфигурационен файл; без hard-coded
+  оперативни настройки или тайни във frontend/Git.
+- [ ] Backend оптимизира съвместно прозорците за зареждане и последващо разреждане
+  за следващия ден за максимална очаквана **нетна печалба**, не само най-ниска/
+  най-висока борсова цена. Ползва публикуваните интервали „ден напред“, валута,
+  енергийни единици, часова зона и лятно/зимно време; различава реалните публикувани
+  цени от прогнози и проверява актуалността на източника.
+- [ ] Нетна печалба = приход от продажба минус закупена енергия, приложими
+  мрежови/пазарни такси и данъци и износване на батерията. КПД при заряд/разряд
+  се отчита в енергийния баланс, без двойно начисляване на загубите.
+- [ ] Настройва се цена на еквивалентен пълен цикъл (EFC) или еквивалентна цена
+  за преминала енергия с изрична kWh база. Износването от частичните цикли се
+  разпределя по интервали и се показва по часове; цената на цикъла не е произволна
+  фиксирана такса на астрономически час. Документирана конверсия, без двойно
+  начисляване на износването.
+- [ ] Спазват се начален/краен SOC, резерв, използваем капацитет, мощности на
+  заряд/разряд, мрежови лимити за внос/износ, бюджет цикли, наличност и безопасният
+  работен диапазон на Edge. Без едновременен заряд/разряд и сделки под зададения
+  минимален нетен марж. Липсващи/стари цени или телеметрия блокират новото
+  автоматично управление и задействат предварително одобрено безопасно поведение.
+- [ ] UI показва прозорци за покупка/продажба, kWh, цени, загуби, такси, цена на
+  цикъла и очаквана нетна печалба по интервал и общо. Преглед/симулация, изрично
+  одобрение от администратор и одит на ревизията на плана/конфигурацията.
+  Сравнение с реално измерения резултат; прогнозната печалба не е гаранция.
+- [ ] Приемане: тестове за малък спред, отрицателни цени, КПД/износване, частични
+  цикли, SOC/мощност/резерв, смяна на часа/липсващи интервали, стари входни данни
+  и неразрешени промени; после read-only симулация с реални цени. Физическото
+  управление остава изключено до отделно commissioning и одобрение. Тази задача
+  не разрешава активиране на Modbus към Suntech 261.
+
+Следва: договор за versioned входни параметри, единици за разходите и plan API,
+после съвместна реализация на backend оптимизацията и frontend избора/прегледа.
+
+## Protected device access / Защитен достъп до устройства — 2026-09-19
+
+Backend deployed: GET/PUT site gateway access metadata/replacement endpoints.
+Verified current site administrator required; foreign Sites rejected, ESP direct
+access rejected. Hardware topology/config administration is now admin-only.
+Full SSH connection material encrypted AES-256-GCM with Site/gateway/version/time
+AAD, stored outside SQL. Separate 0400 master-key volume, read-only API mount;
+data directory 0700/files 0600. Single backend .env holds vault path settings.
+No secret read HTTP endpoint. Explicit confirmation, optimistic version check,
+no-store response and secret-free replacement audit. API tests: 22 pass.
+
+Frontend Profile form implemented, lint/Pages build pass; publication and real
+browser acceptance remain pending. Full tsc is blocked by existing gateway,
+overview, supported-device, worker and service dependency errors, not new form.
+No actual device credential has been saved; no SSH execution, heartbeat worker,
+OTA queue or fresh-auth/MFA approval flow exists yet. Key fingerprint is required
+as input but not verified against a connection yet; key input is structurally
+validated only. Current vault supports one API process (not distributed writers).
+Master-key offline encrypted backup/rotation and recovery drill remain mandatory
+before production; SQL backup alone cannot restore credentials. Host/API takeover
+can expose decrypt capability; this protects database-only leakage, not host
+compromise. Demo must never reuse this endpoint or store.
+
+Backend е внедрен: GET/PUT за статус/замяна на достъп по Обект/gateway. Изисква
+потвърден текущ администратор; чужд Обект и директен ESP достъп се отказват.
+Hardware topology/config администрацията е само за администратор. Целият SSH
+достъп е криптиран AES-256-GCM с Site/gateway/version/time AAD извън SQL. Master
+ключът е в отделен volume с 0400 и read-only API mount; данни 0700/0600. Пътищата
+са в единния .env. Няма secret-read HTTP endpoint. Има изрично потвърждение,
+version check, no-store и audit без тайни. 22 API теста минават.
+
+Profile формата е реализирана; lint/Pages build минават, публикация и реален
+browser тест предстоят. Пълният tsc е блокиран от съществуващи gateway/overview/
+supported/worker/dependency грешки, не от новата форма. Реален credential още не
+е записан; няма SSH изпълнение, heartbeat worker, OTA queue или fresh-auth/MFA
+одобрение. Fingerprint се изисква, но не е проверен с връзка; key input се
+валидира само структурно. Vault е за един API процес, не distributed writers.
+Отделен криптиран offline backup/rotation на master key и restore тренировка
+са задължителни преди production; SQL backup не възстановява ключовете.
+Превзет host/API може да дешифрира; защитата е срещу database-only изтичане.
+Демото никога не ползва този endpoint/store.
+
+## Local test inventory / Локален тестов inventory — 2026-09-19
+
+Owner approved a local-only test Site with one ROCK Pi E controller and one
+OLIMEX ESP32-EVB lab node, owned through the organization's administrator.
+Inventory registered transactionally as commissioning/draft; repeat registration
+does not duplicate it. No hardware commands, IP/MAC reassignment, VPN activation,
+battery Modbus or physical configuration changes were performed. RS485 battery
+port is marked disabled in inventory; this is NOT proof of firmware state.
+Demo uses a sanitized illustrative pair, not private inventory IDs or telemetry.
+Remaining: publish frontend example, verify authorized topology UI, reconcile
+physical identities/config files, ingest heartbeat, then separately implement
+opt-in sanitized live demo projection. Other demo simulations are not live data.
+
+Одобрен е локален тестов Обект с един ROCK Pi E контролер и OLIMEX ESP32-EVB
+lab нод, собственост чрез администратора на организацията. Inventory е записан
+транзакционно като commissioning/draft; повторният старт не го дублира. Няма
+хардуерни команди, IP/MAC промени, VPN активация, battery Modbus или физически
+конфигурационни промени. RS485 battery портът е disabled в inventory — това НЕ
+доказва firmware състоянието. Демото използва обезличена примерна двойка, не
+частни ID или телеметрия. Остават публикуване на frontend примера, проверка на
+удостоверения topology UI, сверяване на физически identity/config файлове,
+heartbeat приемане и отделна opt-in обезличена live demo проекция. Останалите
+демо симулации не са реални данни.
+
+## Proxy DNS recovery / Възстановяване на proxy DNS — 2026-09-19
+
+After Keycloak/API recreation, nginx retained startup upstream IPs and sent
+auth requests to API (discovery returned authentication_required; login POST
+returned origin_not_allowed). Fixed template and live proxy with Docker DNS
+resolver, 5-second validity and variable proxy_pass without a URI suffix,
+preserving request path/query. nginx validation/reload passed; discovery now
+returns the correct issuer. API allowed-origin unauthenticated request returns
+401; foreign origin 403; public admin/master/health paths 404. No CORS relaxation.
+Owner reports password setup completed; fresh browser login remains to confirm.
+Start from the portal, not an old session_code URL. Recreate/IP-churn regression
+test remains pending; no deliberate production disruption for that test.
+
+След пресъздаване на Keycloak/API nginx запази стартовите upstream IP адреси и
+пращаше auth към API: discovery връщаше authentication_required, login POST —
+origin_not_allowed. Поправени template и live proxy с Docker DNS resolver,
+валидност 5 секунди и variable proxy_pass без URI суфикс, запазващ path/query.
+nginx validation/reload преминаха; discovery връща правилния issuer. API без
+идентификация от разрешен origin връща 401, чужд origin 403, публичните admin/
+master/health пътища 404. Без разширяване на CORS. Собственикът потвърди зададена
+парола; новият browser вход чака проверка. Започни от портала, не от стар session
+линк. Recreate/IP-churn regression тестът предстои, без умишлено прекъсване сега.
+
+## Email enrollment deployed / Email регистрация внедрена — 2026-09-19
+
+Supersedes earlier Mailgun preparation blockers below. Single private `.env`
+consolidated with rollback; duplicate runtime env inputs retired. Configurable
+`GRIDEX_MAILGUN_BCC` applies to both Node transport and Keycloak Mailgun HTTP
+provider, including sensitive verification/password links (owner explicitly
+requested this). Provider compiled against installed 26.7.3; Keycloak/API
+recreated healthy, enrollment enabled, physical writes still disabled. Initial
+organization and owner administrator created with user-required email/password
+actions. One actual registration email accepted; queued audit recorded. No
+password assigned by operator, no email verification bypass, no public signup,
+no extra public ports. Dedicated realm enrollment client, not master credentials
+in API. Private database/config backups exist; restore not acceptance-tested.
+
+Next acceptance, in order: recipient confirms inbox/BCC delivery and completes
+verification/password; real portal PKCE login and organization visibility; own/
+foreign Site authorization; second-user invite/accept/revoke; logout/password
+reset. Do not mark these completed merely from provider acceptance. Delivery/
+bounce webhooks and durable application-mail outbox remain future work; current
+transport deliberately does not retry uncertain sends. Deployment/recreation:
+`compose.mac.yml` + `compose.mailgun.yml`, single private `.env`; see
+`docs/MAILGUN_API.md`. Retired env files must not be reintroduced.
+
+Заменя по-старите Mailgun blockers по-долу. Единният частен `.env` е обединен с
+rollback; дублираните env входове са извадени от употреба. `GRIDEX_MAILGUN_BCC`
+важи за Node и Keycloak Mailgun HTTP, включително чувствителни verify/password
+връзки — изрично поискано от собственика. Provider е компилиран за инсталирания
+26.7.3; Keycloak/API са пресъздадени healthy, enrollment е включен, физическите
+записи остават изключени. Създадени начална организация и owner administrator с
+лични email/password действия. Едно истинско регистрационно писмо е прието,
+queued audit е записан. Без зададена от оператора парола, без bypass на email
+потвърждението, публична регистрация или допълнителни публични портове. Отделен
+realm enrollment клиент; API не получава master credential. Има частни backups
+на базите/конфигурацията; restore не е acceptance-тестван.
+
+Следва по ред: получателят потвърждава inbox/BCC и завършва email/password;
+реален portal PKCE вход и организация; права за собствен/чужд Обект; покана/
+приемане/отнемане на втори user; изход/reset password. Provider acceptance не
+доказва тези стъпки. Delivery/bounce webhooks и трайна application-mail опашка
+остават бъдещи; няма автоматичен retry на неясни изпращания. Внедряване:
+`compose.mac.yml` + `compose.mailgun.yml`, единният `.env`; виж
+`docs/MAILGUN_API.md`. Старите env файлове не се връщат в употреба.
+
+## First delivery probe / Първа проба за доставка — 2026-09-19
+
+One owner-authorized real test email was submitted through Mailgun using the
+single private `.env`; provider returned `queued` and a message ID. Inbox
+delivery is not yet confirmed. This was not a registration invitation and
+grants no access. Live diagnostics: enrollment disabled, enrollment client
+absent from active API, organisations table empty. Next: owner organization/
+initial role decision, Keycloak HTTP email integration, enrollment provisioning
+and actual verification/password action link. No account/membership created.
+
+Едно одобрено от собственика реално тестово писмо е подадено през Mailgun с
+единния частен `.env`; доставчикът върна `queued` и message ID. Доставката в
+пощата още не е потвърдена. Това не е покана за регистрация и не дава достъп.
+Live проверката показва изключен enrollment, липсващ enrollment клиент в активния
+API и празна таблица organisations. Следва избор на организация/начална роля,
+Keycloak HTTP email интеграция, enrollment provisioning и истинска връзка за
+потвърждение/парола. Няма създаден профил или членство.
+
+## Mailgun API test accepted / Mailgun API тест приет — 2026-09-19
+
+Owner installed a replacement sending key in the single private backend `.env`.
+Approved region/domain/from were added there. A real provider request with
+`o:testmode=yes` returned `test_accepted` and a message ID. The key was not
+printed. No email was delivered; DNS acceptance, inbox delivery, container
+wiring and Keycloak invitation integration are not proven by this host test.
+Older duplicate config files still need consolidation; no restart performed.
+
+Собственикът постави заменен sending ключ в единния частен backend `.env`.
+Одобрените region/domain/from са добавени там. Реална заявка към доставчика с
+`o:testmode=yes` върна `test_accepted` и message ID. Ключът не е отпечатван.
+Няма доставено писмо; DNS приемане, доставка в пощата, container свързване и
+Keycloak покани не са доказани от този host тест. Старите дублирани config
+файлове още изискват обединяване; няма извършен рестарт.
+
+## Single configuration decision / Решение за една конфигурация — 2026-09-19
+
+Mandatory future rule is in AGENTS.md: `~/GrideX-runtime/backend/.env` is the
+only operator-maintained backend configuration, including Mailgun credentials.
+This supersedes earlier Keychain/separate Mailgun env setup instructions.
+Consolidation is NOT applied by this documentation change. Next, back up private
+settings; combine `.env`, `public-oidc.env` and `mailgun.env`, resolving duplicate
+keys explicitly; update Compose and setup/test invocations to use only `.env`;
+verify OIDC/API/Mailgun settings without printing secrets; then retire obsolete
+inputs after successful checks, preserving private rollback. Keep mode 0600 and
+per-service credential scoping. No service restart or credential change here.
+
+Задължителното правило за бъдеща работа е в AGENTS.md:
+`~/GrideX-runtime/backend/.env` е единствената поддържана от оператора backend
+конфигурация, включително Mailgun credentials. То заменя предходните указания
+за Keychain/отделен Mailgun env файл. Обединяването НЕ е приложено с тази
+документация. Следва частен backup; обединяване на `.env`, `public-oidc.env` и
+`mailgun.env` с изрично разрешаване на дублирани ключове; обновяване на Compose
+и setup/test командите да четат само `.env`; проверка на OIDC/API/Mailgun без
+извеждане на тайни; после изваждане на старите входни файлове от употреба след
+успешни проверки и със запазен частен rollback. Права 0600 и credentials само
+за нужната услуга. Тук няма рестарт на услуги или промяна на credentials.
+
+## Mailgun transport prepared / Mailgun транспорт подготвен — 2026-09-19
+
+Added REST transport, tests and private host test CLI; see docs/MAILGUN_API.md.
+Approved domain/region/from configured outside Git. Disclosed key was not saved:
+approval review rejected persistence. A replacement key in Keychain and DNS
+verification are needed for live testing. Keycloak email-provider integration
+and enrollment activation remain unfinished; no invitation sent or user created.
+
+Добавени REST транспорт, тестове и частен host test CLI; виж docs/MAILGUN_API.md.
+Одобрените domain/region/from са настроени извън Git. Публикуваният ключ не е
+записан: approval проверката отказа записа. Нужни са заменен ключ в Keychain
+и DNS проверка за реален тест. Keycloak email-provider интеграцията и enrollment
+активирането остават незавършени; няма изпратена покана или създаден user.
+
 ## Public ingress + OIDC hostname update / Публичен ingress + OIDC hostname — 2026-09-18
 
 External HTTPS ingress is now proven: the restricted proxy returns the expected

@@ -13,6 +13,8 @@ export function loadConfig(env = process.env) {
   const oidcAudience = env.OIDC_AUDIENCE || "gridex-portal";
   return {
     port: integer(env.PORT, 8080),
+    deviceVaultDirectory: env.GRIDEX_DEVICE_VAULT_DIRECTORY || '',
+    deviceVaultKeyFile: env.GRIDEX_DEVICE_VAULT_KEY_FILE || '',
     openRemoteBaseUrl,
     realm,
     openRemoteRequestTimeoutMs: integer(env.OPENREMOTE_REQUEST_TIMEOUT_MS, 5000),
