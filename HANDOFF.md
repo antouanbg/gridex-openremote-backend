@@ -2,6 +2,29 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Single configuration decision / Решение за една конфигурация — 2026-09-19
+
+Mandatory future rule is in AGENTS.md: `~/GrideX-runtime/backend/.env` is the
+only operator-maintained backend configuration, including Mailgun credentials.
+This supersedes earlier Keychain/separate Mailgun env setup instructions.
+Consolidation is NOT applied by this documentation change. Next, back up private
+settings; combine `.env`, `public-oidc.env` and `mailgun.env`, resolving duplicate
+keys explicitly; update Compose and setup/test invocations to use only `.env`;
+verify OIDC/API/Mailgun settings without printing secrets; then retire obsolete
+inputs after successful checks, preserving private rollback. Keep mode 0600 and
+per-service credential scoping. No service restart or credential change here.
+
+Задължителното правило за бъдеща работа е в AGENTS.md:
+`~/GrideX-runtime/backend/.env` е единствената поддържана от оператора backend
+конфигурация, включително Mailgun credentials. То заменя предходните указания
+за Keychain/отделен Mailgun env файл. Обединяването НЕ е приложено с тази
+документация. Следва частен backup; обединяване на `.env`, `public-oidc.env` и
+`mailgun.env` с изрично разрешаване на дублирани ключове; обновяване на Compose
+и setup/test командите да четат само `.env`; проверка на OIDC/API/Mailgun без
+извеждане на тайни; после изваждане на старите входни файлове от употреба след
+успешни проверки и със запазен частен rollback. Права 0600 и credentials само
+за нужната услуга. Тук няма рестарт на услуги или промяна на credentials.
+
 ## Mailgun transport prepared / Mailgun транспорт подготвен — 2026-09-19
 
 Added REST transport, tests and private host test CLI; see docs/MAILGUN_API.md.

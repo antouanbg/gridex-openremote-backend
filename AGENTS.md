@@ -1,5 +1,39 @@
 # GrideX OpenRemote backend — Working rules
 
+## One backend configuration file — mandatory / Един backend конфигурационен файл — задължително
+
+Owner decision 2026-09-19: use exactly one operator-maintained configuration
+file per backend deployment: `~/GrideX-runtime/backend/.env` on the current Mac.
+All backend settings, including OIDC, Mailgun, database settings and application
+credentials, belong there. Keep it outside Git/synced folders, mode 0600, and
+never print or commit its secret values. Commit only sanitized examples.
+Do not introduce additional service `.env` files, layered env-file overrides,
+or a separate Keychain configuration as a second source of settings. Compose
+and setup/test scripts must read the same file and pass only necessary values
+to each service; never inject all backend secrets into every container.
+Compose manifests, generated service files and referenced certificate/key
+artifacts may exist, but must not become independently maintained copies of
+backend settings. Any future deviation requires the owner's explicit approval.
+Existing `public-oidc.env` and `mailgun.env` are migration debt: consolidate and
+verify effective settings before retiring them. Documentation does not prove
+that consolidation or deployment has happened.
+
+Решение на собственика от 2026-09-19: точно един поддържан от оператора
+конфигурационен файл за всяко backend внедряване: `~/GrideX-runtime/backend/.env`
+на текущия Mac. Всички backend настройки, включително OIDC, Mailgun, бази и
+application credentials, са в него. Файлът е извън Git/синхронизирани папки,
+с права 0600; тайните стойности не се отпечатват и не се commit-ват. В Git
+се пазят само обезличени примери. Не създавай допълнителни service `.env`
+файлове, наслагвани env-file overrides или отделна Keychain конфигурация като
+втори източник на настройки. Compose и setup/test скриптовете четат същия файл
+и подават само нужните стойности на всяка услуга; не подавай всички backend
+тайни на всеки контейнер. Compose manifests, генерирани service файлове и
+реферирани сертификати/ключове могат да съществуват, но не като самостоятелно
+поддържани копия на backend настройки. Бъдещо отклонение изисква изрично
+одобрение от собственика. Съществуващите `public-oidc.env` и `mailgun.env`
+трябва да се обединят и ефективните настройки да се проверят преди изваждането
+им от употреба. Документацията не доказва извършено обединяване или внедряване.
+
 ## Architecture and security
 
 2026-09-15: WireGuard is PREPARATION ONLY until the owner confirms ROCK Pi

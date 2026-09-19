@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Single configuration rule / Правило за една конфигурация — 2026-09-19
+
+Recorded owner requirement in AGENTS.md and HANDOFF.md: one private backend
+`.env`, no independently maintained service env files/Keychain settings.
+Documentation only; current split runtime files still need consolidation and
+Compose/test invocation updates. No secrets included or runtime changed.
+
+Записано изискването на собственика в AGENTS.md и HANDOFF.md: един частен
+backend `.env`, без самостоятелни service env/Keychain настройки. Само
+документация; разделените runtime файлове още изискват обединяване и обновяване
+на Compose/test командите. Без включени тайни или runtime промени.
+
 ## Mailgun API preparation / Mailgun API подготовка — 2026-09-19
 
 Internal REST transport and Keychain-backed test CLI prepared; no arbitrary

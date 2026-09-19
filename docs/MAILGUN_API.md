@@ -1,5 +1,15 @@
 # Mailgun REST transport / Mailgun REST изпращане
 
+> Superseded setup instructions: owner decision 2026-09-19 requires the single
+> private backend `.env` for all settings and credentials. Do not follow the
+> separate env/Keychain setup below for new provisioning. See AGENTS.md and
+> HANDOFF.md for the pending runtime and CLI consolidation.
+>
+> Заменени setup указания: решението от 2026-09-19 изисква единния частен
+> backend `.env` за всички настройки и credentials. Не следвай описания по-долу
+> отделен env/Keychain setup за ново provisioning. Виж AGENTS.md и HANDOFF.md
+> за предстоящото обединяване на runtime и CLI.
+
 ## English
 
 The internal transport in `services/gridex-api/src/mailgun.mjs` sends multipart
