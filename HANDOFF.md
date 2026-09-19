@@ -2,6 +2,22 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Mailgun API test accepted / Mailgun API тест приет — 2026-09-19
+
+Owner installed a replacement sending key in the single private backend `.env`.
+Approved region/domain/from were added there. A real provider request with
+`o:testmode=yes` returned `test_accepted` and a message ID. The key was not
+printed. No email was delivered; DNS acceptance, inbox delivery, container
+wiring and Keycloak invitation integration are not proven by this host test.
+Older duplicate config files still need consolidation; no restart performed.
+
+Собственикът постави заменен sending ключ в единния частен backend `.env`.
+Одобрените region/domain/from са добавени там. Реална заявка към доставчика с
+`o:testmode=yes` върна `test_accepted` и message ID. Ключът не е отпечатван.
+Няма доставено писмо; DNS приемане, доставка в пощата, container свързване и
+Keycloak покани не са доказани от този host тест. Старите дублирани config
+файлове още изискват обединяване; няма извършен рестарт.
+
 ## Single configuration decision / Решение за една конфигурация — 2026-09-19
 
 Mandatory future rule is in AGENTS.md: `~/GrideX-runtime/backend/.env` is the

@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Mailgun live API test / Реален Mailgun API тест — 2026-09-19
+
+Replacement key and approved sending settings now read from the single private
+backend `.env`. Provider test mode accepted the request and returned a message
+ID. No real delivery; next: one explicitly requested delivery test, container
+configuration consolidation and Keycloak email integration. No secret logged.
+
+Замененият ключ и одобрените sending настройки се четат от единния частен
+backend `.env`. Provider test mode прие заявката и върна message ID. Без реална
+доставка; следва изрично поискан единичен delivery тест, обединяване на container
+конфигурацията и Keycloak email интеграция. Няма записани тайни в логовете.
+
 ## Single configuration rule / Правило за една конфигурация — 2026-09-19
 
 Recorded owner requirement in AGENTS.md and HANDOFF.md: one private backend
