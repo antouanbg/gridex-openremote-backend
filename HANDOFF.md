@@ -2,6 +2,20 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Mailgun transport prepared / Mailgun транспорт подготвен — 2026-09-19
+
+Added REST transport, tests and private host test CLI; see docs/MAILGUN_API.md.
+Approved domain/region/from configured outside Git. Disclosed key was not saved:
+approval review rejected persistence. A replacement key in Keychain and DNS
+verification are needed for live testing. Keycloak email-provider integration
+and enrollment activation remain unfinished; no invitation sent or user created.
+
+Добавени REST транспорт, тестове и частен host test CLI; виж docs/MAILGUN_API.md.
+Одобрените domain/region/from са настроени извън Git. Публикуваният ключ не е
+записан: approval проверката отказа записа. Нужни са заменен ключ в Keychain
+и DNS проверка за реален тест. Keycloak email-provider интеграцията и enrollment
+активирането остават незавършени; няма изпратена покана или създаден user.
+
 ## Public ingress + OIDC hostname update / Публичен ingress + OIDC hostname — 2026-09-18
 
 External HTTPS ingress is now proven: the restricted proxy returns the expected

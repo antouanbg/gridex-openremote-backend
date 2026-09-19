@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Mailgun API preparation / Mailgun API подготовка — 2026-09-19
+
+Internal REST transport and Keychain-backed test CLI prepared; no arbitrary
+public send endpoint. Mock tests verify region, test mode, tracking and errors.
+Live test blocked by disclosed-key persistence denial. Next: replacement key,
+provider test mode, DNS acceptance, one owner test and Keycloak email adapter.
+
+Подготвени вътрешен REST транспорт и CLI с Keychain; без произволен публичен
+send endpoint. Mock тестовете проверяват регион, test mode, tracking и грешки.
+Реален тест е блокиран от отказа за запис на публикувания ключ. Следва заменен
+ключ, provider test mode, DNS проверка, един owner тест и Keycloak email адаптер.
+
 ## Public auth transition / Публичен auth преход — 2026-09-18
 
 Applied locally: public Keycloak hostname/proxy headers and matching API issuer/
