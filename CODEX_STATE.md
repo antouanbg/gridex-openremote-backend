@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+Latest deployment: heartbeat API image 14acc9c4a3ca healthy, real SQL reads pass,
+zero samples; dirty activation code preserved and not deployed. MQTT LAN test
+passes. Physical ROCK bootstrap and worker identity bindings remain blocked.
+Последно внедряване: heartbeat API 14acc9c4a3ca healthy, SQL четене работи, 0
+проби; dirty activation е запазен/невнедрен. LAN MQTT тестът минава. Остават
+блокирани физически ROCK bootstrap и реалните identity bindings за worker.
+
 Latest: migration 007 applied with private validated pg_dump archive; zero live
 heartbeat records. MQTT/UI/sensor-profile specification added. ROCK authenticated
 access missing; worker/API and physical activation pending. Runtime API uses a

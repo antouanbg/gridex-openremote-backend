@@ -2,6 +2,34 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Heartbeat API deployed / Heartbeat API внедрен — 2026-09-19
+
+Supersedes the API deployment blocker below: live source hashes matched the
+parent of the merged heartbeat commit exactly; all unrelated modules matched.
+Built this branch and recreated ONLY gridex-api with the existing single env,
+Mailgun/vault overlays and volumes. Dirty activation worktree was not changed
+or deployed. Image 14acc9c4a3ca; rollback image gridex-api:before-heartbeat-20260919.
+API healthy, actual PostgreSQL DeviceHeartbeats.list reads pass, zero records.
+Forced-local trusted public-hostname checks: unauthenticated API 401, auth
+discovery 200. Synthetic LAN mTLS/ACL acceptance passes again. Not an external
+or browser-login acceptance. Worker remains blocked on verified real certificate/
+topic bindings. SSH agent has no identities, vault has zero SSH key records,
+ROCK BatchMode denies access. Need one-time authenticated device bootstrap;
+do not invent device credentials, records or claim the worker is running.
+Use standalone docker-compose (docker compose plugin is unavailable here).
+
+Отменя API блокера по-долу: hash-овете на live кода съвпаднаха точно с parent
+на merged heartbeat commit; несвързаните модули са еднакви. Изграден този branch
+и пресъздаден САМО gridex-api със същия env, Mailgun/vault overlays и volumes.
+Dirty activation работата не е променена или внедрена. Image 14acc9c4a3ca;
+rollback gridex-api:before-heartbeat-20260919. API healthy; реалните PostgreSQL
+DeviceHeartbeats.list заявки минават, 0 записа. Forced-local trusted hostname:
+API без token 401, auth discovery 200; синтетичният LAN mTLS/ACL тест пак минава.
+Не е външен/browser-login тест. Worker чака проверени реални certificate/topic
+bindings. SSH agent няма ключове, vault има 0 SSH записа, ROCK отказва BatchMode.
+Нужно е еднократно удостоверено device bootstrap; без измислени credentials/
+данни и без твърдение, че worker работи. Ползвай standalone docker-compose.
+
 ## Physical MQTT activation and data contract / Реален MQTT и договор — 2026-09-19
 
 Owner requested live deployment plus selectable sensor provisioning specification.

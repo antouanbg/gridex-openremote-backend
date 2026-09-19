@@ -109,7 +109,8 @@ No new per-service settings file, no shared certificate between Sites.
 | LAN 8883 proxy, synthetic mTLS/ACL tests | Verified in PR #29; not physical ROCK proof |
 | Additive migration 007 | Applied with private pg_dump backup; archive listing checked, restore rehearsal pending |
 | Physical ROCK certificate/endpoint/topic reconciliation | BLOCKED: no authenticated device access; imported file has no MQTT settings |
-| Deploy worker and reconcile API with current runtime | TODO; do not overwrite unrelated activation work in runtime source |
+| API heartbeat deployment | Applied, healthy, actual SQL read verified; unrelated activation work preserved |
+| Deploy worker | BLOCKED on verified physical certificate/topic binding |
 | Real ROCK/ESP records → owner Devices screen | TODO; no synthetic records in real inventory |
 | Sensor-profile API/collector/storage/UI | SPECIFIED ONLY |
 | Foreign-Site denial, expiry/reboot/duplicate/offline tests | Required before live acceptance |
@@ -186,5 +187,7 @@ Site изборите — versioned DB и съществуващия защит�
 репетиция. Физическото съпоставяне е BLOCKED от липсващ удостоверен достъп и
 липсващи MQTT настройки във внесения файл. Worker/API runtime, реални данни към
 сайта, sensor-profile реализация и security/offline/reboot приемане предстоят.
+Последващо обновяване: heartbeat API вече е внедрен, healthy, с проверено реално
+SQL четене; worker остава блокиран от непроверен physical certificate/topic binding.
 Не презаписвай несвързаната activation работа и не записвай synthetic данни към
 реалните устройства.
