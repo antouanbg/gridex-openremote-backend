@@ -1,0 +1,11 @@
+volumes:
+  device-vault-data:
+  device-vault-key:
+services:
+  gridex-api:
+    environment:
+      GRIDEX_DEVICE_VAULT_DIRECTORY: ${GRIDEX_DEVICE_VAULT_DIRECTORY:?required}
+      GRIDEX_DEVICE_VAULT_KEY_FILE: ${GRIDEX_DEVICE_VAULT_KEY_FILE:?required}
+    volumes:
+      - device-vault-data:/var/lib/gridex-device-vault
+      - device-vault-key:/run/gridex-device-vault:ro

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { assertAllowedOrigin } from "./config.mjs";
 import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
+import {requireDeviceAdmin} from './device-vault.mjs';
 import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset-blueprints.mjs";
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
@@ -109,7 +110,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -186,14 +187,29 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       const site = await repository.requireSite(principal.subject, siteId);
       principal = withMembershipRoles(identity, [site.membershipRole]);
 
+      const accessRoute=suffix.match(/^\/gateways\/([0-9a-f-]{36})\/access$/i);
+      if(accessRoute && ['GET','PUT'].includes(req.method)) {
+        requireDeviceAdmin(site,principal);
+        if(!deviceVault) throw new ApiError(503,'vault_unavailable','Device credential storage is not configured.');
+        const topology=await repository.getTopology(site.id);
+        const gateway=topology.gateways.find(g=>g.id===accessRoute[1]);
+        if(!gateway)throw new ApiError(404,'not_found','Gateway not found.');
+        if(gateway.role!=='controller')throw new ApiError(400,'rockpi_only','Access to ESP32 must go through ROCK Pi.');
+        res.setHeader('Cache-Control','no-store');
+        if(req.method==='GET')return json(res,200,await deviceVault.status(site.id,gateway.id),context);
+        const result=await deviceVault.store(site.id,gateway.id,await readJson(req,24576));
+        await repository.audit({principal,siteId,action:'gateway.credential.replaced',resourceType:'gateway',resourceId:gateway.id,result:'success',requestId,details:{version:result.version}});
+        return json(res,200,result,context);
+      }
+
       if (req.method === "GET" && suffix === "/hardware") {
-        requirePermission(principal, "site:read");
+        requireDeviceAdmin(site,principal);
         const topology = await repository.getTopology(site.id);
         return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 
       if (req.method === "POST" && suffix === "/hardware-configurations") {
-        requirePermission(principal, "hardware:manage");
+        requireDeviceAdmin(site,principal);
         const input = validateHardwareConfiguration(await readJson(req, config.maximumBodyBytes));
         const result = await repository.saveHardwareConfiguration(site.id, input, principal.subject);
         await repository.audit({ principal, siteId, action: "hardware.configuration.created", resourceType: "hardware_configuration", resourceId: result.id, result: "success", requestId, details: { revision: result.revision } });
