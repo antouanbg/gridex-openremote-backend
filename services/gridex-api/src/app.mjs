@@ -3,6 +3,7 @@ import { assertAllowedOrigin } from "./config.mjs";
 import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
 import {requireDeviceAdmin} from './device-vault.mjs';
+import {heartbeatStatuses} from './device-heartbeats.mjs';
 import { validateDeviceSetup } from './device-setup.mjs';
 import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset-blueprints.mjs";
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
@@ -111,7 +112,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -207,6 +208,14 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         requireDeviceAdmin(site,principal);
         const topology = await repository.getTopology(site.id);
         return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
+      }
+
+      if (req.method === 'GET' && suffix === '/device-heartbeats') {
+        requireDeviceAdmin(site, principal);
+        res.setHeader('Cache-Control', 'no-store');
+        if (!deviceHeartbeats) throw new ApiError(503, 'heartbeat_unavailable', 'Heartbeat ingestion is not configured.');
+        return json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
+          Date.now(), config.heartbeatStaleMs, config.heartbeatOfflineMs) }, context);
       }
 
       if (req.method === "POST" && suffix === "/hardware-configurations") {

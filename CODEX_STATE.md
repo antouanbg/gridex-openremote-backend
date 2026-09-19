@@ -1,5 +1,13 @@
 # CODEX_STATE.md
 
+Heartbeat feature prepared on feat/device-heartbeat: 30 Node tests pass.
+Not deployed; follow docs/DEVICE_HEARTBEATS.md and latest HANDOFF. Real ROCK
+MQTT receipt, PostgreSQL migration/integration and browser acceptance pending.
+
+Heartbeat е подготвен във feat/device-heartbeat; 30 Node теста минават.
+Не е внедрен; виж docs/DEVICE_HEARTBEATS.md и последния HANDOFF. Остават
+реален ROCK MQTT receipt, PostgreSQL миграция/интеграция и browser приемане.
+
 Device setup: selection → max two roles/peers → provisioning moved to Devices.
 Admin-only versioned backend draft; no hardware activation. See latest HANDOFF.
 

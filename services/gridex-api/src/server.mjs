@@ -6,6 +6,7 @@ import { OpenRemoteClient } from "./openremote-client.mjs";
 import { createRepository } from "./repository.mjs";
 import { EnrollmentIdentity, InvitationService } from './invitations.mjs';
 import {DeviceVault} from './device-vault.mjs';
+import {DeviceHeartbeats} from './device-heartbeats.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -16,7 +17,8 @@ const authenticate = createAuthenticator(config);
 const invitations = config.enrollmentEnabled && repository.pool
   ? new InvitationService(repository.pool, new EnrollmentIdentity(config)) : null;
 const deviceVault=config.deviceVaultDirectory && config.deviceVaultKeyFile ? new DeviceVault(config.deviceVaultDirectory,config.deviceVaultKeyFile):null;
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, deviceVault }));
+const deviceHeartbeats = repository.pool ? new DeviceHeartbeats(repository.pool) : null;
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 
