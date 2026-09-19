@@ -28,7 +28,7 @@ export class EnrollmentIdentity {
     const token = await tokenResponse.json();
     const response = await fetch(`${c.enrollmentAdminUrl}${path}`, { ...options,
       headers: { Authorization: `Bearer ${token.access_token}`, 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(10000) });
+      signal: AbortSignal.timeout(30000) });
     if (!response.ok) throw new ApiError(503, 'enrollment_unavailable', 'Identity or email operation failed.');
     return response.status === 204 || response.status === 201 ? null : response.json();
   }

@@ -19,7 +19,7 @@ test('database roles, selected sites and revocation override a stale admin token
   const url = `http://127.0.0.1:${server.address().port}/api/v1`;
   try {
     assert.deepEqual((await (await fetch(`${url}/sites`)).json()).sites.map(s => s.id), ['a', 'b']);
-    assert.equal((await fetch(`${url}/sites/b/hardware`)).status, 200);
+    assert.equal((await fetch(`${url}/sites/b/hardware`)).status, 403);
     assert.equal((await fetch(`${url}/sites/c/hardware`)).status, 404);
     assert.equal((await fetch(`${url}/sites/b/hardware-configurations`, { method: 'POST', body: '{}' })).status, 403);
     repository.memberships = repository.memberships.filter(m => m.organisationId !== 'org-b');
