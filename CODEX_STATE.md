@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Delivery test queued / Тестово писмо в опашката — 2026-09-19
+
+Real owner-requested test email accepted by Mailgun as queued. Not a registration
+or proof of inbox delivery. Enrollment disabled; no active enrollment client;
+zero organizations. Need initial organization/role and Keycloak Mailgun HTTP
+integration before first registration; no account created.
+
+Реално поискано от собственика тестово писмо е прието в Mailgun опашката. Това
+не е регистрация или доказана доставка в пощата. Enrollment е изключен, няма
+активен enrollment клиент и организации. Нужни са начална организация/роля и
+Keycloak Mailgun HTTP интеграция преди първата регистрация; няма създаден профил.
+
 ## Mailgun live API test / Реален Mailgun API тест — 2026-09-19
 
 Replacement key and approved sending settings now read from the single private

@@ -2,6 +2,24 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## First delivery probe / Първа проба за доставка — 2026-09-19
+
+One owner-authorized real test email was submitted through Mailgun using the
+single private `.env`; provider returned `queued` and a message ID. Inbox
+delivery is not yet confirmed. This was not a registration invitation and
+grants no access. Live diagnostics: enrollment disabled, enrollment client
+absent from active API, organisations table empty. Next: owner organization/
+initial role decision, Keycloak HTTP email integration, enrollment provisioning
+and actual verification/password action link. No account/membership created.
+
+Едно одобрено от собственика реално тестово писмо е подадено през Mailgun с
+единния частен `.env`; доставчикът върна `queued` и message ID. Доставката в
+пощата още не е потвърдена. Това не е покана за регистрация и не дава достъп.
+Live проверката показва изключен enrollment, липсващ enrollment клиент в активния
+API и празна таблица organisations. Следва избор на организация/начална роля,
+Keycloak HTTP email интеграция, enrollment provisioning и истинска връзка за
+потвърждение/парола. Няма създаден профил или членство.
+
 ## Mailgun API test accepted / Mailgun API тест приет — 2026-09-19
 
 Owner installed a replacement sending key in the single private backend `.env`.
