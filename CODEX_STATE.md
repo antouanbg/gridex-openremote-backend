@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+## Test pair registration / Регистрация на тестовата двойка — 2026-09-19
+
+Owner-authorized local test inventory now contains a commissioning Site and
+two draft gateways (ROCK Pi E, ESP32 lab), assigned via organization admin.
+Idempotent repeat verified. Sanitized demo example prepared; frontend lint/build
+pass (two existing image warnings). No actual telemetry or device writes enabled.
+See HANDOFF for remaining live integration and publication.
+
+Одобреният локален тестов inventory съдържа commissioning Обект и два draft
+gateway записа (ROCK Pi E, ESP32 lab) към администратора на организацията.
+Повторният старт е проверен без дублиране. Обезличеният демо пример е подготвен;
+frontend lint/build минават с две стари image предупреждения. Няма включени
+реална телеметрия или device writes. Остатъчните стъпки са в HANDOFF.
+
 ## Proxy upstream correction / Корекция на proxy upstream — 2026-09-19
 
 Live nginx had stale Docker IPs after recreation: auth reached API. Applied
