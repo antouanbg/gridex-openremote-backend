@@ -220,7 +220,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (suffix === '/device-setup' && ['GET', 'PUT'].includes(req.method)) {
         requireDeviceAdmin(site, principal);
         res.setHeader('Cache-Control', 'no-store');
-        if (req.method === 'GET') return json(res, 200, await repository.getSiteConfiguration(site.id, 'device-setup'), context);
+        if (req.method === 'GET') return json(res, 200, {...await repository.getSiteConfiguration(site.id, 'device-setup'), imported: (await repository.getSiteConfiguration(site.id, 'device-import')).configuration}, context);
         const body = await readJson(req, config.maximumBodyBytes);
         if (body.confirmed !== true) throw new ApiError(400, 'confirmation_required', 'Confirm saving the draft.');
         const setup = validateDeviceSetup(body.configuration, await repository.getTopology(site.id));
