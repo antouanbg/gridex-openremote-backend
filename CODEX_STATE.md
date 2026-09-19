@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## Live email enrollment / Реална email регистрация — 2026-09-19
+
+Deployed Keycloak 26.7.3 Mailgun REST provider with configurable BCC. One private
+backend `.env` now replaces split inputs (private rollback retained). Initial
+organization/admin membership and dedicated enrollment client provisioned; real
+Keycloak registration email accepted, audit queued. Keycloak/API healthy,
+device writes still off. API tests: 19 passed. User must personally confirm
+delivery and finish email verification/password and browser login; these are
+not yet proven. See newest HANDOFF entry and docs/MAILGUN_API.md; older blocker
+entries below are historical, not the current deployment status.
+
+Внедрен Keycloak 26.7.3 Mailgun REST provider с конфигурируем BCC. Единният частен
+backend `.env` замени разделените входове, със запазен rollback. Създадени начална
+организация/admin членство и отделен enrollment клиент; истинска регистрационна
+покана е приета, audit е queued. Keycloak/API healthy, device writes изключени.
+19 API теста преминават. Личното потвърждение на доставка, email/password и browser
+вход предстои. Виж новия HANDOFF и docs/MAILGUN_API.md; старите blockers са история.
+
 ## Delivery test queued / Тестово писмо в опашката — 2026-09-19
 
 Real owner-requested test email accepted by Mailgun as queued. Not a registration

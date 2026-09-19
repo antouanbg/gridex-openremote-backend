@@ -2,6 +2,49 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Email enrollment deployed / Email регистрация внедрена — 2026-09-19
+
+Supersedes earlier Mailgun preparation blockers below. Single private `.env`
+consolidated with rollback; duplicate runtime env inputs retired. Configurable
+`GRIDEX_MAILGUN_BCC` applies to both Node transport and Keycloak Mailgun HTTP
+provider, including sensitive verification/password links (owner explicitly
+requested this). Provider compiled against installed 26.7.3; Keycloak/API
+recreated healthy, enrollment enabled, physical writes still disabled. Initial
+organization and owner administrator created with user-required email/password
+actions. One actual registration email accepted; queued audit recorded. No
+password assigned by operator, no email verification bypass, no public signup,
+no extra public ports. Dedicated realm enrollment client, not master credentials
+in API. Private database/config backups exist; restore not acceptance-tested.
+
+Next acceptance, in order: recipient confirms inbox/BCC delivery and completes
+verification/password; real portal PKCE login and organization visibility; own/
+foreign Site authorization; second-user invite/accept/revoke; logout/password
+reset. Do not mark these completed merely from provider acceptance. Delivery/
+bounce webhooks and durable application-mail outbox remain future work; current
+transport deliberately does not retry uncertain sends. Deployment/recreation:
+`compose.mac.yml` + `compose.mailgun.yml`, single private `.env`; see
+`docs/MAILGUN_API.md`. Retired env files must not be reintroduced.
+
+Заменя по-старите Mailgun blockers по-долу. Единният частен `.env` е обединен с
+rollback; дублираните env входове са извадени от употреба. `GRIDEX_MAILGUN_BCC`
+важи за Node и Keycloak Mailgun HTTP, включително чувствителни verify/password
+връзки — изрично поискано от собственика. Provider е компилиран за инсталирания
+26.7.3; Keycloak/API са пресъздадени healthy, enrollment е включен, физическите
+записи остават изключени. Създадени начална организация и owner administrator с
+лични email/password действия. Едно истинско регистрационно писмо е прието,
+queued audit е записан. Без зададена от оператора парола, без bypass на email
+потвърждението, публична регистрация или допълнителни публични портове. Отделен
+realm enrollment клиент; API не получава master credential. Има частни backups
+на базите/конфигурацията; restore не е acceptance-тестван.
+
+Следва по ред: получателят потвърждава inbox/BCC и завършва email/password;
+реален portal PKCE вход и организация; права за собствен/чужд Обект; покана/
+приемане/отнемане на втори user; изход/reset password. Provider acceptance не
+доказва тези стъпки. Delivery/bounce webhooks и трайна application-mail опашка
+остават бъдещи; няма автоматичен retry на неясни изпращания. Внедряване:
+`compose.mac.yml` + `compose.mailgun.yml`, единният `.env`; виж
+`docs/MAILGUN_API.md`. Старите env файлове не се връщат в употреба.
+
 ## First delivery probe / Първа проба за доставка — 2026-09-19
 
 One owner-authorized real test email was submitted through Mailgun using the

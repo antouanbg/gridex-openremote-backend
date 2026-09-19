@@ -1,0 +1,20 @@
+# Optional activation; all settings come from the single private backend .env.
+networks:
+  email-egress: {}
+services:
+  keycloak:
+    image: gridex-keycloak-mailgun:26.7.3-v1
+    build: ./services/keycloak-mailgun
+    networks: [backend, email-egress]
+    environment:
+      GRIDEX_MAILGUN_REGION: ${GRIDEX_MAILGUN_REGION:?required}
+      GRIDEX_MAILGUN_DOMAIN: ${GRIDEX_MAILGUN_DOMAIN:?required}
+      GRIDEX_MAILGUN_FROM: ${GRIDEX_MAILGUN_FROM:?required}
+      GRIDEX_MAILGUN_API_KEY: ${GRIDEX_MAILGUN_API_KEY:?required}
+      GRIDEX_MAILGUN_BCC: ${GRIDEX_MAILGUN_BCC:-}
+  gridex-api:
+    environment:
+      GRIDEX_ENROLLMENT_ENABLED: ${GRIDEX_ENROLLMENT_ENABLED:-false}
+      GRIDEX_ENROLLMENT_CLIENT_SECRET: ${GRIDEX_ENROLLMENT_CLIENT_SECRET:?required}
+      GRIDEX_ENROLLMENT_ADMIN_URL: http://keycloak:8080/auth/admin/realms/gridex
+      GRIDEX_ENROLLMENT_REDIRECT_URI: ${GRIDEX_PORTAL_ORIGIN:?required}/

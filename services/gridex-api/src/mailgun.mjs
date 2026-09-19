@@ -4,12 +4,14 @@ export function mailgunConfig(env = process.env) {
   const region = env.GRIDEX_MAILGUN_REGION || 'EU';
   const domain = env.GRIDEX_MAILGUN_DOMAIN || '';
   const from = env.GRIDEX_MAILGUN_FROM || '';
+  const bcc = (env.GRIDEX_MAILGUN_BCC || '').split(',').map(v => v.trim()).filter(Boolean);
+  if (bcc.some(v => !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(v))) throw new Error('Invalid Mailgun BCC');
   const key = env.GRIDEX_MAILGUN_KEY_FILE
     ? readFileSync(env.GRIDEX_MAILGUN_KEY_FILE, 'utf8').trim()
     : env.GRIDEX_MAILGUN_API_KEY;
   if (!['EU', 'US'].includes(region) || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)
       || !key || !from || /[\r\n]/.test(from)) throw new Error('Mailgun configuration incomplete');
-  return { domain, from, key, base: region === 'EU' ? 'https://api.eu.mailgun.net' : 'https://api.mailgun.net' };
+  return { domain, from, key, bcc, base: region === 'EU' ? 'https://api.eu.mailgun.net' : 'https://api.mailgun.net' };
 }
 
 // Internal transport only. No public arbitrary-email endpoint and no automatic retry:
@@ -22,6 +24,7 @@ export async function sendMailgun(config, { to, subject, text, testMode = false 
   for (const [name, value] of Object.entries({ from: config.from, to, subject, text,
     'o:tracking': 'no', 'o:tracking-clicks': 'no', 'o:tracking-opens': 'no' })) body.set(name, value);
   if (testMode) body.set('o:testmode', 'yes');
+  for (const address of config.bcc || []) body.append('bcc', address);
   let response;
   try {
     response = await fetcher(`${config.base}/v3/${encodeURIComponent(config.domain)}/messages`, {
