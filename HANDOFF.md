@@ -2,6 +2,25 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Device heartbeat integration / Heartbeat интеграция — 2026-09-19
+
+Implemented observation-only mTLS MQTT worker, additive migration 007 and
+admin/Site-scoped device-heartbeats API. Backend receipt and successful ESP
+poll time are separate; retained/old/duplicate reports do not refresh liveness.
+30 Node tests pass, including scope denial. SQL persistence test is mocked.
+NOT deployed: migration, real inventory/topic bindings, reader cert mount,
+restricted LAN transport (broker still loopback), ROCK binary and browser QA.
+Branch feat/device-heartbeat depends on PR #26, not dirty activation WIP.
+Next: docs/DEVICE_HEARTBEATS.md checklist; preserve locked writes and VPN off.
+
+Реализирани mTLS MQTT worker само за наблюдение, additive миграция 007 и
+admin/Site API. Backend receipt и ESP контакт са отделни; retained/стари/
+повторени записи не освежават статуса. 30 Node теста минават; SQL е mock.
+НЕ са внедрени: миграция, реални bindings, reader сертификати, ограничен LAN
+път (broker е loopback), ROCK binary и browser QA. Branch feat/device-heartbeat
+зависи от PR #26, без dirty activation промени. Следва checklist в
+docs/DEVICE_HEARTBEATS.md; writes заключени, VPN изключен.
+
 ## Existing test config import / Импорт на съществуваща тестова конфигурация
 
 Owner-supplied private ROCK Pi env imported into the existing owning Site.

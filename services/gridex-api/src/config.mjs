@@ -13,6 +13,8 @@ export function loadConfig(env = process.env) {
   const oidcAudience = env.OIDC_AUDIENCE || "gridex-portal";
   return {
     port: integer(env.PORT, 8080),
+    heartbeatStaleMs: integer(env.GRIDEX_HEARTBEAT_STALE_SECONDS, 30) * 1000,
+    heartbeatOfflineMs: integer(env.GRIDEX_HEARTBEAT_OFFLINE_SECONDS, 90) * 1000,
     deviceVaultDirectory: env.GRIDEX_DEVICE_VAULT_DIRECTORY || '',
     deviceVaultKeyFile: env.GRIDEX_DEVICE_VAULT_KEY_FILE || '',
     openRemoteBaseUrl,
@@ -47,6 +49,7 @@ export function loadConfig(env = process.env) {
 }
 
 export function validateProductionConfig(config) {
+  if (config.heartbeatOfflineMs <= config.heartbeatStaleMs) throw new Error('Heartbeat offline threshold must exceed stale threshold');
   if (config.enrollmentEnabled && (!config.enrollmentClientSecret || !config.enrollmentAdminUrl
     || !config.allowedOrigins.has(new URL(config.enrollmentRedirectUri).origin))) {
     throw new Error('Enrollment requires a dedicated client secret, admin URL and allowed callback origin');

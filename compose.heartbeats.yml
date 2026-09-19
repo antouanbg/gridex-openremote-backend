@@ -1,0 +1,36 @@
+# Use with the backend Compose project and its ONE private --env-file.
+services:
+  gridex-api:
+    environment:
+      GRIDEX_HEARTBEAT_STALE_SECONDS: ${GRIDEX_HEARTBEAT_STALE_SECONDS:-30}
+      GRIDEX_HEARTBEAT_OFFLINE_SECONDS: ${GRIDEX_HEARTBEAT_OFFLINE_SECONDS:-90}
+  heartbeat-worker:
+    build: ./services/gridex-api
+    command: [node, src/heartbeat-worker.mjs]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      PGHOST: gridex-db
+      PGDATABASE: gridex
+      PGUSER: gridex
+      PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+      GRIDEX_MQTT_URL: ${GRIDEX_MQTT_URL:?private mqtts URL required}
+      GRIDEX_MQTT_TOPIC_PREFIX: ${GRIDEX_MQTT_TOPIC_PREFIX:-gridex/v1}
+      GRIDEX_HEARTBEAT_BINDINGS: ${GRIDEX_HEARTBEAT_BINDINGS:?approved inventory bindings required}
+      GRIDEX_MQTT_CA_FILE: /run/mqtt/ca.crt
+      GRIDEX_MQTT_CLIENT_CERT_FILE: /run/mqtt/client.crt
+      GRIDEX_MQTT_CLIENT_KEY_FILE: /run/mqtt/client.key
+    volumes:
+      - ${GRIDEX_MQTT_READER_DIRECTORY:?required}:/run/mqtt:ro
+    networks: [backend, mqtt-read]
+    mem_limit: 128m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+networks:
+  mqtt-read:
+    external: true
+    name: ${GRIDEX_MQTT_NETWORK:-gridex-mqtt_mqtt}
