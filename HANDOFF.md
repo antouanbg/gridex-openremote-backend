@@ -2,6 +2,43 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Physical MQTT activation and data contract / Реален MQTT и договор — 2026-09-19
+
+Owner requested live deployment plus selectable sensor provisioning specification.
+Applied ONLY additive migration 007 using scripts/apply-heartbeat-storage.mjs:
+private full database pg_dump, readable archive listing, 8-column table verified,
+zero heartbeat rows. Restore rehearsal not performed. No fabricated observations.
+Current runtime API lacks device-heartbeats module; worker is not deployed.
+Runtime API source points at separate dirty activation worktree: reconcile first,
+do not replace that deployment wholesale with this branch and lose its changes.
+Registered controller/node counts verified (one each), not proof of connectivity.
+ROCK BatchMode SSH still denied; no authenticated upload/remote apply path exists
+in this session. Imported MQTT settings missing; preserve existing device keys.
+Next requires one-time authenticated device-side inspection of endpoint, public
+certificate issuer/CN/fingerprint, configured site/gateway/slot and binary version.
+Never request private key/password in chat. Then approve exact broker ACL/bindings,
+deploy worker/API, apply Edge config/build and verify real UI receipt end to end.
+Full source-based MQTT fields, frontend semantics, configurable sensor proposal,
+retention/security and acceptance ledger: docs/MQTT_DEVICE_DATA_SPEC.md.
+Validation: 30 backend tests pass (rerun with local sockets after sandbox EPERM);
+migration script syntax and git diff whitespace checks pass.
+
+Поискано е реално внедряване и спецификация за избираеми сензори. Приложена е
+САМО additive миграция 007 чрез scripts/apply-heartbeat-storage.mjs: частен пълен
+pg_dump backup, четим archive listing, проверена таблица с 8 колони и 0 heartbeat
+реда. Без restore репетиция и измислени наблюдения. Runtime API няма новия модул,
+worker не е внедрен. Runtime source е отделен dirty activation worktree: първо
+съпостави, не го подменяй изцяло с този branch. Има един controller и един node,
+но това не доказва връзка. ROCK BatchMode SSH отказва; няма удостоверен upload/
+apply път в сесията. Вносът няма MQTT настройки; пазят се клиентските ключове.
+Следва еднократна локална проверка на endpoint, публичен certificate issuer/CN/
+fingerprint, site/gateway/slot и binary версия. Без пароли/private keys в чата.
+После точни ACL/bindings, worker/API, Edge config/build и реален UI receipt.
+Полета, frontend правила, sensor provisioning, retention/security и acceptance:
+docs/MQTT_DEVICE_DATA_SPEC.md.
+Проверки: 30 backend теста минават (повторени с local sockets след sandbox EPERM);
+script syntax и git diff whitespace проверките минават.
+
 ## MQTT LAN TCP ingress / MQTT LAN TCP вход — 2026-09-19
 
 Owner-authorized LAN-only 8883 passthrough deployed; existing broker/client keys

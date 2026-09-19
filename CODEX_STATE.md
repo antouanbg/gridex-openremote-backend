@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+Latest: migration 007 applied with private validated pg_dump archive; zero live
+heartbeat records. MQTT/UI/sensor-profile specification added. ROCK authenticated
+access missing; worker/API and physical activation pending. Runtime API uses a
+different dirty worktree: preserve activation changes. See newest HANDOFF.
+
+Последно: миграция 007 приложена с частен проверен pg_dump архив; 0 live heartbeat
+записа. Добавена MQTT/UI/sensor-profile спецификация. Няма удостоверен ROCK достъп;
+worker/API/physical activation предстоят. Runtime API е от друг dirty worktree;
+запази activation промените. Виж последния HANDOFF.
+
 2026-09-19: MQTT LAN-only TCP 8883 relay deployed; 6 relay tests and synthetic
 mTLS/ACL tests pass. No Ethernet/router changes. Physical ROCK connection and
 real identity binding still unproven; see docs/MQTT_LAN_PROXY.md and HANDOFF.
