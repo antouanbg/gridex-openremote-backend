@@ -4,6 +4,44 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Owner session policy / Политика за сесии — 2026-09-20
 
+UPDATE 07:19 UTC: owner confirmed execution after the explicit 365-day proposal.
+Helper applied successfully with private rollback directory session-policy-1789888624581.
+Remember Me idle/max = 365 days; ordinary session limits unchanged. API image
+dd06bf203540 is healthy with restart gate enabled. Rollback image:
+gridex-api:before-session-policy-20260920. Only API restarted. 31 tests pass;
+actual temporary PKCE login confirms recent auth_time, probe identity/client deleted.
+Local master/admin/form checks pass. Forced-local trusted TLS: public issuer
+correct, master/admin/health/metrics 404, unauthenticated API 401. Normal-DNS
+public probes from Mac time out: external reachability is NOT accepted by these
+checks. Real owner refresh/logout/reopening remains an acceptance task, not a
+completed test. MQTT continues: ROCK receipt 07:19:32Z; ESP contact 07:19:38Z,
+counter 22487; worker/broker zero restarts. Earlier blocked status below is historical.
+
+АКТУАЛНО 07:19 UTC: собственикът потвърди изпълнение след предложението за 365 дни.
+Helper е приложен с частен rollback session-policy-1789888624581. Remember Me
+idle/max = 365 дни; обикновените лимити са непроменени. API dd06bf203540 е healthy,
+restart gate е включен. Rollback image: gridex-api:before-session-policy-20260920.
+Рестартиран е само API. 31 теста минават; реален временен PKCE вход потвърждава
+актуален auth_time, тестовите identity/client са изтрити. Local master/admin/form
+минават. Forced-local доверен TLS: правилен public issuer, master/admin/health/
+metrics 404, API без вход 401. Normal-DNS пробите от Mac са timeout: това НЕ
+доказва външна достъпност. Реален owner refresh/logout/reopening остава приемателна
+проверка. MQTT продължава: ROCK 07:19:32Z; ESP контакт 07:19:38Z, counter 22487;
+worker/broker без рестарти. По-старият blocked статус по-долу е исторически.
+
+PR #30 merged as 801ec1d. Runtime application NOT performed: safety review
+rejected configure-session-policy.mjs before execution because 365-day realm
+session lifetime requires explicit duration approval. Existing realm/env/API
+remain unchanged; do not bypass this rejection. Frontend counterpart is live
+(release 1f24bad). Next obtain approved duration, run helper with private backup,
+deploy API, verify auth gate and owner login/refresh/restart end-to-end.
+
+PR #30 е слят като 801ec1d. Runtime НЕ е променен: safety review отказа helper
+преди изпълнение, защото срокът 365 дни изисква изрично потвърждение. Realm/env/
+API остават непроменени; без заобикаляне. Frontend е live (1f24bad). Следва
+одобрен срок, helper с private backup, API deployment, auth gate и owner
+вход/refresh/restart от край до край.
+
 Real integration gate: test-session-auth-time.mjs creates and deletes a temporary
 unprivileged identity/client, copies portal default scopes and completes actual
 authorization-code + PKCE login. Access-token auth_time is present and recent.
