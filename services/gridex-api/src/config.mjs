@@ -26,6 +26,7 @@ export function loadConfig(env = process.env) {
     oidcTokenEndpoint: env.OIDC_TOKEN_ENDPOINT || `${oidcIssuer}/protocol/openid-connect/token`,
     oidcJwksUri: env.OIDC_JWKS_URI || `${oidcIssuer}/protocol/openid-connect/certs`,
     oidcAudience,
+    reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
     enrollmentAdminUrl: env.GRIDEX_ENROLLMENT_ADMIN_URL || '',

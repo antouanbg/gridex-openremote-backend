@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Owner session policy / Политика за сесии — 2026-09-20
+
+Refresh must preserve login; an API restart must require fresh portal login.
+Optional GRIDEX_REAUTH_ON_API_RESTART checks portal azp and signed auth_time
+against API start, not refreshed iat. Dedicated service clients are unchanged.
+This is a single-instance policy; clustered deployments need a shared epoch.
+31 tests pass. Real realm inspection: Remember Me disabled; normal idle/max 24h.
+configure-session-policy.mjs enables Remember Me with a private rollback, one
+operator env and GRIDEX_REMEMBER_SESSION_DAYS (default/cap 365). It does not
+make perpetual tokens or modify master/issuer/client callbacks. Not applied yet.
+Deploy frontend error handling FIRST, then API gate. Hardware/MQTT unaffected.
+
+Refresh пази входа; API рестарт изисква пресен portal вход. Опционалният
+GRIDEX_REAUTH_ON_API_RESTART проверява portal azp/подписания auth_time спрямо
+API старта, не обновения iat. Служебните клиенти не се променят. За един instance;
+клъстер изисква общ epoch. 31 теста минават. Реален realm: Remember Me изключено,
+normal idle/max 24h. configure-session-policy.mjs включва Remember Me с частен
+rollback, един env и GRIDEX_REMEMBER_SESSION_DAYS (default/max 365). Без вечни
+токени или master/issuer/callback промени. Още не е приложено. Първо frontend
+обработка на грешката, после API gate. Без hardware/MQTT промени.
+
 ## Physical heartbeat receipt verified / Реален heartbeat потвърден — 2026-09-20
 
 Owner ran corrected activation helper and reported ROCK_MQTT_STARTED, with local

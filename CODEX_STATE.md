@@ -1,5 +1,10 @@
 # CODEX_STATE.md
 
+2026-09-20: session restart policy prepared; 31 tests pass, not deployed.
+Remember Me real config is disabled; bounded persistent-session helper prepared.
+2026-09-20: restart политиката е готова; 31 теста минават, не е внедрена.
+Remember Me реално е изключено; готов е helper за дълготрайна ограничена сесия.
+
 2026-09-20 06:11 UTC: PHYSICAL MQTT RECEIPT VERIFIED. ROCK/ESP observations
 advance in PostgreSQL; ESP heartbeat 14216→14289. Deployed API reports both
 online, worker zero restarts. Browser and offline/reboot acceptance still pending.
