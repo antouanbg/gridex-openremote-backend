@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import {authoritativeSites,authoritativeTopology} from './inventory.mjs';
 import { assertAllowedOrigin } from "./config.mjs";
 import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
@@ -178,7 +179,8 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/sites") {
         requirePermission(principal, "site:read");
-        const sites = await repository.listAccessibleSites(principal.subject);
+        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject),openRemote,principal.subject);
+        res.setHeader('Cache-Control','no-store');
         return json(res, 200, { sites: sites.map(publicSite) }, context);
       }
 
@@ -206,7 +208,8 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && suffix === "/hardware") {
         requireDeviceAdmin(site,principal);
-        const topology = await repository.getTopology(site.id);
+        const topology = await authoritativeTopology(site,repository,openRemote,principal.subject);
+        res.setHeader('Cache-Control','no-store');
         return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 

@@ -57,12 +57,13 @@ test("normalization preserves missing telemetry as null instead of unsafe zero",
 
 test("site listing is filtered by database membership", async () => {
   const repository = new MemoryRepository({ sites: [site, { ...site, id: "33333333-3333-4333-8333-333333333333", organisationId: "other" }], memberships: [{ subject: "user-1", organisationId: site.organisationId, role: 'administrator', allSites: true }] });
-  const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote: { health: async () => true } });
+  const app = createApp({ config: baseConfig, authenticate: async () => principal, repository, openRemote: { health: async () => true, getUserLinkedAssets: async()=>[{id:site.openremoteSiteAssetId,name:'OR Site',realm:site.openremoteRealm,attributes:{gridexResourceKind:{value:'site'},gridexResourceId:{value:site.id}}}] } });
   await withServer(app, async (baseUrl) => {
     const response = await fetch(`${baseUrl}/api/v1/sites`, { headers: { Authorization: "Bearer test", Origin: "https://portal.example.invalid" } });
     assert.equal(response.status, 200);
     const payload = await response.json();
     assert.deepEqual(payload.sites.map((item) => item.id), [site.id]);
+    assert.equal(payload.sites[0].name,'OR Site');
     assert.equal(JSON.stringify(payload).includes("openremote"), false);
   });
 });

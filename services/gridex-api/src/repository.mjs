@@ -223,6 +223,12 @@ export class PostgresRepository {
     finally { client.release(); }
   }
 
+  async getGatewayBindings(siteId) {
+    const {rows}=await this.pool.query(`SELECT b.gateway_id,b.openremote_asset_id
+      FROM gateway_openremote_bindings b JOIN gateways g ON g.id=b.gateway_id WHERE g.site_id=$1`,[siteId]);
+    return rows.map(r=>({gatewayId:r.gateway_id,assetId:r.openremote_asset_id}));
+  }
+
   async getTopology(siteId) {
     const { rows: configs } = await this.pool.query(`SELECT * FROM hardware_configurations
       WHERE site_id=$1 ORDER BY revision DESC LIMIT 1`, [siteId]);

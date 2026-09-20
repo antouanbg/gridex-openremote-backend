@@ -43,6 +43,11 @@ export class OpenRemoteClient {
     return this.request("/asset/user/current", { token: userToken });
   }
 
+  async getUserLinkedAssets(ids, subject) {
+    if (!ids.length) return [];
+    return this.queryAssets({ ids, userIds: [subject] }, await this.getServiceToken());
+  }
+
   queryAssets(query, token) {
     return this.request("/asset/query", { token, method: "POST", body: query });
   }
