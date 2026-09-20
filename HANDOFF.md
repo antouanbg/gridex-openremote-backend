@@ -4,6 +4,19 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Owner session policy / Политика за сесии — 2026-09-20
 
+PR #30 merged as 801ec1d. Runtime application NOT performed: safety review
+rejected configure-session-policy.mjs before execution because 365-day realm
+session lifetime requires explicit duration approval. Existing realm/env/API
+remain unchanged; do not bypass this rejection. Frontend counterpart is live
+(release 1f24bad). Next obtain approved duration, run helper with private backup,
+deploy API, verify auth gate and owner login/refresh/restart end-to-end.
+
+PR #30 е слят като 801ec1d. Runtime НЕ е променен: safety review отказа helper
+преди изпълнение, защото срокът 365 дни изисква изрично потвърждение. Realm/env/
+API остават непроменени; без заобикаляне. Frontend е live (1f24bad). Следва
+одобрен срок, helper с private backup, API deployment, auth gate и owner
+вход/refresh/restart от край до край.
+
 Real integration gate: test-session-auth-time.mjs creates and deletes a temporary
 unprivileged identity/client, copies portal default scopes and completes actual
 authorization-code + PKCE login. Access-token auth_time is present and recent.

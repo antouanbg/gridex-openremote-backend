@@ -1,5 +1,10 @@
 # CODEX_STATE.md
 
+PR #30 merged (801ec1d), runtime still unchanged. Safety review blocked 365-day
+Remember Me helper before execution; explicit duration approval needed.
+PR #30 е слят (801ec1d), runtime е непроменен. Safety review спря 365-day
+Remember Me helper преди изпълнение; нужно е изрично одобрение на срока.
+
 2026-09-20: session restart policy prepared; 31 tests pass, not deployed.
 Remember Me real config is disabled; bounded persistent-session helper prepared.
 2026-09-20: restart политиката е готова; 31 теста минават, не е внедрена.
