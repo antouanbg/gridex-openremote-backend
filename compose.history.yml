@@ -1,0 +1,38 @@
+services:
+  history-worker:
+    image: gridex-history-worker:temperature-v1
+    build: ./services/gridex-api
+    user: "${GRIDEX_MQTT_READER_UID:?required}:${GRIDEX_MQTT_READER_GID:?required}"
+    command: [node, src/history-worker.mjs]
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      PGHOST: gridex-db
+      PGDATABASE: gridex
+      PGUSER: gridex
+      PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+      OPENREMOTE_BASE_URL: http://manager:8080
+      OPENREMOTE_REALM: gridex
+      OPENREMOTE_SERVICE_CLIENT_ID: ${GRIDEX_HISTORY_WRITER_CLIENT_ID:?required}
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${GRIDEX_HISTORY_WRITER_CLIENT_SECRET:?required}
+      OIDC_ISSUER: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
+      OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
+      GRIDEX_HISTORY_BINDINGS: ${GRIDEX_HISTORY_BINDINGS:?required}
+      GRIDEX_MQTT_URL: ${GRIDEX_MQTT_URL:?required}
+      GRIDEX_MQTT_CA_FILE: /run/mqtt/ca.crt
+      GRIDEX_MQTT_CLIENT_CERT_FILE: /run/mqtt/client.crt
+      GRIDEX_MQTT_CLIENT_KEY_FILE: /run/mqtt/client.key
+    volumes:
+      - ${GRIDEX_MQTT_READER_DIRECTORY:?required}:/run/mqtt:ro
+    networks: [backend, mqtt-read]
+    mem_limit: 128m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: {max-size: '10m', max-file: '3'}
+networks:
+  mqtt-read:
+    external: true
+    name: ${GRIDEX_MQTT_NETWORK:-gridex-mqtt_mqtt}

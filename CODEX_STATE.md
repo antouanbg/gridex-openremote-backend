@@ -1,5 +1,24 @@
 # CODEX_STATE.md
 
+2026-09-20 17:43 UTC: issuer fix DEPLOYED (Manager 26d8f5d46e25); service query,
+local auth and temporary PKCE pass. Owner-scoped temperature asset/restricted
+writer and history worker 757c2c99dabc DEPLOYED, migration 008 backed up/applied.
+37 API tests and isolated Timescale write/permission probe pass; probe removed.
+Physical temperature NOT received: ROCK publisher update requires local access,
+SSH refused. No frontend/physical success claim. Newest HANDOFF is authoritative.
+2026-09-20 17:43 UTC: issuer fix ВНЕДРЕН; service query/local auth/PKCE минават.
+Owner температурен asset/restricted writer/worker са ВНЕДРЕНИ; 008 с backup.
+37 API теста и isolated Timescale/permissions probe минават; пробата е премахната.
+Физическа температура НЯМА: нужен ROCK update, SSH отказан. Виж новия HANDOFF.
+
+2026-09-20: Timescale history preparation, NOT deployed. Existing OR TimescaleDB
+2.26.4 confirmed, zero measurement rows. Manager rejects public-issuer service
+token; no auth bypass or runtime changes. See newest HANDOFF and
+docs/TIMESCALE_DEVICE_HISTORY.md for concrete completion gates.
+2026-09-20: подготовка за Timescale история, НЕ е внедрена. Налична OR TimescaleDB
+2.26.4, нула измервания. Manager отказва служебния public-issuer token; няма
+заобикаляне на auth или runtime промени. Виж най-новия HANDOFF и документа.
+
 2026-09-20 07:19 UTC: owner-approved 365-day Remember Me APPLIED; API restart
 gate DEPLOYED, image dd06bf203540 healthy. 31 tests and actual temporary PKCE
 pass. Local auth/TLS isolation pass; normal-DNS public probes timeout. Owner

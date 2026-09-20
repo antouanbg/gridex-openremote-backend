@@ -1,5 +1,38 @@
 # GrideX OpenRemote backend — Working rules
 
+## Historical measurements / Исторически измервания — 2026-09-20
+
+Manager 1.30.0 pilot uses the pinned services/openremote-issuer image patch.
+Preserve local master and public gridex issuer separation. Rebuild its signed-JWT
+regression test on upgrades; never replace it with disabled issuer validation.
+Manager 1.30.0 pilot използва pinned services/openremote-issuer patch. Пази
+local master/public gridex разделението; при upgrade изпълни signed-JWT
+regression теста. Никога не го заменяй с изключена issuer проверка.
+
+Use existing OpenRemote TimescaleDB for historical measurements from meters,
+inverters, batteries, chargers and other provisioned sensors. Per-device metric
+selection, measurement, publication and heartbeat periods must remain distinct;
+never impose a global 15-minute interval. Preserve unknown values as null.
+Keep current heartbeat state separate from measurement history. Record desired
+profiles separately from edge acknowledgement. Follow
+docs/TIMESCALE_DEVICE_HISTORY.md, including its open runtime acceptance gates.
+No second time-series service by default, no issuer-validation bypass, no
+master credentials in ingestion workers. Two years included is the commercial
+policy; do not enable deletion before export/paid retention/restore safeguards.
+All operator settings use the single backend env. Tests and live evidence,
+not the presence of the extension or MQTT heartbeat alone, establish completion.
+
+Историята от метри, инвертори, батерии, зарядни и други заведени сензори е в
+съществуващата OpenRemote TimescaleDB. Показателите и периодите за измерване,
+публикуване и heartbeat са отделни по устройство; без общи 15 минути.
+Неизвестните стойности са null. Текущ heartbeat не е история от измервания;
+желан профил не е edge потвърждение. Следвай docs/TIMESCALE_DEVICE_HISTORY.md
+и незавършените runtime проверки. Без втора time-series услуга по подразбиране,
+без изключена issuer проверка или master credentials в worker. Две години са
+включени по бизнес политика; без изтриване преди export/paid retention/restore
+защити. Един backend env. Приключване доказват тестове и реални измервания,
+не само налична extension или получен MQTT heartbeat.
+
 ## Approved per-Site transports / Одобрени транспорти по Обект — 2026-09-19
 
 Owner explicitly approves implementation and publication of both selectable

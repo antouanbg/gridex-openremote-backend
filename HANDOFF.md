@@ -2,6 +2,121 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Live temperature pilot / Жив температурен пилот — 2026-09-20 17:43 UTC
+
+Supersedes the issuer blocker below. DEPLOYED Manager image 26d8f5d46e25
+(`gridex-openremote-manager:1.30.0-realm-issuer-v1`): pinned upstream class with
+one exact per-realm issuer override; signature/expiry/audience checks preserved.
+Build regression accepts public gridex + local master, rejects wrong issuer,
+realm, signature, expiry and audience. GrideX service asset query now succeeds.
+Local master issuer/admin form pass; temporary PKCE login passes. Forced-local
+trusted TLS public issuer passes and public master stays 404. Normal-DNS public
+probes from Mac still time out; owner external/browser expiry flow NOT retested.
+Runtime rollback: private-backups/manager-issuer-1789925246780 (env + manifest).
+
+Owner email resolved privately and verified against administrator membership and
+pilot controller/Site binding. Created a ThingAsset with cpuTemperatureC history
+enabled, linked to the owner and a dedicated restricted writer. Writer has only
+read:assets/write:attributes and sees only its assigned asset. No write:assets,
+rules or battery commands. Secrets/bindings are in the ONE backend env.
+Private provisioning record: temperature-provisioning-1789925554199.
+
+Migration 008 creates a durable transport outbox (NOT the history store); private
+pg_dump archive/index verified: history-outbox-1789925715802. History worker
+757c2c99dabc is deployed/subscribed, zero restarts. Existing API/heartbeat worker,
+broker, Ethernet and BESS locks untouched. It accepts only fresh, non-retained,
+bound ROCK health cpuTemperatureC numbers (-40..150 C), skips null/missing data,
+deduplicates by asset/metric/time and retries queued timestamped OR writes.
+MQTT acknowledgement before DB intake is not yet durable end-to-end; overload
+or intake failure can lose an observation. Pending queue has no capacity policy
+yet. Billing/export/retention and generic per-sensor mappings remain unfinished.
+
+Acceptance: 37/37 API tests; isolated synthetic attribute -> actual Timescale row
+PASS; restricted writer denied unrelated probe asset. Probe asset/client/row
+removed; no synthetic data placed in owner temperature history. OpenRemote's
+database timestamp is timezone-naive and uses JVM timezone (currently upstream
+Europe/Amsterdam); do not assume UTC in raw SQL. Use the supported history API.
+
+BLOCKER for physical completion: current ROCK health packets have NO temperature
+field. Optional CPU publisher prepared in edge repo (8/8 native CTests), but NOT
+installed on board: noninteractive SSH refused. Need approved local upgrade,
+verify thermal zone is CPU, enable GRIDEX_CPU_TEMPERATURE_ENABLED=1 in existing
+/etc/gridex/gridex-rockpie.env, retain keys/control locks, then verify real MQTT
+sample -> outbox -> Timescale -> owner frontend. No real temperature/UI success
+is claimed. Config editing/acknowledgement in UI is also still pending.
+
+Замества issuer блокера по-долу. ВНЕДРЕН Manager 26d8f5d46e25 с ограничен
+per-realm issuer override; подпис/срок/audience се проверяват. Build тестовете
+приемат public gridex/local master и отказват грешни issuer/realm/signature/
+expiry/audience. GrideX service query вече минава. Local master/admin форма и
+временен PKCE вход минават; forced-local trusted TLS public issuer е правилен,
+public master е 404. Normal-DNS от Mac е timeout; външен owner browser/expiry
+вход не е повторно проверен. Rollback: manager-issuer-1789925246780.
+
+Собственикът е проверен по email, администраторско членство и pilot ROCK/Обект.
+Създаден ThingAsset с cpuTemperatureC history, свързан със собственика и отделен
+restricted writer. Той има само read:assets/write:attributes и вижда единствения
+назначен asset; без write:assets/rules/команди към батерия. Тайни/bindings са в
+ЕДИННИЯ backend env. Private record: temperature-provisioning-1789925554199.
+
+Миграция 008 добавя устойчив transport outbox, НЕ историческа база; pg_dump/index
+backup е проверен: history-outbox-1789925715802. Worker 757c2c99dabc е внедрен,
+subscribe-нат, 0 рестарта. API/heartbeat/broker/Ethernet/BESS locks са непокътнати.
+Приема само пресни non-retained cpuTemperatureC числа (-40..150 C) от точния ROCK,
+пропуска null/липсващи данни, deduplicate-ва по asset/metric/time и повтаря queued
+timestamped OR writes. MQTT ACK преди DB intake още не е устойчив end-to-end;
+overload/DB intake отказ може да загуби проба. Няма capacity policy за pending
+queue. Billing/export/retention и общи sensor mappings остават незавършени.
+
+37/37 API теста; изолиран synthetic attribute -> реален Timescale ред PASS;
+writer няма достъп до чужд probe asset. Probe asset/client/ред са премахнати,
+без демо температура в owner историята. DB timestamp е без timezone и следва
+JVM timezone (upstream Europe/Amsterdam); не приемай UTC в raw SQL, ползвай API.
+
+Физически БЛОКЕР: текущите ROCK пакети НЯМАТ температура. Edge CPU publisher е
+готов (8/8 native CTest), но НЕ е качен: noninteractive SSH е отказан. Нужни са
+одобрен local upgrade, проверка че thermal zone е CPU и
+GRIDEX_CPU_TEMPERATURE_ENABLED=1 в текущия /etc/gridex/gridex-rockpie.env;
+запазване на keys/locks, после реална MQTT проба -> outbox -> Timescale -> owner
+frontend. Не е обявена реална температура/UI готовност. UI редакция/ack също
+още предстоят.
+
+## Timescale history — INCOMPLETE / Timescale история — НЕЗАВЪРШЕНО — 2026-09-20
+
+Owner requires historical measurements for all connected equipment in Timescale,
+with per-device periods/metrics, not a fixed 15-minute interval. Live inspection
+confirms existing OpenRemote TimescaleDB 2.26.4, two hypertables and seven-day
+compression; asset_datapoint has zero rows. Pilot heartbeat reception is a
+different path. Service-to-Manager calls fail 401 / Invalid token issuer;
+service role is also read-only. Do not bypass issuer validation or break local
+master login. No runtime deployment/configuration changes made for this task.
+Prepared blueprints use proper metadata maps, selected history attributes and
+validated desired telemetry profiles; missing boolean readings now remain null.
+Interval aggregation is explicitly rejected, not silently treated as applied.
+Read-only audit script and full acceptance/retention plan:
+docs/TIMESCALE_DEVICE_HISTORY.md. Remaining: issuer compatibility, scoped writer,
+inventory mapping, durable MQTT measurement ingestion, real history/API/UI test,
+profile acknowledgement and export/paid retention. This task is NOT complete.
+Validation: 34/34 API tests pass (including per-metric metadata isolation,
+unsupported interval rejection, Site authorization and session regression).
+Read-only live Timescale audit passes; this is not an ingestion acceptance test.
+
+Собственикът изисква история за всички свързани устройства в Timescale с отделни
+периоди/показатели, не общи 15 минути. Проверени са налична TimescaleDB 2.26.4,
+два hypertables и седемдневна компресия; asset_datapoint има нула реда.
+Pilot heartbeat идва по друг път. Service→Manager връща 401 / Invalid token
+issuer; служебната роля е само за четене. Без заобикаляне на issuer или счупване
+на local master входа. За задачата няма runtime deployment/config промени.
+Подготвени са правилни metadata maps, избрани history атрибути и валидирани
+желани профили; липсващите boolean измервания са null. Интервална агрегация се
+отказва изрично, не се представя като приложена. Read-only audit и пълни
+приемателни стъпки/retention: docs/TIMESCALE_DEVICE_HISTORY.md. Остават issuer
+съвместимост, scoped writer, mappings, устойчив MQTT ingestion, реален history/
+API/UI тест, profile acknowledgement, export/paid retention. НЕ е приключено.
+Проверки: 34/34 API теста минават (изолация на metadata по показател, отказ на
+неподдържан интервал, Site права и session regression). Read-only Timescale
+проверката минава; тя не е приемателен ingestion тест.
+
 ## Owner session policy / Политика за сесии — 2026-09-20
 
 UPDATE 07:19 UTC: owner confirmed execution after the explicit 365-day proposal.

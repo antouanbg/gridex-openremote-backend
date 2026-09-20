@@ -50,7 +50,7 @@ services:
       KC_HOSTNAME_ADMIN: ${GRIDEX_ADMIN_AUTH_BASE:-https://localhost:8443/auth}
       KC_PROXY_HEADERS: xforwarded
   manager:
-    image: openremote/manager:1.30.0@sha256:dcf6c4554a99c9afc3c0fc8d03d8d896d376b36c3f49d31e8a35c38c065355aa
+    image: ${OR_MANAGER_IMAGE:-openremote/manager:1.30.0@sha256:dcf6c4554a99c9afc3c0fc8d03d8d896d376b36c3f49d31e8a35c38c065355aa}
     platform: linux/arm64
     restart: unless-stopped
     networks: [backend]
@@ -60,6 +60,8 @@ services:
       OR_DB_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
       OR_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:?required}
       OR_HOSTNAME: localhost
+      OR_KEYCLOAK_ISSUER_GRIDEX: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
+      OR_KEYCLOAK_DISABLE_ISSUER_VALIDATION: 'false'
       OR_SSL_PORT: '8443'
       OR_DEV_MODE: 'false'
       OR_SETUP_TYPE: minimal
