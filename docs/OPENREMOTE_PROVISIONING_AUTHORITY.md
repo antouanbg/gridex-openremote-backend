@@ -4,6 +4,12 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Decision and scope — 2026-09-20
 
+Subsequent owner-approved execution: the pilot Site/ROCK/ESP now exist in OR,
+with verified owner links and local projection bindings; the existing temperature
+asset was reparented without changing its identity. See newest HANDOFF for
+backups, role changes and tests. Historical findings below describe the review
+baseline; generic provisioning enforcement and browser acceptance remain pending.
+
 Owner requirement: no operational Site/device/resource may be provisioned
 independently of OpenRemote. This review changes documentation only. No live
 resources, bindings, permissions, network settings or control locks were changed.
@@ -66,6 +72,12 @@ Implementation backlog (all pending):
    resource creation alone does not establish physical connectivity.
 
 ## Решение и обхват — 2026-09-20
+
+Последващо одобрено изпълнение: пилотните Обект/ROCK/ESP вече са в OR с проверени
+owner links и локални проекции/bindings; температурният asset е преместен без
+промяна на идентичността. Виж най-новия HANDOFF за backups, роли и тестове.
+Констатациите по-долу са изходното състояние при прегледа; универсалните
+provisioning защити и browser приемането още предстоят.
 
 Изискване на собственика: operational Обект/устройство/ресурс не се провизира
 независимо от OpenRemote. Този преглед променя само документация. Няма промени
