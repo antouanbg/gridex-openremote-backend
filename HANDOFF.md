@@ -4,6 +4,18 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Owner session policy / Политика за сесии — 2026-09-20
 
+Real integration gate: test-session-auth-time.mjs creates and deletes a temporary
+unprivileged identity/client, copies portal default scopes and completes actual
+authorization-code + PKCE login. Access-token auth_time is present and recent.
+Direct password grant is NOT representative (it omitted auth_time); browser flow
+was verified instead. No owner password/session or Site data used; no email sent.
+
+Реална проверка: test-session-auth-time.mjs създава/изтрива временен потребител
+и клиент без права, копира portal scopes и изпълнява authorization-code + PKCE.
+Access token има актуален auth_time. Direct password grant не е представителен
+(липсва auth_time); проверен е browser потокът. Без owner парола/сесия, данни
+от Обекти или изпратен имейл.
+
 Refresh must preserve login; an API restart must require fresh portal login.
 Optional GRIDEX_REAUTH_ON_API_RESTART checks portal azp and signed auth_time
 against API start, not refreshed iat. Dedicated service clients are unchanged.
