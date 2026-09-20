@@ -2,6 +2,65 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+## Provisioning authority review / Преглед на provisioning — 2026-09-20
+
+Owner requires OpenRemote as the sole operational resource registry. Mandatory
+AGENTS rule and docs/OPENREMOTE_PROVISIONING_AUTHORITY.md added. Review confirms
+local-only Site/gateway provisioning, optional OR parent and partial-failure
+consistency gaps. The owner-linked temperature asset is NOT a complete Site/
+ROCK/ESP hierarchy. Implementation, reconciliation and acceptance tests remain
+PENDING: follow the seven-step backlog in that document. Documentation-only;
+no runtime migration, asset deletion, permission or network changes in this turn.
+
+Собственикът изисква OpenRemote да е единственият основен ресурсен регистър.
+Добавени са задължително AGENTS правило и docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Потвърдени са local-only Обект/шлюзове, незадължителен OR родител и пропуски при
+частични откази. Температурният asset НЕ е пълна Обект/ROCK/ESP йерархия.
+Реализация, съгласуване и тестове са НЕЗАВЪРШЕНИ — следвай седемте задачи в
+документа. Само документация; без миграции, изтриване, промени в права или мрежа.
+
 ## Live temperature pilot / Жив температурен пилот — 2026-09-20 17:43 UTC
 
 Supersedes the issuer blocker below. DEPLOYED Manager image 26d8f5d46e25

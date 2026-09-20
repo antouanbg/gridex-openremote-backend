@@ -1,5 +1,92 @@
 # GrideX OpenRemote backend — Working rules
 
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+## OpenRemote provisioning authority — mandatory / Задължително — 2026-09-20
+
+OpenRemote is the authoritative registry for Sites, ROCK/ESP gateways and nodes,
+meters, inverters, batteries, chargers, sensors and their asset relationships.
+Provision through GrideX UI/API orchestration of supported OpenRemote APIs;
+never create an independent active inventory in another database or bypass
+OpenRemote with bootstrap/import scripts. Do not write OpenRemote asset tables
+directly. A local draft/pending intent is allowed, but configured/provisioned
+success requires verified asset existence, realm, parent/Site, owner access and
+a durable local-to-OpenRemote binding. Heartbeat receipt is not provisioning.
+Missing/unavailable OpenRemote means pending/failed/reconciliation required,
+never a successful local-only fallback. Updates must also reconcile both sides.
+Use idempotency and recovery after partial failures; do not blindly delete
+assets on retries. Keycloak identity, business records, scoped permissions,
+invitations, drafts, audit and transport outboxes may remain outside OpenRemote;
+they are not a second operational resource registry. Keep measurement history
+in existing OpenRemote TimescaleDB and preserve commissioning/control locks.
+Isolated test fixtures are not a production provisioning path. Existing orphan
+records are migration debt: preserve data, ownership, keys and history until an
+approved, backed-up reconciliation. Before marking work complete, test outages,
+retries, partial failures, cross-owner denial and matching UI/OR resource trees.
+See docs/OPENREMOTE_PROVISIONING_AUTHORITY.md. This rule is a requirement, not
+evidence that existing code or runtime has already been corrected.
+
+OpenRemote е основният регистър за Обекти, ROCK/ESP шлюзове и възли, метри,
+инвертори, батерии, зарядни, сензори и връзките между техните assets. GrideX
+UI/API организира provisioning през поддържаните OpenRemote API; забранен е
+втори независим активен инвентар в друга база, включително чрез bootstrap/import
+скриптове. Без директни записи в OpenRemote asset таблици. Допуска се локална
+чернова/чакаща заявка, но успех configured/provisioned изисква проверени asset,
+realm, родител/Обект, достъп на собственика и устойчива връзка към локалния запис.
+Heartbeat не доказва provisioning. При липсващ/недостъпен OpenRemote статусът
+е pending/failed/reconciliation required, не успешен local-only fallback.
+Обновяванията също трябва да съгласуват двете страни. Изисквай идемпотентност и
+възстановяване след частичен отказ; без сляпо изтриване при повторен опит.
+Keycloak идентичности, бизнес записи, ограничени права, покани, чернови, audit
+и transport outbox могат да са извън OpenRemote, но не като втори ресурсен
+регистър. Историята остава в наличната OpenRemote TimescaleDB; commissioning/
+control locks се пазят. Изолираните тестови fixtures не са production път.
+Съществуващите несвързани записи са миграционен дълг: пази данни, собственост,
+ключове и история до одобрено съгласуване с backup. Преди приключване тествай
+откази, повторения, частични грешки, забрана за чужд собственик и еднакви дървета
+в UI/OR. Виж docs/OPENREMOTE_PROVISIONING_AUTHORITY.md. Правилото не доказва,
+че текущият код или runtime вече са поправени.
+
 ## Historical measurements / Исторически измервания — 2026-09-20
 
 Manager 1.30.0 pilot uses the pinned services/openremote-issuer image patch.
