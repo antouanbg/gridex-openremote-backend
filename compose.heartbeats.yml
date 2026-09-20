@@ -6,6 +6,7 @@ services:
       GRIDEX_HEARTBEAT_OFFLINE_SECONDS: ${GRIDEX_HEARTBEAT_OFFLINE_SECONDS:-90}
   heartbeat-worker:
     build: ./services/gridex-api
+    user: "${GRIDEX_MQTT_READER_UID:?required}:${GRIDEX_MQTT_READER_GID:?required}"
     command: [node, src/heartbeat-worker.mjs]
     restart: unless-stopped
     read_only: true

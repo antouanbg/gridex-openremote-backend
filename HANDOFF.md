@@ -2,6 +2,35 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Pilot MQTT reader active / Пилотен MQTT reader активен — 2026-09-20
+
+Owner confirmed physical client certificate installation and matching key.
+Enrolled its verified clientAuth CN against the sole existing pilot controller
+and node; imported config confirms one polling slot. Exact health/slot-1 ACL,
+existing reader gets read-only access. Private inventory/bindings/settings bundle
+remain outside Git. Worker started on private MQTT/backend networks, matching
+host UID/GID for 0600 reader files: subscription active, restart count zero.
+No device records yet. Prepared scripts/activate-rock-mqtt.py for one-time local
+execution: validates certificate/key, locked gates, payload hash/MQTT linkage;
+backs up/replaces only service binary and MQTT env keys, rolls back on start failure.
+Syntax checked, not yet run on physical ROCK. No Ethernet/ESP/OT changes.
+Next: owner copies private settings bundle + activation helper to ROCK, runs it
+against their verified staged payload, then verify actual DB/UI receipt/ageing.
+Do not rerun legacy prepare-mqtt.py: it creates a separate env and broadens node
+ACLs; exact-slot regeneration and full automatic claim remain backlog.
+
+Собственикът потвърди инсталиран клиентски сертификат и съвпадащ ключ. Провереният
+clientAuth CN е обвързан с единствения pilot controller/node; импортът потвърждава
+един polling slot. Точни health/slot-1 ACL и read-only reader. Inventory/bindings/
+bundle са частни, извън Git. Worker е пуснат в частните MQTT/backend мрежи с
+host UID/GID за 0600 файловете: subscription active, 0 рестарта. Още няма device
+записи. activate-rock-mqtt.py проверява cert/key, locked gates, hash/linkage,
+архивира и сменя само binary/MQTT env keys с rollback при неуспешен старт.
+Проверен syntax, още не е изпълнен на ROCK. Без Ethernet/ESP/OT промени.
+Следва копиране на bundle/helper и изпълнение върху готовия staged payload,
+после реални DB/UI/ageing проверки. Не пускай стария prepare-mqtt.py: създава
+отделен env и разширява node ACL; exact-slot regeneration/auto claim предстоят.
+
 ## Heartbeat API deployed / Heartbeat API внедрен — 2026-09-19
 
 Supersedes the API deployment blocker below: live source hashes matched the

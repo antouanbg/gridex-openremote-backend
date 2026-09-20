@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+2026-09-20: real pilot certificate/topic bindings enrolled; heartbeat worker
+running/subscribed with zero restarts, no samples yet. Local ROCK activation
+helper prepared; execution/physical receipt pending. See newest HANDOFF.
+2026-09-20: реалните pilot cert/topic bindings са заведени; worker работи/subscribe,
+0 рестарта, още няма проби. Local ROCK activation helper е готов за изпълнение;
+физическото активиране/получаване предстои. Виж последния HANDOFF.
+
 Latest deployment: heartbeat API image 14acc9c4a3ca healthy, real SQL reads pass,
 zero samples; dirty activation code preserved and not deployed. MQTT LAN test
 passes. Physical ROCK bootstrap and worker identity bindings remain blocked.
