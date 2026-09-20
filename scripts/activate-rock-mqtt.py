@@ -11,6 +11,16 @@ import tempfile
 def run(*args):
     return subprocess.run(args, check=True, capture_output=True, text=True).stdout
 
+def validate_locked_configuration(text):
+    required_gates = {'GRIDEX_APPROVE_ADDRESSING', 'GRIDEX_APPROVE_POWER_SIGN',
+                      'GRIDEX_APPROVE_SCALING', 'GRIDEX_APPROVE_INT32_WORD_ORDER'}
+    gates = re.findall(r'^[ \t]*(GRIDEX_APPROVE_[A-Z0-9_]+)=(.*)$', text, re.M)
+    names = [name for name, _ in gates]
+    if not required_gates.issubset(names) or len(names) != len(set(names)):
+        raise ValueError('Required commissioning gates missing or duplicated')
+    if any(value.strip() not in ('0', '"0"', "'0'") for _, value in gates):
+        raise ValueError('All commissioning approvals must remain explicitly zero')
+
 if os.geteuid() != 0 or len(sys.argv) != 3:
     raise SystemExit('Usage: sudo python3 activate-rock-mqtt.py settings.json IMAGE_PAYLOAD_DIRECTORY')
 settings = json.loads(Path(sys.argv[1]).read_text())
@@ -24,9 +34,10 @@ if not settings['GRIDEX_MQTT_BROKER_URL'].startswith('mqtts://'):
     raise SystemExit('TLS required')
 env = Path('/etc/gridex/gridex-rockpie.env')
 original = env.read_text()
-gates = re.findall(r'^GRIDEX_APPROVE_[A-Z_]+=(.*)$', original, re.M)
-if len(gates) < 4 or any(g.strip().strip('\"\'') != '0' for g in gates):
-    raise SystemExit('Expected existing locked commissioning configuration')
+try:
+    validate_locked_configuration(original)
+except ValueError as error:
+    raise SystemExit(str(error))
 stage = Path(sys.argv[2]).resolve()
 binary = stage / 'rootfs/usr/local/bin/gridex_rockpie_service'
 run('sha256sum', '-c', str(stage / 'service.sha256'))

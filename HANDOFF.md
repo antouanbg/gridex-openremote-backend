@@ -2,6 +2,21 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Activation gate parser fix / Поправка на проверката за заключване — 2026-09-20
+
+Owner's activation attempt stopped before backup/service/config mutation.
+Old regex excluded digits, missed GRIDEX_APPROVE_INT32_WORD_ORDER and counted
+only three of four locked gates. Now checks all four exact required names,
+rejects duplicates and nonzero/malformed values. Five regression tests pass
+(INT32, quoted/CRLF, missing, unlocked/malformed, duplicate). Private imported
+config reports all four gates zero. Physical retry still required; no bypass.
+
+Опитът на собственика спря преди backup/service/config промени. Старият regex
+изключваше цифри и пропускаше GRIDEX_APPROVE_INT32_WORD_ORDER. Новата проверка
+изисква четирите точни имена, отказва дубликати и nonzero/невалидни стойности.
+5 regression теста минават (INT32, quotes/CRLF, missing, unlocked/malformed,
+duplicate). Частният импорт има четири нули. Предстои physical retry; без bypass.
+
 ## Pilot MQTT reader active / Пилотен MQTT reader активен — 2026-09-20
 
 Owner confirmed physical client certificate installation and matching key.
