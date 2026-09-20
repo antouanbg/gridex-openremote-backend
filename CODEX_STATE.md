@@ -1,5 +1,14 @@
 # CODEX_STATE.md
 
+2026-09-20 07:19 UTC: owner-approved 365-day Remember Me APPLIED; API restart
+gate DEPLOYED, image dd06bf203540 healthy. 31 tests and actual temporary PKCE
+pass. Local auth/TLS isolation pass; normal-DNS public probes timeout. Owner
+browser acceptance still pending; MQTT continues unchanged. See newest HANDOFF.
+2026-09-20 07:19 UTC: одобреният 365-day Remember Me е ПРИЛОЖЕН; API restart
+gate е ВНЕДРЕН, dd06bf203540 healthy. 31 теста и реален временен PKCE минават.
+Local auth/TLS изолацията минава; normal-DNS public пробите са timeout. Остава
+owner browser приемане; MQTT продължава непроменен. Виж последния HANDOFF.
+
 PR #30 merged (801ec1d), runtime still unchanged. Safety review blocked 365-day
 Remember Me helper before execution; explicit duration approval needed.
 PR #30 е слят (801ec1d), runtime е непроменен. Safety review спря 365-day
