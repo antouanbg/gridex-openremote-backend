@@ -1,5 +1,59 @@
 # CODEX_STATE.md
 
+2026-09-20: session restart policy prepared; 31 tests pass, not deployed.
+Remember Me real config is disabled; bounded persistent-session helper prepared.
+2026-09-20: restart политиката е готова; 31 теста минават, не е внедрена.
+Remember Me реално е изключено; готов е helper за дълготрайна ограничена сесия.
+
+2026-09-20 06:11 UTC: PHYSICAL MQTT RECEIPT VERIFIED. ROCK/ESP observations
+advance in PostgreSQL; ESP heartbeat 14216→14289. Deployed API reports both
+online, worker zero restarts. Browser and offline/reboot acceptance still pending.
+2026-09-20 06:11 UTC: РЕАЛЕН MQTT RECEIPT ПОТВЪРДЕН. ROCK/ESP пробите се обновяват
+в PostgreSQL; ESP heartbeat 14216→14289. API: двете online, worker 0 рестарта.
+Browser и offline/reboot приемането още предстоят.
+
+2026-09-20: real pilot certificate/topic bindings enrolled; heartbeat worker
+running/subscribed with zero restarts, no samples yet. Local ROCK activation
+helper prepared; execution/physical receipt pending. See newest HANDOFF.
+2026-09-20: реалните pilot cert/topic bindings са заведени; worker работи/subscribe,
+0 рестарта, още няма проби. Local ROCK activation helper е готов за изпълнение;
+физическото активиране/получаване предстои. Виж последния HANDOFF.
+
+Latest deployment: heartbeat API image 14acc9c4a3ca healthy, real SQL reads pass,
+zero samples; dirty activation code preserved and not deployed. MQTT LAN test
+passes. Physical ROCK bootstrap and worker identity bindings remain blocked.
+Последно внедряване: heartbeat API 14acc9c4a3ca healthy, SQL четене работи, 0
+проби; dirty activation е запазен/невнедрен. LAN MQTT тестът минава. Остават
+блокирани физически ROCK bootstrap и реалните identity bindings за worker.
+
+Latest: migration 007 applied with private validated pg_dump archive; zero live
+heartbeat records. MQTT/UI/sensor-profile specification added. ROCK authenticated
+access missing; worker/API and physical activation pending. Runtime API uses a
+different dirty worktree: preserve activation changes. See newest HANDOFF.
+
+Последно: миграция 007 приложена с частен проверен pg_dump архив; 0 live heartbeat
+записа. Добавена MQTT/UI/sensor-profile спецификация. Няма удостоверен ROCK достъп;
+worker/API/physical activation предстоят. Runtime API е от друг dirty worktree;
+запази activation промените. Виж последния HANDOFF.
+
+2026-09-19: MQTT LAN-only TCP 8883 relay deployed; 6 relay tests and synthetic
+mTLS/ACL tests pass. No Ethernet/router changes. Physical ROCK connection and
+real identity binding still unproven; see docs/MQTT_LAN_PROXY.md and HANDOFF.
+Public auth normal-DNS probe times out; forced-local TLS and denied routes pass.
+
+2026-09-19: LAN-only TCP 8883 relay е внедрен; 6 теста и синтетичен mTLS/ACL тест
+минават. Без Ethernet/router промени. Реална ROCK връзка/identity binding не са
+доказани; виж docs/MQTT_LAN_PROXY.md и HANDOFF. Public auth normal-DNS е timeout;
+forced-local TLS и отказът на защитени маршрути минават.
+
+2026-09-19: per-Site private WireGuard and direct MQTT-mTLS explicitly approved.
+Execution plan recorded in backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md;
+12 TODO items, documentation-only publication, no live activation. See HANDOFF.
+
+2026-09-19: изрично одобрени WireGuard-private и direct MQTT-mTLS по Обект.
+Планът е в backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md; 12 TODO задачи,
+само документална публикация, без live активиране. Виж HANDOFF.
+
 Heartbeat feature prepared on feat/device-heartbeat: 30 Node tests pass.
 Not deployed; follow docs/DEVICE_HEARTBEATS.md and latest HANDOFF. Real ROCK
 MQTT receipt, PostgreSQL migration/integration and browser acceptance pending.

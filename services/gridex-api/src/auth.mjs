@@ -50,6 +50,7 @@ export function principalFromClaims(claims, accessToken, audience) {
 }
 
 export function createAuthenticator(config, options = {}) {
+  const startedAt = Math.floor((options.startedAt ?? Date.now()) / 1000);
   const jwks = options.jwks || createRemoteJWKSet(new URL(config.oidcJwksUri));
   const verify = options.jwtVerify || jwtVerify;
   return async function authenticate(req) {
@@ -60,6 +61,12 @@ export function createAuthenticator(config, options = {}) {
         audience: config.oidcAudience,
         clockTolerance: config.oidcClockToleranceSeconds,
       });
+      // Browser refresh tokens must not bypass the owner's restart re-login policy.
+      // Dedicated service clients keep their existing machine-to-machine lifecycle.
+      if (config.reauthOnApiRestart && payload.azp === config.oidcAudience
+          && (!Number.isFinite(payload.auth_time) || payload.auth_time < startedAt)) {
+        throw new ApiError(401, 'reauthentication_required', 'Please sign in again after the server restart.');
+      }
       return principalFromClaims(payload, accessToken, config.oidcAudience);
     } catch (error) {
       if (error instanceof ApiError) throw error;

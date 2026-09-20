@@ -2,6 +2,214 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Owner session policy / Политика за сесии — 2026-09-20
+
+Real integration gate: test-session-auth-time.mjs creates and deletes a temporary
+unprivileged identity/client, copies portal default scopes and completes actual
+authorization-code + PKCE login. Access-token auth_time is present and recent.
+Direct password grant is NOT representative (it omitted auth_time); browser flow
+was verified instead. No owner password/session or Site data used; no email sent.
+
+Реална проверка: test-session-auth-time.mjs създава/изтрива временен потребител
+и клиент без права, копира portal scopes и изпълнява authorization-code + PKCE.
+Access token има актуален auth_time. Direct password grant не е представителен
+(липсва auth_time); проверен е browser потокът. Без owner парола/сесия, данни
+от Обекти или изпратен имейл.
+
+Refresh must preserve login; an API restart must require fresh portal login.
+Optional GRIDEX_REAUTH_ON_API_RESTART checks portal azp and signed auth_time
+against API start, not refreshed iat. Dedicated service clients are unchanged.
+This is a single-instance policy; clustered deployments need a shared epoch.
+31 tests pass. Real realm inspection: Remember Me disabled; normal idle/max 24h.
+configure-session-policy.mjs enables Remember Me with a private rollback, one
+operator env and GRIDEX_REMEMBER_SESSION_DAYS (default/cap 365). It does not
+make perpetual tokens or modify master/issuer/client callbacks. Not applied yet.
+Deploy frontend error handling FIRST, then API gate. Hardware/MQTT unaffected.
+
+Refresh пази входа; API рестарт изисква пресен portal вход. Опционалният
+GRIDEX_REAUTH_ON_API_RESTART проверява portal azp/подписания auth_time спрямо
+API старта, не обновения iat. Служебните клиенти не се променят. За един instance;
+клъстер изисква общ epoch. 31 теста минават. Реален realm: Remember Me изключено,
+normal idle/max 24h. configure-session-policy.mjs включва Remember Me с частен
+rollback, един env и GRIDEX_REMEMBER_SESSION_DAYS (default/max 365). Без вечни
+токени или master/issuer/callback промени. Още не е приложено. Първо frontend
+обработка на грешката, после API gate. Без hardware/MQTT промени.
+
+## Physical heartbeat receipt verified / Реален heartbeat потвърден — 2026-09-20
+
+Owner ran corrected activation helper and reported ROCK_MQTT_STARTED, with local
+rollback backup. Independent PostgreSQL checks now prove actual ROCK → LAN mTLS
+proxy → broker → worker → database delivery. At 06:10 UTC: ROCK observation/receipt
+06:10:41; ESP receipt 06:10:43, successful contact 06:10:42, heartbeat 14216.
+Second check: ROCK receipt 06:11:11; ESP receipt/contact 06:11:19, heartbeat 14289.
+Deployed API heartbeatStatuses returns online/sourceStatus online for both.
+Worker running, zero restarts, no recent rejection logs. No synthetic samples
+were submitted to the real inventory. These observations supersede no-receipt
+blockers below; they do NOT prove browser rendering, reboot/expiry recovery,
+long-duration soak, sensor-profile metrics or battery/vendor telemetry.
+Next: owner Devices UI acceptance, then controlled offline/reconnect tests.
+No Ethernet/VPN/ESP firmware/BESS control change in this verification.
+
+Собственикът изпълни поправения helper и получи ROCK_MQTT_STARTED с local backup.
+Независимите PostgreSQL проверки доказват ROCK → LAN mTLS proxy → broker → worker
+→ база. Първа проба 06:10 UTC: ROCK observation/receipt 06:10:41; ESP receipt
+06:10:43, успешен контакт 06:10:42, heartbeat 14216. Втора проба: ROCK receipt
+06:11:11; ESP receipt/contact 06:11:19, heartbeat 14289. Внедреният API изчислява
+online/sourceStatus online за двете. Worker работи без рестарти и скорошни откази.
+Без synthetic данни в реалния inventory. Това отменя старите no-receipt блокери,
+но не доказва browser rendering, reboot/expiry, soak, sensor-profile или battery
+измервания. Следват owner Devices UI и контролирани offline/reconnect проверки.
+Без Ethernet/VPN/ESP firmware/BESS промени в тази проверка.
+
+## Activation gate parser fix / Поправка на проверката за заключване — 2026-09-20
+
+Owner's activation attempt stopped before backup/service/config mutation.
+Old regex excluded digits, missed GRIDEX_APPROVE_INT32_WORD_ORDER and counted
+only three of four locked gates. Now checks all four exact required names,
+rejects duplicates and nonzero/malformed values. Five regression tests pass
+(INT32, quoted/CRLF, missing, unlocked/malformed, duplicate). Private imported
+config reports all four gates zero. Physical retry still required; no bypass.
+
+Опитът на собственика спря преди backup/service/config промени. Старият regex
+изключваше цифри и пропускаше GRIDEX_APPROVE_INT32_WORD_ORDER. Новата проверка
+изисква четирите точни имена, отказва дубликати и nonzero/невалидни стойности.
+5 regression теста минават (INT32, quotes/CRLF, missing, unlocked/malformed,
+duplicate). Частният импорт има четири нули. Предстои physical retry; без bypass.
+
+## Pilot MQTT reader active / Пилотен MQTT reader активен — 2026-09-20
+
+Owner confirmed physical client certificate installation and matching key.
+Enrolled its verified clientAuth CN against the sole existing pilot controller
+and node; imported config confirms one polling slot. Exact health/slot-1 ACL,
+existing reader gets read-only access. Private inventory/bindings/settings bundle
+remain outside Git. Worker started on private MQTT/backend networks, matching
+host UID/GID for 0600 reader files: subscription active, restart count zero.
+No device records yet. Prepared scripts/activate-rock-mqtt.py for one-time local
+execution: validates certificate/key, locked gates, payload hash/MQTT linkage;
+backs up/replaces only service binary and MQTT env keys, rolls back on start failure.
+Syntax checked, not yet run on physical ROCK. No Ethernet/ESP/OT changes.
+Next: owner copies private settings bundle + activation helper to ROCK, runs it
+against their verified staged payload, then verify actual DB/UI receipt/ageing.
+Do not rerun legacy prepare-mqtt.py: it creates a separate env and broadens node
+ACLs; exact-slot regeneration and full automatic claim remain backlog.
+
+Собственикът потвърди инсталиран клиентски сертификат и съвпадащ ключ. Провереният
+clientAuth CN е обвързан с единствения pilot controller/node; импортът потвърждава
+един polling slot. Точни health/slot-1 ACL и read-only reader. Inventory/bindings/
+bundle са частни, извън Git. Worker е пуснат в частните MQTT/backend мрежи с
+host UID/GID за 0600 файловете: subscription active, 0 рестарта. Още няма device
+записи. activate-rock-mqtt.py проверява cert/key, locked gates, hash/linkage,
+архивира и сменя само binary/MQTT env keys с rollback при неуспешен старт.
+Проверен syntax, още не е изпълнен на ROCK. Без Ethernet/ESP/OT промени.
+Следва копиране на bundle/helper и изпълнение върху готовия staged payload,
+после реални DB/UI/ageing проверки. Не пускай стария prepare-mqtt.py: създава
+отделен env и разширява node ACL; exact-slot regeneration/auto claim предстоят.
+
+## Heartbeat API deployed / Heartbeat API внедрен — 2026-09-19
+
+Supersedes the API deployment blocker below: live source hashes matched the
+parent of the merged heartbeat commit exactly; all unrelated modules matched.
+Built this branch and recreated ONLY gridex-api with the existing single env,
+Mailgun/vault overlays and volumes. Dirty activation worktree was not changed
+or deployed. Image 14acc9c4a3ca; rollback image gridex-api:before-heartbeat-20260919.
+API healthy, actual PostgreSQL DeviceHeartbeats.list reads pass, zero records.
+Forced-local trusted public-hostname checks: unauthenticated API 401, auth
+discovery 200. Synthetic LAN mTLS/ACL acceptance passes again. Not an external
+or browser-login acceptance. Worker remains blocked on verified real certificate/
+topic bindings. SSH agent has no identities, vault has zero SSH key records,
+ROCK BatchMode denies access. Need one-time authenticated device bootstrap;
+do not invent device credentials, records or claim the worker is running.
+Use standalone docker-compose (docker compose plugin is unavailable here).
+
+Отменя API блокера по-долу: hash-овете на live кода съвпаднаха точно с parent
+на merged heartbeat commit; несвързаните модули са еднакви. Изграден този branch
+и пресъздаден САМО gridex-api със същия env, Mailgun/vault overlays и volumes.
+Dirty activation работата не е променена или внедрена. Image 14acc9c4a3ca;
+rollback gridex-api:before-heartbeat-20260919. API healthy; реалните PostgreSQL
+DeviceHeartbeats.list заявки минават, 0 записа. Forced-local trusted hostname:
+API без token 401, auth discovery 200; синтетичният LAN mTLS/ACL тест пак минава.
+Не е външен/browser-login тест. Worker чака проверени реални certificate/topic
+bindings. SSH agent няма ключове, vault има 0 SSH записа, ROCK отказва BatchMode.
+Нужно е еднократно удостоверено device bootstrap; без измислени credentials/
+данни и без твърдение, че worker работи. Ползвай standalone docker-compose.
+
+## Physical MQTT activation and data contract / Реален MQTT и договор — 2026-09-19
+
+Owner requested live deployment plus selectable sensor provisioning specification.
+Applied ONLY additive migration 007 using scripts/apply-heartbeat-storage.mjs:
+private full database pg_dump, readable archive listing, 8-column table verified,
+zero heartbeat rows. Restore rehearsal not performed. No fabricated observations.
+Current runtime API lacks device-heartbeats module; worker is not deployed.
+Runtime API source points at separate dirty activation worktree: reconcile first,
+do not replace that deployment wholesale with this branch and lose its changes.
+Registered controller/node counts verified (one each), not proof of connectivity.
+ROCK BatchMode SSH still denied; no authenticated upload/remote apply path exists
+in this session. Imported MQTT settings missing; preserve existing device keys.
+Next requires one-time authenticated device-side inspection of endpoint, public
+certificate issuer/CN/fingerprint, configured site/gateway/slot and binary version.
+Never request private key/password in chat. Then approve exact broker ACL/bindings,
+deploy worker/API, apply Edge config/build and verify real UI receipt end to end.
+Full source-based MQTT fields, frontend semantics, configurable sensor proposal,
+retention/security and acceptance ledger: docs/MQTT_DEVICE_DATA_SPEC.md.
+Validation: 30 backend tests pass (rerun with local sockets after sandbox EPERM);
+migration script syntax and git diff whitespace checks pass.
+
+Поискано е реално внедряване и спецификация за избираеми сензори. Приложена е
+САМО additive миграция 007 чрез scripts/apply-heartbeat-storage.mjs: частен пълен
+pg_dump backup, четим archive listing, проверена таблица с 8 колони и 0 heartbeat
+реда. Без restore репетиция и измислени наблюдения. Runtime API няма новия модул,
+worker не е внедрен. Runtime source е отделен dirty activation worktree: първо
+съпостави, не го подменяй изцяло с този branch. Има един controller и един node,
+но това не доказва връзка. ROCK BatchMode SSH отказва; няма удостоверен upload/
+apply път в сесията. Вносът няма MQTT настройки; пазят се клиентските ключове.
+Следва еднократна локална проверка на endpoint, публичен certificate issuer/CN/
+fingerprint, site/gateway/slot и binary версия. Без пароли/private keys в чата.
+После точни ACL/bindings, worker/API, Edge config/build и реален UI receipt.
+Полета, frontend правила, sensor provisioning, retention/security и acceptance:
+docs/MQTT_DEVICE_DATA_SPEC.md.
+Проверки: 30 backend теста минават (повторени с local sockets след sandbox EPERM);
+script syntax и git diff whitespace проверките минават.
+
+## MQTT LAN TCP ingress / MQTT LAN TCP вход — 2026-09-19
+
+Owner-authorized LAN-only 8883 passthrough deployed; existing broker/client keys
+and ACL retained, server certificate LAN SAN added using existing CA/key.
+Single backend env; user-login LaunchAgent; no Ethernet/router/VPN/HTTPS changes.
+6 relay tests and real synthetic mTLS/ACL acceptance pass. Physical ROCK session
+NOT observed; real certificate/topic binding absent from inspected lab inventory.
+Worker/migration/browser heartbeat remain pending. Normal-DNS public auth probe
+timed out; forced-local public TLS/route checks and local admin checks pass.
+Full deployment, limits, rollback and next gates: docs/MQTT_LAN_PROXY.md.
+
+Одобреният LAN TCP 8883 proxy е внедрен; broker/клиентски ключове и ACL запазени,
+добавен server LAN SAN със същите CA/key. Един backend env и user-login LaunchAgent;
+без Ethernet/router/VPN/HTTPS промени. 6 relay теста и синтетичен mTLS/ACL тест
+минават. Физическа ROCK сесия НЕ е наблюдавана; реалният certificate/topic binding
+липсва в проверения lab inventory. Worker/миграция/browser heartbeat предстоят.
+Public auth normal-DNS probe е timeout; forced-local TLS/routes и local admin
+проверките минават. Внедряване, rollback и следващи стъпки: docs/MQTT_LAN_PROXY.md.
+
+## Approved dual transport plan / Одобрен план за два транспорта — 2026-09-19
+
+Owner approval recorded for per-Site WireGuard-private OR direct MQTT-mTLS.
+Canonical execution checklist: backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md
+on branch docs/per-site-transport. Twelve TODO items cover contract, persistence,
+existing broker/worker, ingress, certificate lifecycle, first-boot claim, approved
+configuration application, UI, signed firmware, ROCK-initiated ESP OTA, fleet
+operations and end-to-end release acceptance. No new menu; no SSH requirement.
+This change is documentation only: no listener, runtime env, migration, device
+or router changed. Next: versioned transport contract, then persistence/worker.
+Heartbeat implementation is merged; physical delivery still needs acceptance.
+
+Записано е одобрение за избор по Обект: WireGuard-private ИЛИ direct MQTT-mTLS.
+Каноничният план е backend docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md в branch
+docs/per-site-transport. 12 TODO задачи: договор, база, broker/worker, входове,
+сертификати, first-boot claim, одобрено прилагане, UI, подписан firmware, ESP OTA
+от ROCK, управление на много обекти и end-to-end приемане. Без ново меню и SSH
+зависимост. Само документация: без listener/env/миграция/device/router промени.
+Следва versioned transport договор, после база/worker. Heartbeat кодът е слят;
+физическата доставка още изисква приемане.
+
 ## Device heartbeat integration / Heartbeat интеграция — 2026-09-19
 
 Implemented observation-only mTLS MQTT worker, additive migration 007 and
