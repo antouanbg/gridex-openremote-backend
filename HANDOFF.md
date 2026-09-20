@@ -2,6 +2,32 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Physical heartbeat receipt verified / Реален heartbeat потвърден — 2026-09-20
+
+Owner ran corrected activation helper and reported ROCK_MQTT_STARTED, with local
+rollback backup. Independent PostgreSQL checks now prove actual ROCK → LAN mTLS
+proxy → broker → worker → database delivery. At 06:10 UTC: ROCK observation/receipt
+06:10:41; ESP receipt 06:10:43, successful contact 06:10:42, heartbeat 14216.
+Second check: ROCK receipt 06:11:11; ESP receipt/contact 06:11:19, heartbeat 14289.
+Deployed API heartbeatStatuses returns online/sourceStatus online for both.
+Worker running, zero restarts, no recent rejection logs. No synthetic samples
+were submitted to the real inventory. These observations supersede no-receipt
+blockers below; they do NOT prove browser rendering, reboot/expiry recovery,
+long-duration soak, sensor-profile metrics or battery/vendor telemetry.
+Next: owner Devices UI acceptance, then controlled offline/reconnect tests.
+No Ethernet/VPN/ESP firmware/BESS control change in this verification.
+
+Собственикът изпълни поправения helper и получи ROCK_MQTT_STARTED с local backup.
+Независимите PostgreSQL проверки доказват ROCK → LAN mTLS proxy → broker → worker
+→ база. Първа проба 06:10 UTC: ROCK observation/receipt 06:10:41; ESP receipt
+06:10:43, успешен контакт 06:10:42, heartbeat 14216. Втора проба: ROCK receipt
+06:11:11; ESP receipt/contact 06:11:19, heartbeat 14289. Внедреният API изчислява
+online/sourceStatus online за двете. Worker работи без рестарти и скорошни откази.
+Без synthetic данни в реалния inventory. Това отменя старите no-receipt блокери,
+но не доказва browser rendering, reboot/expiry, soak, sensor-profile или battery
+измервания. Следват owner Devices UI и контролирани offline/reconnect проверки.
+Без Ethernet/VPN/ESP firmware/BESS промени в тази проверка.
+
 ## Activation gate parser fix / Поправка на проверката за заключване — 2026-09-20
 
 Owner's activation attempt stopped before backup/service/config mutation.

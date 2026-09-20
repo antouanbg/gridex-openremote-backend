@@ -1,5 +1,12 @@
 # CODEX_STATE.md
 
+2026-09-20 06:11 UTC: PHYSICAL MQTT RECEIPT VERIFIED. ROCK/ESP observations
+advance in PostgreSQL; ESP heartbeat 14216→14289. Deployed API reports both
+online, worker zero restarts. Browser and offline/reboot acceptance still pending.
+2026-09-20 06:11 UTC: РЕАЛЕН MQTT RECEIPT ПОТВЪРДЕН. ROCK/ESP пробите се обновяват
+в PostgreSQL; ESP heartbeat 14216→14289. API: двете online, worker 0 рестарта.
+Browser и offline/reboot приемането още предстоят.
+
 2026-09-20: real pilot certificate/topic bindings enrolled; heartbeat worker
 running/subscribed with zero restarts, no samples yet. Local ROCK activation
 helper prepared; execution/physical receipt pending. See newest HANDOFF.
