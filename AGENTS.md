@@ -1,5 +1,25 @@
 # GrideX OpenRemote backend — Working rules
 
+## Scoped public Manager exception / Ограничено изключение за публичен Manager — 2026-09-22
+
+Owner selected the existing public auth origin + `/manager/?realm=gridex` for
+external Manager access, sharing HTTPS 443 and its certificate, not a new `or`
+hostname. This supersedes the browser-to-GrideX-API-only restriction solely for
+authenticated Manager use and its reviewed required API/WebSocket paths.
+No catch-all upstream exposure; retain asset/realm permissions and block public
+master, Keycloak admin, health and metrics. Preserve local master/public gridex
+issuer separation and the mandatory auth regression gate. Follow HANDOFF's
+2026-09-22 implementation/acceptance checklist. Approval is not deployment.
+
+Собственикът избра текущия публичен auth адрес + `/manager/?realm=gridex` за
+външен Manager достъп със същите HTTPS 443 и сертификат, не нов `or` hostname.
+Това отменя ограничението browser само към GrideX API единствено за автентикиран
+Manager и проверените му необходими API/WebSocket маршрути. Без общо излагане
+на upstream; запази asset/realm правата и блокирай публични master, Keycloak
+admin, health и metrics. Пази local master/public gridex issuer разделението
+и задължителната auth проверка. Следвай списъка за реализация/приемане от
+2026-09-22 в HANDOFF. Одобрение не означава внедряване.
+
 ## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
 
 Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational

@@ -2,6 +2,140 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## External Manager activated; acceptance incomplete / Активиран Manager; непълно приемане — 2026-09-22
+
+EN — Scoped proxy and existing `openremote` browser-client callbacks are now
+APPLIED on the existing auth origin, `/manager/?realm=gridex`. No new DNS,
+certificate, container restart, role grants, Ethernet or VPN changes. Nginx
+configuration validation/reload passed; private rollback is under
+`private-backups/public-manager-V36M4o` (proxy and original client representation).
+Scripts: `deploy-public-manager.mjs` (inspect/apply), `public-manager-proxy.mjs`,
+`public-manager-client-inner.mjs`, `check-public-manager.mjs`.
+Generation is explicit; existing deployment scripts must not overwrite this
+runtime overlay with the old two-host template. Consolidating this overlay into
+the normal proxy renderer is still pending. The single backend env is the source
+of the existing public auth origin; no additional operator settings file.
+
+Initial REST surface is for viewing: asset queries/read, models, map reads,
+accessible realms and current-user info. Mutating REST operations are not enabled;
+this is not completion of remote provisioning/edit workflows. WebSocket retains
+OpenRemote authentication/permissions and enforces the exact public Origin.
+Two exact `/api/master/` bootstrap paths (`info`, `configuration/manager`) return
+synthetic public JSON from nginx, NEVER proxy to master; all other master paths
+remain denied. Synthetic version is pinned to 1.30.0: review on Manager upgrades.
+
+Evidence: 3 generator tests passed; nginx -t passed; forced-local trusted-TLS
+Manager HTML and bootstrap 200; fresh `openremote` callback accepted/password
+form 200; master/admin/health/metrics and realm/user-management paths 404;
+anonymous current-user and missing-Origin WebSocket denied. Mandatory auth gate
+passed all 3 local master checks. Its public normal-DNS checks FAILED from this
+Mac due to connection timeouts; Chrome public navigation also timed out.
+This does NOT establish either an external outage or external success.
+Next: external owner browser login, assets/telemetry/event-bus, refresh, logout,
+expiry/re-login and cross-owner denial; inspect actual browser network requests
+before extending the allowlist. Do not declare end-to-end acceptance yet.
+Run `node scripts/check-public-manager.mjs PRIVATE_ENV --local` for repeatable
+local ingress checks; omit --local for normal DNS (not necessarily external).
+
+BG — Ограниченият proxy и callbacks на съществуващия browser клиент `openremote`
+са ПРИЛОЖЕНИ към текущия auth адрес, `/manager/?realm=gridex`. Без нов DNS,
+сертификат, рестарт на контейнери, нови роли, Ethernet или VPN промени. Nginx
+валидацията/reload минаха; частният rollback е в
+`private-backups/public-manager-V36M4o` (proxy и оригиналният клиент).
+Скриптове: `deploy-public-manager.mjs` (inspect/apply), `public-manager-proxy.mjs`,
+`public-manager-client-inner.mjs`, `check-public-manager.mjs`.
+Генерирането е изрично; старите deployment скриптове не трябва да презаписват
+runtime добавката със стария two-host template. Обединяването с обичайния
+proxy renderer предстои. Текущият auth адрес се чете от единния backend env;
+няма допълнителен операторски файл с настройки.
+
+Първоначалните REST маршрути са за преглед: asset заявки/четене, модели, карти,
+достъпни realms и информация за текущия потребител. Променящите REST операции
+не са включени; това не завършва remote provisioning/edit процесите. WebSocket
+запазва OpenRemote автентикацията/правата и изисква точния публичен Origin.
+Два точни `/api/master/` bootstrap пътя (`info`, `configuration/manager`) връщат
+синтетичен публичен JSON от nginx, НИКОГА proxy към master; останалите master
+пътища са забранени. Синтетичната версия е 1.30.0: преглед при Manager upgrade.
+
+Доказателства: 3 generator теста и nginx -t минаха; forced-local trusted-TLS
+Manager HTML/bootstrap 200; callback `openremote` е приет с password форма 200;
+master/admin/health/metrics и realm/user-management пътища 404; анонимен current-
+user и WebSocket без Origin са отказани. Задължителната auth проверка мина
+трите local master теста. Публичните normal-DNS проверки от Mac се ПРОВАЛИХА
+с connection timeout; Chrome публичната навигация също изтече. Това НЕ доказва
+нито външен отказ, нито външен успех.
+Следват: реален външен owner browser вход, assets/телеметрия/event-bus, refresh,
+изход, expiry/нов вход и отказ за чужд собственик; проверка на browser мрежовите
+заявки преди разширяване на allowlist. End-to-end приемането още не е доказано.
+Повторима локална проверка: `node scripts/check-public-manager.mjs PRIVATE_ENV --local`;
+без --local се използва normal DNS (не непременно външен достъп).
+
+## Approved external Manager approach / Одобрен външен Manager достъп — 2026-09-22
+
+EN — DECISION RECORDED; NOT DEPLOYED. Use the existing public authentication
+origin with `/manager/?realm=gridex`, sharing its trusted certificate and HTTPS
+port 443. This replaces the proposed separate `or` subdomain; do not request a
+new DNS record or certificate solely for Manager. Resolve the actual hostname
+from the single private backend env; no additional operator configuration file.
+Keep `/auth/` on Keycloak. Route Manager static resources and only its required,
+reviewed realm-scoped API/WebSocket paths to OpenRemote through the proxy.
+This is a scoped exception to the older browser-to-GrideX-API-only rule, not
+permission for a catch-all OpenRemote proxy. Preserve authenticated user/asset
+permissions, the public gridex issuer and local master administration. Master,
+Keycloak admin, health, metrics, databases and other management services remain
+non-public. No Ethernet, router, VPN or menu changes are required by this decision.
+
+Pending implementation and acceptance:
+
+1. Inspect Manager 1.30.0 resource/API/event-bus paths and client settings;
+   establish a minimal allowlist with all other paths denied.
+2. Back up current proxy/OIDC settings; render from the single backend env,
+   preserve dynamic Docker DNS and add WebSocket forwarding. Validate before
+   reload and retain a tested rollback path.
+3. Configure only the required Manager client redirect URIs/web origins; preserve
+   existing portal callbacks, local access and strict issuer/TLS validation.
+4. Run `scripts/check-auth-routing.mjs` and route-denial tests. Test real external
+   browser login, refresh, logout, expiry/re-login, event-bus reconnect and
+   authorized asset visibility/cross-owner denial. A local probe or HTTP 200
+   is not external acceptance. Record results and deployment revision here.
+
+Current blocker: proxy/client changes and the above tests have not been performed.
+Next action: inspect the pinned Manager routes and prepare the scoped proxy change.
+This entry changes documentation only; the proposed URL is not yet a live service.
+
+BG — РЕШЕНИЕТО Е ЗАПИСАНО; НЕ Е ВНЕДРЕНО. Използваме съществуващия публичен
+auth адрес с `/manager/?realm=gridex`, неговия доверен сертификат и HTTPS порт
+443. Това заменя предложението за отделен `or` поддомейн; не се изисква нов DNS
+запис или сертификат само за Manager. Реалният hostname се чете от единния
+частен backend env, без допълнителен операторски конфигурационен файл.
+`/auth/` остава към Keycloak. Статичните Manager ресурси и само необходимите,
+проверени realm-scoped API/WebSocket маршрути минават през proxy към OpenRemote.
+Това е ограничено изключение от старото правило browser само към GrideX API,
+не разрешение за общ proxy към всички OpenRemote маршрути. Запазват се правата
+на потребителя по assets, публичният gridex issuer и локалната master
+администрация. Master, Keycloak admin, health, metrics, базите и останалите
+административни услуги остават непублични. Решението не изисква Ethernet,
+рутер, VPN или меню промени.
+
+Предстояща реализация и приемане:
+
+1. Проверка на ресурсите/API/event-bus маршрутите и клиентските настройки на
+   Manager 1.30.0; минимален списък с разрешени пътища, всички останали забранени.
+2. Backup на proxy/OIDC настройките; генериране от единния backend env,
+   запазен динамичен Docker DNS и WebSocket forwarding. Проверка преди reload
+   и изпитан начин за връщане назад.
+3. Само необходимите redirect URI/web origins за Manager клиента; запазени
+   portal callbacks, локален достъп и строги issuer/TLS проверки.
+4. `scripts/check-auth-routing.mjs` и тестове на забранените маршрути. Реален
+   външен browser вход, refresh, изход, изтичане/повторен вход, event-bus
+   reconnect и видимост на разрешените assets/отказ за чужд собственик.
+   Локална проба или HTTP 200 не доказват външно приемане. Резултатите и
+   внедрената ревизия се записват тук.
+
+Текущ блокер: proxy/client промените и тестовете още не са изпълнени.
+Следва: проверка на маршрутите на pinned Manager и подготовка на ограничения proxy.
+Този запис променя само документация; предложеният URL още не е активна услуга.
+
 ## Publication confirmed / Публикация потвърдена — 2026-09-20
 
 Owner approved PR #40 merge; merged as bdefa64c283d37ba25f500d191af2ecfb52ea7d2.

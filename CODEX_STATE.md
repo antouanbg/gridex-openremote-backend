@@ -1,5 +1,41 @@
 # CODEX_STATE.md
 
+## External Manager runtime update / Runtime външен Manager — 2026-09-22
+
+Scoped public-auth `/manager/` proxy + existing openremote client callbacks
+applied; rollback public-manager-V36M4o. Read-oriented REST surface, no new roles.
+Three generator tests/local TLS route tests/local master gate pass. Public DNS
+from Mac and Chrome time out; external owner login/assets/WebSocket/session and
+cross-owner acceptance PENDING. Two synthetic master bootstrap JSON responses
+are not master upstream exposure. Preserve runtime overlay during future proxy
+deployment; integration into normal renderer pending. See newest HANDOFF entry.
+
+Приложени са ограниченият public-auth `/manager/` proxy и callbacks за openremote;
+rollback public-manager-V36M4o. REST за преглед, без нови роли. Трите generator
+теста/local TLS маршрути/local master проверка минаха. Public DNS от Mac/Chrome
+изтича; външен owner вход/assets/WebSocket/session и cross-owner приемане
+ПРЕДСТОЯТ. Двата синтетични master bootstrap JSON не излагат master upstream.
+Пази runtime добавката при бъдещ proxy deployment; интеграцията с нормалния
+renderer предстои. Виж най-новия HANDOFF запис.
+
+## External Manager decision / Решение за външен Manager — 2026-09-22
+
+Approved: existing public auth origin + `/manager/?realm=gridex`, existing
+certificate/443; replaces the separate `or` hostname proposal. Documentation only,
+not deployed/tested. Next: inspect Manager paths, prepare a minimal proxy allowlist
+and scoped OIDC callbacks, then security and real external browser acceptance.
+Preserve local master, public gridex issuer, asset permissions and private admin/
+health/metrics. See the dated external Manager entry in HANDOFF.md; do not mark
+the URL active or introduce a new DNS/certificate requirement for this approach.
+
+Одобрено: текущият публичен auth адрес + `/manager/?realm=gridex`, съществуващи
+сертификат/443; заменя предложението за отделен `or` hostname. Само документация,
+без внедряване/тестове. Следват проверка на Manager маршрутите, минимален proxy
+allowlist и ограничени OIDC callbacks, security и реално външно browser приемане.
+Пази local master, public gridex issuer, asset правата и непубличните admin/
+health/metrics. Виж записа за външен Manager в HANDOFF.md; не обявявай URL за
+активен и не въвеждай ново изискване за DNS/сертификат за този подход.
+
 ## Publication confirmed / Публикация потвърдена — 2026-09-20
 
 Owner approved PR #40 merge; merged as bdefa64c283d37ba25f500d191af2ecfb52ea7d2.
