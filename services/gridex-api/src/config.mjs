@@ -11,6 +11,16 @@ export function loadConfig(env = process.env) {
   const realm = env.OPENREMOTE_REALM || "gridex";
   const oidcIssuer = (env.OIDC_ISSUER || `${openRemoteBaseUrl}/auth/realms/${realm}`).replace(/\/$/, "");
   const oidcAudience = env.OIDC_AUDIENCE || "gridex-portal";
+  let historyBindings = [];
+  if (env.GRIDEX_HISTORY_BINDINGS) {
+    try {
+      const parsed = JSON.parse(env.GRIDEX_HISTORY_BINDINGS);
+      if (!Array.isArray(parsed)) throw new Error('must be an array');
+      historyBindings = parsed;
+    } catch (error) {
+      throw new Error(`Invalid GRIDEX_HISTORY_BINDINGS: ${error.message}`);
+    }
+  }
   return {
     port: integer(env.PORT, 8080),
     heartbeatStaleMs: integer(env.GRIDEX_HEARTBEAT_STALE_SECONDS, 30) * 1000,
@@ -46,6 +56,8 @@ export function loadConfig(env = process.env) {
       .split(",").map((value) => value.trim()).filter(Boolean)),
     snapshotRefreshMs: integer(env.GRIDEX_SNAPSHOT_REFRESH_MS, 5000),
     maximumBodyBytes: integer(env.GRIDEX_MAXIMUM_BODY_BYTES, 131072),
+    historyBindings,
+    historyMaximumRangeMs: integer(env.GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS, 744) * 60 * 60 * 1000,
   };
 }
 

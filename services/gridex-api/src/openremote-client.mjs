@@ -113,4 +113,13 @@ export class OpenRemoteClient {
   async writeManagedAttribute(assetId, attributeName, value) {
     return this.writeAttribute(assetId, attributeName, value, await this.getServiceToken());
   }
+
+  async getDatapoints(assetId, attributeName, { fromTimestamp, toTimestamp } = {}) {
+    const query = {};
+    if (Number.isFinite(fromTimestamp)) query.fromTimestamp = fromTimestamp;
+    if (Number.isFinite(toTimestamp)) query.toTimestamp = toTimestamp;
+    return this.request(`/asset/datapoint/${encodeURIComponent(assetId)}/${encodeURIComponent(attributeName)}`, {
+      token: await this.getServiceToken(), method: "POST", body: query,
+    });
+  }
 }

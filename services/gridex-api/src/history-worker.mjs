@@ -3,9 +3,10 @@ import {connect} from 'mqtt';
 import {loadConfig} from './config.mjs';
 import {createRepository} from './repository.mjs';
 import {OpenRemoteClient} from './openremote-client.mjs';
-import {validateHistoryBindings,parseTemperature,enqueueMeasurement} from './history-ingest.mjs';
+import {validateHistoryBindings,parseTemperature,parseSystemTelemetry,enqueueMeasurement} from './history-ingest.mjs';
 const env=process.env,bindings=validateHistoryBindings(JSON.parse(env.GRIDEX_HISTORY_BINDINGS||'[]'));
-const topics=new Map(bindings.map(b=>[b.topic,b]));
+const topics=new Map();
+for(const b of bindings)topics.set(b.topic,[...(topics.get(b.topic)||[]),b]);
 if(!env.GRIDEX_MQTT_URL?.startsWith('mqtts://'))throw Error('MQTT TLS required');
 const config=loadConfig(),repo=createRepository(config),remote=new OpenRemoteClient(config);
 await repo.pool.query('SELECT 1 FROM history_outbox LIMIT 0');
@@ -17,10 +18,13 @@ client.on('error',()=>console.error('History MQTT unavailable'));
 // Deliberately reject retained health snapshots; never replay them as new measurements.
 let pending=0;
 client.on('message',async(topic,buffer,packet)=>{
- const b=topics.get(topic);if(!b)return;
+ const topicBindings=topics.get(topic);if(!topicBindings)return;
  if(pending>=32){console.error('History ingestion overloaded; observation not queued');return;}
  pending++;
- try{await enqueueMeasurement(repo.pool,parseTemperature(topic,buffer,b,{retained:packet.retain}));}
+ try{
+  const samples=topic.endsWith('/system/telemetry')?parseSystemTelemetry(topic,buffer,topicBindings,{retained:packet.retain}):topicBindings.map(b=>parseTemperature(topic,buffer,b,{retained:packet.retain})).filter(Boolean);
+  for(const sample of samples)await enqueueMeasurement(repo.pool,sample);
+ }
  catch{console.error('History persistence unavailable; observation not queued');}
  finally{pending--;}
 });
