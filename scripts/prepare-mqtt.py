@@ -80,10 +80,20 @@ for site in sites:
 acl = ['user broker-health', 'topic read $SYS/broker/uptime', '', 'user backend-reader']
 for site in sites:
     prefix = f"gridex/v1/sites/{site['site']}/edge/{site['gateway']}"
-    acl += [f'topic read {prefix}/health', f'topic read {prefix}/nodes/+/telemetry']
+    acl += [
+        f'topic read {prefix}/health',
+        f'topic read {prefix}/nodes/+/telemetry',
+        f'topic read {prefix}/system/telemetry',
+    ]
 for site in sites:
     prefix = f"gridex/v1/sites/{site['site']}/edge/{site['gateway']}"
-    acl += ['', f"user {site['identity']}", f'topic write {prefix}/health', f'topic write {prefix}/nodes/+/telemetry']
+    acl += [
+        '',
+        f"user {site['identity']}",
+        f'topic write {prefix}/health',
+        f'topic write {prefix}/nodes/+/telemetry',
+        f'topic write {prefix}/system/telemetry',
+    ]
 (target / 'config' / 'access.acl').write_text('\n'.join(acl) + '\n')
 shutil.copy2(source / 'services/mqtt/mosquitto.conf', target / 'config/mosquitto.conf')
 shutil.copy2(source / 'compose.mqtt.yml', target / 'compose.mqtt.yml')
