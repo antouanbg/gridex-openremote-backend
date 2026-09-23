@@ -1,0 +1,5 @@
+import fs from 'node:fs'; import {parseEnv} from 'node:util'; import {spawnSync} from 'node:child_process';
+const [envFile]=process.argv.slice(2); if(!envFile) throw Error('Usage PRIVATE_ENV');
+const env=parseEnv(fs.readFileSync(envFile,'utf8'));
+const source=`const p=${JSON.stringify(env.OR_ADMIN_PASSWORD)};const kc='http://keycloak:8080/auth';const t=await (await fetch(kc+'/realms/master/protocol/openid-connect/token',{method:'POST',body:new URLSearchParams({grant_type:'password',client_id:'admin-cli',username:'admin',password:p})})).json();const h={Authorization:'Bearer '+t.access_token};const all=await (await fetch(kc+'/admin/realms/gridex/clients?search=gridex-telemetry-setup',{headers:h})).json();const cs=all.filter(c=>c.clientId.startsWith('gridex-telemetry-setup-'));for(const c of cs){await fetch(kc+'/admin/realms/gridex/clients/'+c.id,{method:'DELETE',headers:h});}console.log('removed='+cs.length);`;
+const r=spawnSync('docker',['--context','colima-gridex','exec','-i','gridex-mac-gridex-api-1','node','--input-type=module','-e',source],{encoding:'utf8'});if(r.status!==0)throw Error(r.stderr);console.log(r.stdout.trim());
