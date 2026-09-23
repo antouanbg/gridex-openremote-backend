@@ -1,5 +1,26 @@
 # Handoff — GrideX OpenRemote backend
 
+## ROCK system telemetry prepared / Подготвена системна телеметрия — 2026-09-23
+
+The implementation is staged across backend, edge and frontend branches. The
+backend accepts only configured per-Site MQTT `/system/telemetry` bindings with
+metric/unit/range/timestamp/gateway validation, deduplicates through the existing
+outbox and reads history from OpenRemote's datapoint API after owner permission
+checks. The edge image has read-only Linux collectors for CPU temperature,
+uptime, load1, memory available, data free space and journal size; publishing is
+off by default in the example env. Devices now displays the latest values without
+Grafana. No live ROCK deployment or control/MODBUS/Ethernet change was made in
+this preparation; physical activation requires approved OpenRemote bindings and
+the existing commissioning acknowledgement.
+
+Реализацията е подготвена в backend, edge и frontend. Backend приема само
+конфигурирани за Обекта MQTT `/system/telemetry` binding-и и валидира метрика,
+единица, граници, време и gateway; съществуващият outbox записва към OpenRemote,
+а history API проверява правата. Edge image има read-only Linux четене на CPU
+температура, uptime, load1, RAM, свободно място и journal; примерният env е
+изключен до одобрено провизиране. Устройства показва последните стойности без
+Grafana. Няма live deployment или промяна на control/MODBUS/Ethernet.
+
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## External Manager activated; acceptance incomplete / Активиран Manager; непълно приемане — 2026-09-22

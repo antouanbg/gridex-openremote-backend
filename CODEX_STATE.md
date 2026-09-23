@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## ROCK system telemetry implementation prepared / Подготвена системна телеметрия — 2026-09-23
+
+Backend now validates an allowlisted `/system/telemetry` MQTT contract, relays
+accepted samples through the durable outbox to OpenRemote datapoints, and exposes
+authorized `GET /api/v1/sites/{siteId}/history` for the Devices UI. ROCK Pi image
+code can publish CPU temperature, uptime, load1, available memory, data free
+space and journal size; it is gated by `GRIDEX_SYSTEM_TELEMETRY_ENABLED=0` in the
+example configuration and does not change control/MODBUS or Ethernet. Frontend
+Devices shows the latest OpenRemote-recorded values without Grafana. Physical
+activation, asset bindings and real-data acceptance remain a deployment gate.
+
+Подготвена е allowlist MQTT `/system/telemetry`, устойчив relay към OpenRemote
+datapoints и защитен history API за „Устройства“. ROCK Pi може да изпраща CPU
+температура, uptime, load1, свободна RAM, свободно пространство и journal size;
+примерът е изключен до провизиране и не променя control/MODBUS/Ethernet. GrideX
+показва последните записани стойности без Grafana. Физическото включване,
+binding-ите и приемането с реални данни остават deployment gate.
+
 ## External Manager runtime update / Runtime външен Manager — 2026-09-22
 
 Scoped public-auth `/manager/` proxy + existing openremote client callbacks
