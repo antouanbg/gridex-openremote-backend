@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## ROCK live history status / Статус на реалната история — 2026-09-24
+
+Five physical ROCK system metrics are reaching the existing OpenRemote
+Timescale datapoint table through MQTT and the backend outbox; repeated
+read-only counts increased from 15 to 24 each. Missing restricted history-
+writer links on five new OpenRemote Assets caused 403 retries; repaired via
+OpenRemote API with validated private backup `rock-history-writer-OSimep`.
+Provisioning now verifies/grants those links and preserves other Sites'
+bindings. CPU temperature has no live datapoints yet. External authenticated
+Devices UI and longer runtime stability are unverified. See HANDOFF top entry.
+
+Пет реални ROCK системни показателя вече стигат до OpenRemote Timescale през
+MQTT и backend outbox; броят им нарасна от 15 до 24. Липсващите връзки на пет
+Assets към ограничения writer причиняваха 403; поправени през OpenRemote API
+с проверен частен backup `rock-history-writer-OSimep`. Provisioning вече ги
+проверява и пази binding-ите на другите Обекти. CPU температура още няма
+реални записи. Външният потребителски UI и дълга стабилност не са потвърдени.
+
 ## ROCK system telemetry implementation prepared / Подготвена системна телеметрия — 2026-09-23
 
 Backend now validates an allowlisted `/system/telemetry` MQTT contract, relays

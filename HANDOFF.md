@@ -1,5 +1,43 @@
 # Handoff — GrideX OpenRemote backend
 
+## ROCK system telemetry live path / Реален път на телеметрията — 2026-09-24
+
+Physical ROCK activation reported `ROCK_SYSTEM_TELEMETRY_ACTIVE` with one
+MQTT connection and one local publish during its bounded acceptance check.
+The existing broker was reloaded in place to apply its topic ACL; no Ethernet,
+VPN, MODBUS/control or proxy setting was changed. The six system metric Assets
+were provisioned in OpenRemote, but five newly created Assets lacked the
+restricted history-writer service-user link. This produced HTTP 403 and a
+retrying outbox even though MQTT ingestion worked. An idempotent OpenRemote API
+reconciliation added exactly five missing links, preserving the writer's
+`restricted_user` and attribute-only write scope; a validated private OpenRemote
+DB backup is in `private-backups/rock-history-writer-OSimep`. All observed
+queued rows drained. Read-only Timescale checks showed growing datapoint counts
+for uptime, load1, available RAM, data free space and journal size (15 to 24
+per metric during checks). This proves ROCK → MQTT → backend → OpenRemote
+Timescale for those five metrics, not external browser rendering. CPU
+temperature remains absent; check the ROCK sensor/config before claiming it.
+The normal provisioning script now grants/verifies the restricted writer link
+and preserves other Sites' bindings. The standalone reconciliation script is
+for backed-up recovery only. Still required: longer stability window, CPU
+sensor diagnosis, authenticated owner Devices UI acceptance, and cross-owner
+denial. Do not report all six metrics or UI as completed.
+
+Физическото включване на ROCK върна `ROCK_SYSTEM_TELEMETRY_ACTIVE` с MQTT връзка
+и локално публикуване. Broker ACL бе презареден без рестарт; без Ethernet,
+VPN, MODBUS/control или proxy промени. Шестте системни Assets са в OpenRemote,
+но пет нови нямаха връзка към ограничения history writer. Това причиняваше
+HTTP 403 и повторения в outbox въпреки успешния MQTT прием. През OpenRemote API
+са добавени точно петте липсващи връзки, без нови права; проверен частен backup:
+`private-backups/rock-history-writer-OSimep`. Чакащите редове се доставиха;
+реалните Timescale datapoints за uptime, load1, свободна RAM, свободно място
+и journal size нараснаха от 15 до 24 за всеки показател. Това доказва пътя
+ROCK → MQTT → backend → Timescale за тези пет, но не доказва външния UI.
+CPU температура още липсва и изисква проверка на сензор/настройка в ROCK.
+Обичайният provisioning вече проверява връзката към writer и не премахва
+binding-и на други Обекти. Остават по-дълъг stability тест, CPU диагностика,
+потребителска проверка на „Устройства“ и отказ за чужд собственик.
+
 ## ROCK system telemetry prepared / Подготвена системна телеметрия — 2026-09-23
 
 The implementation is staged across backend, edge and frontend branches. The

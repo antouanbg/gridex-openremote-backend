@@ -1,5 +1,23 @@
 # GrideX OpenRemote backend — Working rules
 
+## Telemetry provisioning completion gate / Проверка за завършено провизиране
+
+For each newly provisioned OpenRemote telemetry Asset, verify both the owner's
+asset link and the existing restricted history-writer service user's asset link.
+The writer keeps `restricted_user`, `read:assets` and `write:attributes`; never
+grant it `write:assets` or broad admin rights to cure delivery errors. Check
+MQTT receipt, outbox drain and actual OpenRemote Timescale datapoints before
+claiming live history. A successful ROCK publish alone is insufficient. Preserve
+other Sites' bindings when updating one gateway; keep control/commissioning
+locks. Record missing sensors and external UI acceptance separately.
+
+За всеки нов OpenRemote Asset за телеметрия проверявай връзката към собственика
+и към съществуващия ограничен history writer. Не разширявай правата му до
+`write:assets` или admin заради грешка при доставка. Доказвай MQTT, изпразнена
+опашка и реални Timescale записи, преди да обявиш историята за активна. Успешен
+ROCK publish не е достатъчен. Пази binding-ите на другите Обекти и control
+locks; липсващите сензори и външното UI приемане остават отделни проверки.
+
 ## Scoped public Manager exception / Ограничено изключение за публичен Manager — 2026-09-22
 
 Owner selected the existing public auth origin + `/manager/?realm=gridex` for
