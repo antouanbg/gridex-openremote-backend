@@ -10,6 +10,7 @@ export function validateHistoryBindings(input){
  for(const b of input){
   if(!uuid.test(b.siteId)||!uuid.test(b.gatewayId)||!/^[A-Za-z0-9]{22}$/.test(b.assetId)
    ||typeof b.topic!=='string'||/[+#\s]/.test(b.topic)||(!b.topic.endsWith('/health')&&!b.topic.endsWith('/system/telemetry'))
+   ||(b.topic.endsWith('/health')&&b.metric!=='cpuTemperatureC')
    ||!b.sourceGateway||!ROCK_METRICS[b.metric]||seen.has(`${b.topic}|${b.metric}`))throw Error('Invalid history binding');
   seen.add(`${b.topic}|${b.metric}`);
  }
