@@ -4,19 +4,20 @@
 
 Scoped public-auth `/manager/` proxy + existing openremote client callbacks
 applied; rollback public-manager-V36M4o. Read-oriented REST surface, no new roles.
-Three generator tests/local TLS route tests/local master gate pass. Public DNS
-from Mac and Chrome time out; external owner login/assets/WebSocket/session and
-cross-owner acceptance PENDING. Two synthetic master bootstrap JSON responses
+Three generator tests/local TLS route tests/local master gate pass. The canonical
+nginx template now retains the Manager surface for future deployments. Owner
+confirmed external Manager works; authenticated assets/WebSocket/session and
+cross-owner evidence remain separate acceptance work. Two synthetic master bootstrap JSON responses
 are not master upstream exposure. Preserve runtime overlay during future proxy
 deployment; integration into normal renderer pending. See newest HANDOFF entry.
 
 Приложени са ограниченият public-auth `/manager/` proxy и callbacks за openremote;
 rollback public-manager-V36M4o. REST за преглед, без нови роли. Трите generator
-теста/local TLS маршрути/local master проверка минаха. Public DNS от Mac/Chrome
-изтича; външен owner вход/assets/WebSocket/session и cross-owner приемане
-ПРЕДСТОЯТ. Двата синтетични master bootstrap JSON не излагат master upstream.
-Пази runtime добавката при бъдещ proxy deployment; интеграцията с нормалния
-renderer предстои. Виж най-новия HANDOFF запис.
+теста/local TLS маршрути/local master проверка минаха. Каноничният nginx template
+вече запазва Manager повърхността при бъдещи deployments. Собственикът потвърди,
+че външният Manager работи; отделните assets/WebSocket/session и cross-owner
+доказателства предстоят. Двата синтетични master bootstrap JSON не излагат
+master upstream. Виж най-новия HANDOFF запис.
 
 ## External Manager decision / Решение за външен Manager — 2026-09-22
 

@@ -11,9 +11,9 @@ configuration validation/reload passed; private rollback is under
 `private-backups/public-manager-V36M4o` (proxy and original client representation).
 Scripts: `deploy-public-manager.mjs` (inspect/apply), `public-manager-proxy.mjs`,
 `public-manager-client-inner.mjs`, `check-public-manager.mjs`.
-Generation is explicit; existing deployment scripts must not overwrite this
-runtime overlay with the old two-host template. Consolidating this overlay into
-the normal proxy renderer is still pending. The single backend env is the source
+Generation is explicit; the canonical `deploy/public-https/nginx.conf.template`
+now includes the same scoped Manager routes, so future rendering preserves the
+runtime surface. The single backend env is the source
 of the existing public auth origin; no additional operator settings file.
 
 Initial REST surface is for viewing: asset queries/read, models, map reads,
@@ -31,9 +31,11 @@ anonymous current-user and missing-Origin WebSocket denied. Mandatory auth gate
 passed all 3 local master checks. Its public normal-DNS checks FAILED from this
 Mac due to connection timeouts; Chrome public navigation also timed out.
 This does NOT establish either an external outage or external success.
-Next: external owner browser login, assets/telemetry/event-bus, refresh, logout,
-expiry/re-login and cross-owner denial; inspect actual browser network requests
-before extending the allowlist. Do not declare end-to-end acceptance yet.
+Owner subsequently confirmed that the external Manager works. Remaining acceptance
+is the separate authenticated asset/telemetry/event-bus, refresh, logout,
+expiry/re-login and cross-owner-denial evidence; inspect actual browser network
+requests before extending the allowlist. Do not treat the route smoke test as
+proof of those separate workflows.
 Run `node scripts/check-public-manager.mjs PRIVATE_ENV --local` for repeatable
 local ingress checks; omit --local for normal DNS (not necessarily external).
 
@@ -44,9 +46,9 @@ BG — Ограниченият proxy и callbacks на съществуващи
 `private-backups/public-manager-V36M4o` (proxy и оригиналният клиент).
 Скриптове: `deploy-public-manager.mjs` (inspect/apply), `public-manager-proxy.mjs`,
 `public-manager-client-inner.mjs`, `check-public-manager.mjs`.
-Генерирането е изрично; старите deployment скриптове не трябва да презаписват
-runtime добавката със стария two-host template. Обединяването с обичайния
-proxy renderer предстои. Текущият auth адрес се чете от единния backend env;
+Генерирането е изрично; каноничният `deploy/public-https/nginx.conf.template`
+вече съдържа същите ограничения за Manager и бъдещото генериране ги запазва.
+Текущият auth адрес се чете от единния backend env;
 няма допълнителен операторски файл с настройки.
 
 Първоначалните REST маршрути са за преглед: asset заявки/четене, модели, карти,
@@ -64,9 +66,10 @@ user и WebSocket без Origin са отказани. Задължителна�
 трите local master теста. Публичните normal-DNS проверки от Mac се ПРОВАЛИХА
 с connection timeout; Chrome публичната навигация също изтече. Това НЕ доказва
 нито външен отказ, нито външен успех.
-Следват: реален външен owner browser вход, assets/телеметрия/event-bus, refresh,
-изход, expiry/нов вход и отказ за чужд собственик; проверка на browser мрежовите
-заявки преди разширяване на allowlist. End-to-end приемането още не е доказано.
+Собственикът потвърди, че външният Manager работи. Остават отделните доказателства
+за автентикирани assets/телеметрия/event-bus, refresh, изход, expiry/нов вход и
+отказ за чужд собственик; преди разширяване на allowlist провери реалните
+browser мрежови заявки. Smoke тестът на маршрута не доказва тези процеси.
 Повторима локална проверка: `node scripts/check-public-manager.mjs PRIVATE_ENV --local`;
 без --local се използва normal DNS (не непременно външен достъп).
 
