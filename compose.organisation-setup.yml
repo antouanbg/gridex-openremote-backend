@@ -1,0 +1,9 @@
+# Opt-in only after the dedicated master setup client and realm acceptance are
+# verified. All values come from the single private backend .env.
+services:
+  gridex-api:
+    environment:
+      GRIDEX_REALM_SETUP_ENABLED: 'true'
+      GRIDEX_REALM_SETUP_CLIENT_ID: ${GRIDEX_REALM_SETUP_CLIENT_ID:-gridex-realm-setup}
+      GRIDEX_REALM_SETUP_CLIENT_SECRET: ${GRIDEX_REALM_SETUP_CLIENT_SECRET:?required}
+      GRIDEX_PORTAL_ORIGIN: ${GRIDEX_PORTAL_ORIGIN:?required}

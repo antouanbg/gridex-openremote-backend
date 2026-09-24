@@ -11,6 +11,13 @@ export function loadConfig(env = process.env) {
   const realm = env.OPENREMOTE_REALM || "gridex";
   const oidcIssuer = (env.OIDC_ISSUER || `${openRemoteBaseUrl}/auth/realms/${realm}`).replace(/\/$/, "");
   const oidcAudience = env.OIDC_AUDIENCE || "gridex-portal";
+  const realmSetupEnabled = env.GRIDEX_REALM_SETUP_ENABLED === 'true';
+  const platformAdminSubjects = new Set((env.GRIDEX_PLATFORM_ADMIN_SUBJECTS || '')
+    .split(',').map(value => value.trim()).filter(Boolean));
+  for (const subject of platformAdminSubjects) {
+    if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(subject))
+      throw new Error('GRIDEX_PLATFORM_ADMIN_SUBJECTS must contain Keycloak subject UUIDs, never email addresses');
+  }
   let historyBindings = [];
   if (env.GRIDEX_HISTORY_BINDINGS) {
     try {
@@ -36,6 +43,13 @@ export function loadConfig(env = process.env) {
     oidcTokenEndpoint: env.OIDC_TOKEN_ENDPOINT || `${oidcIssuer}/protocol/openid-connect/token`,
     oidcJwksUri: env.OIDC_JWKS_URI || `${oidcIssuer}/protocol/openid-connect/certs`,
     oidcAudience,
+    realmSetupEnabled,
+    realmSetupClientId: env.GRIDEX_REALM_SETUP_CLIENT_ID || 'gridex-realm-setup',
+    realmSetupClientSecret: env.GRIDEX_REALM_SETUP_CLIENT_SECRET || '',
+    realmSetupTokenUrl: env.GRIDEX_REALM_SETUP_TOKEN_URL || 'http://keycloak:8080/auth/realms/master/protocol/openid-connect/token',
+    realmSetupAdminBaseUrl: env.GRIDEX_REALM_SETUP_ADMIN_URL || 'http://keycloak:8080/auth/admin/realms',
+    portalOrigin: env.GRIDEX_PORTAL_ORIGIN || '',
+    platformAdminSubjects,
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
@@ -66,6 +80,10 @@ export function validateProductionConfig(config) {
   if (config.enrollmentEnabled && (!config.enrollmentClientSecret || !config.enrollmentAdminUrl
     || !config.allowedOrigins.has(new URL(config.enrollmentRedirectUri).origin))) {
     throw new Error('Enrollment requires a dedicated client secret, admin URL and allowed callback origin');
+  }
+  if (config.realmSetupEnabled && (!config.realmSetupClientSecret || !config.portalOrigin
+      || !config.allowedOrigins.has(config.portalOrigin))) {
+    throw new Error('Realm setup requires dedicated master credentials and an allowed portal origin');
   }
   if (!config.database && !config.allowMemoryDatabase) {
     throw new Error("GrideX PostgreSQL settings are required unless GRIDEX_ALLOW_MEMORY_DB=true");

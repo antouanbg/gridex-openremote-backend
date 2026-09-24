@@ -1,5 +1,66 @@
 # CODEX_STATE.md
 
+## Verified existing owner and mail / Проверен собственик и поща — 2026-09-24
+
+Live read-only check: `antouan.bg@gmail.com`, subject
+`1a8189f6-8af2-44b9-b96c-d54571661a3c`, is administrator with all-Site scope of
+active GrideX organisation `eb5bea88-c06b-44f3-8e03-178fee59cab3`, realm `gridex`.
+Phase2 history confirms the existing Test Lab/ROCK/ESP ownership. Keep it.
+The live Keycloak uses Mailgun REST provider with configured support BCC.
+The previous SMTP/BCC blocker was incorrect and is removed from code.
+Additional platform permission and multi-realm deployment remain pending.
+
+Живата проверка потвърди съществуващата активна организация GrideX и ролята
+administrator на собственика с всички Обекти. Историята от Phase2 потвърждава
+Test Lab/ROCK/ESP. Не се създава нов owner акаунт или организация. Keycloak
+вече изпраща през Mailgun API с BCC; предишното SMTP изискване е грешно и е
+премахнато. Допълнителното глобално право и внедряването още предстоят.
+
+## Separate-realm onboarding staged / Подготвено провизиране по realm — 2026-09-24
+
+BG: Глобалният администратор остава в пилотния `gridex`. Backend добавя
+opt-in поток за отделен OpenRemote realm, идентичност, покана и приемане;
+миграция 012 е само за състоянието на процеса. Няма реално прилагане,
+включване, имейл или нова организация. Изискват се
+dedicated master client и активиране на проверения owner subject,
+backup/миграция и реални тестове; `OpenRemoteClient` още няма per-realm Asset
+service access. Не обявявай production готовност.
+
+EN: Platform admin remains in pilot `gridex`. Opt-in backend flow stages
+separate OpenRemote realm, identity, invitation and acceptance; migration 012
+stores only workflow state. No live activation, mail or organisation yet.
+Dedicated master client, verified owner subject activation,
+backup/migration and real tests remain; managed Asset
+access is still pilot-realm-only. Do not claim production readiness.
+
+## Owner realm decision / Решение за realm — 2026-09-24
+
+BG: Одобрен е ОТДЕЛЕН OpenRemote realm за всяка клиентска организация;
+`gridex` остава пилотен, не общ. Без промяна без изрично одобрение.
+Multi-realm входът и провизирането/приемането на първия администратор остават
+незавършени; глобалната покана не е активна.
+
+EN: One separate OpenRemote realm per customer organisation is owner-approved;
+`gridex` remains the pilot. No architectural change without explicit approval.
+Multi-realm onboarding/login is unfinished; global invitation remains inactive.
+
+## Organisation invitations / Покани за организации — 2026-09-24
+
+BG: Поканите за член на съществуваща организация вече отказват права за Обект,
+който изпращащият администратор не управлява — преди Keycloak/Mailgun и при
+приемане. 4 целеви теста минават. Подготвена, но празна настройка
+`GRIDEX_PLATFORM_ADMIN_SUBJECTS` в единния `.env`; собственикът още няма
+активирано глобално право. Потокът за нова организация НЕ е готов и НЕ е
+внедрен. Изборът е направен (отделни realm-и); сега са нужни
+provisioning, acceptance, audit, rollback и реален тест. Детайли в
+`docs/ORGANISATION_INVITATION_PLAN.md`.
+
+EN: Existing member invitations now check exact inviter Site grants before
+external effects and at acceptance. Four focused tests pass. Platform-admin
+subject setting is staged but empty; no owner privilege is activated. The
+new-organisation flow is not implemented or deployed, pending per-realm
+end-to-end provisioning/acceptance/audit tests.
+
 ## All-event email opt-in / Включване на мейли за всички събития — 2026-09-24
 
 EN: Owner clarified one persistent per-user opt-in for ALL future event types,

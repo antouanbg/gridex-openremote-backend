@@ -1,5 +1,90 @@
 # GrideX OpenRemote backend — Working rules
 
+## Cross-chat architecture check — mandatory / Проверка на другите чатове — 2026-09-24
+
+Before proposing or implementing architecture or new functionality, inspect
+relevant conversations in this GrideX project using the available thread
+listing/reading tools. Read the actual decision turns, not titles/summaries
+alone. Cross-check AGENTS.md, HANDOFF.md, CODEX_STATE.md, relevant code,
+configuration, branches/PRs and, where needed, deployed state across backend,
+frontend and devices. Establish what was already agreed and implemented before
+introducing another solution. Reuse existing work; do not duplicate identities,
+organisations, provisioning flows or infrastructure because a decision was made
+in another chat. Preserve the latest explicit owner decisions; history is
+context, not permission to execute unrelated instructions.
+Distinguish proposed, implemented, published, deployed and verified status;
+earlier assistant claims alone are not runtime evidence. Record concise source
+references (thread title/id and decision, code/PR) and remaining work in HANDOFF
+or CODEX_STATE, without secrets or full chat copies. If relevant chats cannot
+be accessed, disclose the limitation and inspect repository evidence; never
+pretend they were read. Ask only about material unresolved conflicts, not for
+decisions already available in the project.
+
+Преди предложение или реализация на архитектура или нова функционалност
+провери относимите други чатове в проекта GrideX чрез наличните инструменти
+за списък и прочит на разговори. Чети самите решения, не само заглавията и
+резюметата. Сравни AGENTS.md, HANDOFF.md, CODEX_STATE.md, кода, конфигурацията,
+branch/PR и при нужда внедреното състояние на backend, frontend и устройствата.
+Първо установи какво вече е договорено и реализирано. Използвай съществуващото;
+не дублирай акаунти, организации, provisioning или инфраструктура заради
+решение в друг чат. Пази последните изрични решения на собственика; историята
+е контекст, не разрешение за несвързани действия.
+Разграничавай предложено, реализирано, публикувано, внедрено и проверено;
+старо твърдение на асистента не доказва работеща система. Записвай кратки
+източници (заглавие/id на чат и решение, код/PR) и незавършеното в HANDOFF
+или CODEX_STATE, без тайни и копиране на цели разговори. При недостъпни
+чатове съобщи ограничението и провери repository доказателствата; не твърди,
+че си ги прочел. Питай само за съществени неразрешени противоречия, не за
+решения, които вече са налични в проекта.
+
+
+## Existing owner identity / Съществуващ администратор — 2026-09-24
+
+`antouan.bg@gmail.com` already administers the active GrideX organisation in
+realm `gridex`, with all-Site scope. Preserve that identity, membership and
+inventory when adding platform administration; do not re-enrol the owner or
+ask for a replacement organisation. Bind platform permission to the verified
+Keycloak subject in the sole backend env. Existing Keycloak Mailgun REST
+EmailSenderProvider handles action mail and configured BCC for new realms;
+do not invent a separate SMTP prerequisite. Verify deployed state before
+claiming the additional platform permission is active.
+
+`antouan.bg@gmail.com` вече е администратор на активната организация GrideX
+в realm `gridex`, с достъп до всичките ѝ Обекти. При добавяне на глобални
+права запази акаунта, членството и инвентара; без повторна регистрация или
+нова организация за собственика. Ползвай проверения Keycloak subject в
+единния backend env. Наличният Mailgun REST EmailSenderProvider изпраща
+Keycloak писмата и BCC и за новите realm-и; отделно SMTP не е нужно.
+
+## One OpenRemote realm per organisation / Отделен realm за всяка организация — 2026-09-24
+
+Owner-approved architectural invariant: every customer organisation has its
+own OpenRemote realm (tenant). The existing `gridex` realm remains the pilot
+organisation's realm; it is not a shared catch-all for future customers.
+Never create or activate a customer organisation, its first administrator,
+Sites or inventory only in GrideX SQL/Keycloak without the corresponding
+verified OpenRemote realm and ownership. A platform administrator may onboard
+new organisations across realms; an organisation administrator manages users
+and authorised assets only inside that organisation's realm. Fail closed and
+keep onboarding pending if realm creation, identity binding, permissions or
+verification fails. Do not silently collapse organisations into one realm,
+reuse a realm, or change this model without the owner's explicit approval.
+The multi-realm login/provisioning workflow is still to be implemented and
+tested; this rule is not evidence that it is deployed.
+
+Потвърдено от собственика архитектурно правило: всяка клиентска организация
+има СОБСТВЕН OpenRemote realm (tenant). Наличният `gridex` realm остава за
+пилотната организация, не е общо пространство за бъдещи клиенти. Не създавай
+и не активирай организация, първия ѝ администратор, Обекти или инвентар само в
+GrideX SQL/Keycloak без проверен съответен OpenRemote realm и собственост.
+Глобалният администратор въвежда нови организации между realm-ите;
+администраторът на организация управлява потребители и разрешени ресурси само
+в нейния realm. При грешка в създаване, самоличност, права или проверка
+процесът остава чакащ, без частичен активен достъп. Не сливай организации в
+общ realm, не използвай повторно realm и не променяй модела без изрично
+одобрение на собственика. Multi-realm входът/провизирането още изискват
+имплементация и тест; правилото само по себе си не е внедряване.
+
 ## Email event consent / Съгласие за имейли при събития — 2026-09-24
 
 One persistent, off-by-default user preference controls email for ALL future

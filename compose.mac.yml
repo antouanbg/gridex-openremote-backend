@@ -102,6 +102,7 @@ services:
       OIDC_JWKS_URI: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/certs
       OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
       OIDC_AUDIENCE: gridex-portal
+      GRIDEX_PLATFORM_ADMIN_SUBJECTS: ${GRIDEX_PLATFORM_ADMIN_SUBJECTS:-}
       GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_PORTAL_ORIGIN:-https://localhost:8443},https://localhost:8443,http://127.0.0.1:4173
       GRIDEX_WRITES_ENABLED: 'false'
       GRIDEX_AUTO_MIGRATE: 'false'
