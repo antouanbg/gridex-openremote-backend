@@ -20,9 +20,11 @@ mail if opt-in occurs during an open outage. The existing Devices menu warning
 remains separate. Migrations 010 and 011 were applied to the local database
 after private validated backups; no subscription exists yet. The API and alert
 worker were deployed and are healthy; 0 enabled subscriptions and 0 deliveries
-were confirmed. PR #33 is stacked on #32. No real mail has been sent. The
-general endpoint revision still needs redeployment after tests. Next: publish
-frontend opt-in, verify real browser checkbox and one non-destructive
+were confirmed. The general endpoint revision was deployed with settings
+preserved and API healthy; unauthenticated local request returned 401. Private
+rollback: `api-inventory-nbpoQm`. PR #33 is stacked on #32. No real mail has
+been sent. Frontend PR #45 merged to main and Pages deployment succeeded.
+Next: verify real owner-browser checkbox and one non-destructive
 outage/recovery test. Public auth regression normal-DNS probes failed from this
 Mac; local master checks passed, so do not claim external auth accepted from
 this run. See `docs/DEVICE_HEARTBEATS.md`.
@@ -40,9 +42,11 @@ BG: Собственикът уточни: един постоянен checkbox 
 включване по време на текущ инцидент няма стар мейл. Отделният знак в меню
 „Устройства“ остава. Миграции 010 и 011 са приложени локално след проверени
 частни архиви; още няма абонамент. API и worker са пуснати и работят; проверени
-са 0 включени абонамента и 0 изпращания. PR #33 е върху #32. Не е изпратен
-реален мейл. Общият endpoint още трябва да се внедри след тест. Следва
-публикация на frontend checkbox и реален браузърен/неразрушителен тест.
+са 0 включени абонамента и 0 изпращания. Общият endpoint е внедрен със запазени
+настройки и здрав API; локална заявка без вход върна 401. Частен rollback:
+`api-inventory-nbpoQm`. PR #33 е върху #32. Не е изпратен реален мейл.
+Frontend PR #45 е слят в main и Pages внедряването мина. Следва реален
+браузърен/неразрушителен тест.
 Публичните auth проби с нормален DNS от този Mac не минаха; локалният master
 мина, затова външният вход не е потвърден от тази проверка.
 
