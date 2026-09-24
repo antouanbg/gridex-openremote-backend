@@ -2,6 +2,33 @@
 
 ## English
 
+### Missed-heartbeat warning and one-shot email (2026-09-24)
+
+The authenticated live Devices menu polls the existing Site-scoped heartbeat API
+and shows `!` when a registered device is offline. The demo has no live warning.
+Email is OFF by default. Each authenticated user may permanently opt in or out
+under Profile; this is one setting for all future missed-heartbeat incidents
+at Sites they can access, not an approval button for each incident. Enabling
+requires a verified email in the Keycloak identity behind OpenRemote. That
+email is copied into a private subscription record at opt-in; it is not a
+manual Site-to-email configuration. The alert worker checks current Site
+membership and OpenRemote Site linkage before every send. It sends at most one
+Mailgun message per subscriber per offline episode after the configured
+offline interval (default 90 seconds); recovery opens the way for a new event.
+Opting in during an existing outage does not send a retrospective message.
+Unseen ESP never triggers mail; a lost ROCK does not generate a second ESP mail.
+The configured Mailgun BCC applies. The message contains only Site/device
+names and last observation time; no private addresses, credentials or values.
+
+Before activation, back up and apply additive migration
+`010_heartbeat_alerts.sql` and `011_heartbeat_email_opt_in.sql` with their
+backup scripts, then add `compose.heartbeat-alerts.yml` to the existing Compose
+file set. A provider timeout is marked `unknown` and is not
+retried automatically: inspect Mailgun events before a manual decision. This
+is at-most-once sending, not guaranteed delivery. Verify real loss, recovery,
+one email, no repeated mail after restart, wrong-Site isolation and the owner
+browser. The worker never sends commands to the devices.
+
 Observation-only path: ESP32 → ROCK Pi polling → private mTLS MQTT → heartbeat
 worker → PostgreSQL → authenticated Site administrator → Devices. No new public
 listener, direct ESP access, battery commands or VPN activation.
@@ -52,6 +79,32 @@ tracked in their repositories. SQL query test is mocked, not PostgreSQL runtime
 acceptance. Physical delivery, migration and owner browser remain unverified.
 
 ## Български
+
+### Предупреждение и еднократен мейл при липсващ heartbeat (2026-09-24)
+
+Меню „Устройства“ в реална удостоверена сесия проверява съществуващия
+Site-scoped heartbeat API и показва `!` при offline устройство. В демото няма
+реално предупреждение. Мейлите са ИЗКЛЮЧЕНИ по подразбиране. Всеки влязъл
+потребител може постоянно да ги включи/изключи в Профил. Това е една настройка
+за всички бъдещи прекъсвания на устройства в Обекти, до които има достъп,
+а не одобрение за всеки отделен инцидент. За включване се изисква потвърден
+имейл в Keycloak идентичността зад OpenRemote. При включване адресът се копира
+в частен запис за абонамент; не се поддържа ръчна карта Обект–имейл. Преди
+всяко изпращане worker проверява текущите права към Обекта и OpenRemote връзката.
+Mailgun получава най-много един мейл на абониран потребител за прекъсване след
+offline прага (90 секунди по подразбиране); след възстановяване е възможен нов
+инцидент. Включване по време на текущо прекъсване не праща стар мейл. ESP без
+потвърден контакт не предизвиква писмо; изгубен ROCK не дублира ESP писмо.
+Прилага се Mailgun BCC. Писмото няма частни адреси, пароли или стойности.
+
+Преди активиране: backup и additive миграции `010_heartbeat_alerts.sql` и
+`011_heartbeat_email_opt_in.sql` чрез техните скриптове, после
+`compose.heartbeat-alerts.yml` към текущите Compose файлове. При timeout
+към доставчика състоянието става `unknown` и няма автоматично повторение:
+проверяват се събитията в Mailgun преди ръчно решение. Това гарантира най-много
+един опит, не гарантирана доставка. Приемането изисква реална липса/връщане на
+heartbeat, един мейл, без повторение след рестарт, изолация между Обекти и
+проверка в браузъра на собственика. Worker не изпраща команди към устройствата.
 
 Път само за наблюдение: ESP32 → ROCK Pi polling → частен mTLS MQTT → worker →
 PostgreSQL → удостоверен администратор на Обекта → Устройства. Без публичен

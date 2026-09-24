@@ -120,7 +120,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -165,6 +165,17 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/me/preferences") {
         return json(res, 200, await repository.getUserPreferences(principal.subject), context);
+      }
+
+      if (['/api/v1/me/email-notifications','/api/v1/me/heartbeat-email'].includes(url.pathname) && ['GET','PUT'].includes(req.method)) {
+        if(!heartbeatSubscriptions)throw new ApiError(503,'notifications_unavailable','Email notifications are not configured.');
+        res.setHeader('Cache-Control','no-store');
+        if(req.method==='GET')return json(res,200,await heartbeatSubscriptions.get(principal),context);
+        const input=await readJson(req,1024);
+        const result=await heartbeatSubscriptions.set(principal,input?.enabled);
+        await repository.audit({principal,action:result.enabled?'email.notifications.enabled':'email.notifications.disabled',
+          resourceType:'notification_preference',resourceId:principal.subject,result:'success',requestId});
+        return json(res,200,result,context);
       }
 
       if (req.method === "PUT" && url.pathname === "/api/v1/me/preferences") {

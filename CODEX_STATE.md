@@ -1,5 +1,26 @@
 # CODEX_STATE.md
 
+## All-event email opt-in / Включване на мейли за всички събития — 2026-09-24
+
+EN: Owner clarified one persistent per-user opt-in for ALL future event types,
+off by default. Only heartbeat outage events are wired today; future producers
+must use the same consent and access checks. Implemented general
+`/api/v1/me/email-notifications` endpoint, verified-email subscription,
+per-user/incident delivery deduplication and OpenRemote link check. Additive
+migrations 010/011 were applied after private backups. No subscriptions or
+mail exist yet. API/worker and general endpoint running; local unauthenticated
+probe returned 401. Frontend PR #45 merged and Pages deployed. Verify real owner
+session and non-destructive outage. See HANDOFF.
+
+BG: Собственикът уточни един постоянен opt-in за ВСИЧКИ бъдещи видове събития,
+изключен по подразбиране. Засега реално е свързан само heartbeat; бъдещите
+източници трябва да ползват същото съгласие и проверки. Реализирани са общ endpoint
+за потвърден имейл, deduplication по човек/инцидент и OpenRemote link проверка.
+Миграции 010/011 са приложени след частни архиви. Няма абонаменти или мейли.
+API/worker и общият endpoint работят; локална заявка без вход върна 401.
+Frontend PR #45 е слят и Pages е публикуван. Следва реален owner тест.
+Виж HANDOFF.
+
 ## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
 
 Supersedes the five-metric/CPU-pending entry below. Fresh physical ROCK CPU

@@ -1,5 +1,26 @@
 # GrideX OpenRemote backend — Working rules
 
+## Email event consent / Съгласие за имейли при събития — 2026-09-24
+
+One persistent, off-by-default user preference controls email for ALL future
+event types. It is not a per-incident approval and not a heartbeat-only setting.
+Every new event producer must check this same consent, current Site membership
+and OpenRemote user–Site link before delivery. Use only the verified identity
+email; deduplicate by user and event episode, and do not send retroactive mail
+for events opened before opt-in. The legacy heartbeat-named subscription table
+stores this general preference until an explicit migration changes its name.
+Do not claim a future event type is emailed until its producer is implemented
+and tested. Only missed-heartbeat is wired at present.
+
+Една постоянна настройка на потребител, изключена по подразбиране, управлява
+имейлите за ВСИЧКИ бъдещи видове събития. Не е одобрение за всеки инцидент и
+не е само за heartbeat. Всеки нов източник проверява същото съгласие, текущите
+права за Обекта и връзката в OpenRemote. Използвай само потвърден имейл,
+премахвай дублиранията по потребител/инцидент и не изпращай назад във времето.
+Таблицата с историческо heartbeat име засега пази общата настройка. Не обявявай
+бъдещ вид събитие за работещ, преди обработчикът му да е реализиран и тестван.
+В момента е свързан само пропуснат heartbeat.
+
 ## Telemetry provisioning completion gate / Проверка за завършено провизиране
 
 For each newly provisioned OpenRemote telemetry Asset, verify both the owner's
