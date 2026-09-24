@@ -2,30 +2,30 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
-## Missed-heartbeat email — 2026-09-24 / Мейл при липсващ heartbeat
+## Persistent heartbeat-email opt-in — 2026-09-24 / Постоянно включване на мейл
 
-EN: Implemented but mail NOT activated: migration 010, Site-scoped recipient map,
-separate Mailgun alert worker and persistent at-most-once incident state. Unit
-tests cover repeated scans, recovery, uncertain Mailgun outcome and lost ROCK
-without duplicate ESP mail. Backend tests: 52 passed with loopback permission.
-Migration 010 was applied to the local GrideX DB after validated private backup
-`heartbeat-alerts-xHLbcW/gridex.dump`; the new table has eight columns. The
-private `.env` was NOT changed: recipient/payload approval is pending. No real
-email was sent and the worker is not started. Backend PR #33 is stacked on #32.
-Next: obtain recipient approval, set the mapping in the one private `.env`,
-start the optional Compose overlay and verify a real outage/recovery.
-See `docs/DEVICE_HEARTBEATS.md`.
+EN: Owner clarified: a persistent user checkbox, NOT incident-by-incident
+approval. Email is OFF by default. Verified Keycloak email is captured from
+the authenticated claim on opt-in; the worker rechecks current database Site
+membership and OpenRemote user–Site asset linkage before each send. It claims
+one delivery per user/device/outage before Mailgun and sends no retrospective
+mail if opt-in occurs during an open outage. The existing Devices menu warning
+remains separate. Migrations 010 and 011 were applied to the local database
+after private validated backups; no subscription exists yet. 53 backend tests
+pass. PR #33 is stacked on #32. No real mail has been sent. Next: deploy the
+API/alert-worker revision, publish frontend opt-in, verify real browser checkbox
+and one non-destructive outage/recovery test. See `docs/DEVICE_HEARTBEATS.md`.
 
-BG: Изпращането НЕ е активирано: миграция 010, получател по Обект, отделен
-Mailgun worker и устойчиво състояние с най-много едно изпращане за инцидент.
-Unit тестовете покриват повторни проверки, възстановяване, несигурен Mailgun
-резултат и изгубен ROCK без дублиран ESP мейл. Backend: 52 теста минаха при
-разрешен loopback. Миграция 010 е приложена в локалната GrideX база след
-проверен частен backup `heartbeat-alerts-xHLbcW/gridex.dump`; новата таблица
-има осем колони. Частният `.env` НЕ е променен: чака потвърждение за
-получателя/съдържанието. Не е изпратен реален мейл и worker-ът не е пускан.
-Backend PR #33 е върху #32. Следва потвърждение, mapping в единния `.env`,
-старт на Compose overlay и реален тест за отпадане/връщане.
+BG: Собственикът уточни: постоянен checkbox на потребителя, НЕ одобрение за
+всеки инцидент. Мейлите са ИЗКЛЮЧЕНИ по подразбиране. Потвърденият Keycloak
+адрес се взема от удостоверения token при включване; worker проверява текущите
+права в базата и OpenRemote връзката потребител–Обект преди всяко писмо.
+Записва се един опит на потребител/устройство/прекъсване преди Mailgun. При
+включване по време на текущ инцидент няма стар мейл. Отделният знак в меню
+„Устройства“ остава. Миграции 010 и 011 са приложени локално след проверени
+частни архиви; още няма абонамент. Backend: 53 теста минаха. PR #33 е върху
+#32. Не е изпратен реален мейл. Следва внедряване на API/worker, публикуване
+на frontend checkbox и реален браузърен и неразрушителен тест за прекъсване.
 
 ## Six physical ROCK metrics verified / Шест реални ROCK показателя — 2026-09-24
 

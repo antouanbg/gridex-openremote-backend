@@ -1,15 +1,16 @@
 import pg from 'pg';
-import { HeartbeatAlerts, alertRecipients } from './heartbeat-alerts.mjs';
+import { HeartbeatAlerts } from './heartbeat-alerts.mjs';
 import { mailgunConfig } from './mailgun.mjs';
+import { OpenRemoteClient } from './openremote-client.mjs';
+import { loadConfig } from './config.mjs';
 
-const recipients = alertRecipients(process.env.GRIDEX_HEARTBEAT_ALERT_RECIPIENTS);
-if (!Object.keys(recipients).length) throw new Error('Site-scoped heartbeat alert recipients required');
 const offlineSeconds = Number(process.env.GRIDEX_HEARTBEAT_OFFLINE_SECONDS || 90);
 if (!Number.isFinite(offlineSeconds) || offlineSeconds < 30 || offlineSeconds > 86400)
   throw new Error('Invalid heartbeat offline threshold');
 const pool = new pg.Pool({ max: 2, connectionTimeoutMillis: 10000 });
 const alerts = new HeartbeatAlerts(pool, {
-  recipients, mailgun: mailgunConfig(),
+  mailgun: mailgunConfig(),
+  openRemote: new OpenRemoteClient(loadConfig()),
   offlineMs: offlineSeconds * 1000,
 });
 let running = true;

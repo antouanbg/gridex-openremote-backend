@@ -1,19 +1,19 @@
 # CODEX_STATE.md
 
-## Heartbeat email alert implementation / Мейл при липса на heartbeat — 2026-09-24
+## Heartbeat email opt-in / Включване на heartbeat мейли — 2026-09-24
 
-EN: Implemented one-shot per-episode Site-scoped Mailgun alert worker and
-applied additive migration 010 with private validated backup. Not activated:
-explicit recipient/payload approval, private env mapping, Compose start and
-real loss/recovery proof remain. No backend configuration or device settings
-were changed. See HANDOFF and
-`docs/DEVICE_HEARTBEATS.md` for exact gate. Next action: approve recipient.
+EN: Owner clarified persistent per-user opt-in, off by default, for future
+events at accessible Sites. Implemented verified-email subscription endpoint,
+per-user/incident delivery deduplication and OpenRemote link check. Additive
+migrations 010/011 were applied after private backups. No subscriptions or
+mail exist yet. Next: deploy backend worker/API, publish frontend checkbox,
+verify real session and outage. See HANDOFF.
 
-BG: Реализиран е еднократен за инцидент Mailgun worker по Обект; additive
-миграция 010 е приложена след проверен частен backup. Не е активиран: остават
-одобрение на получател/съдържание, mapping в частния env, Compose старт и реална проверка при
-отпадане/възстановяване. Не са променени backend или device настройки.
-Точният gate е в HANDOFF и `docs/DEVICE_HEARTBEATS.md`. Следва одобрение.
+BG: Собственикът уточни постоянен opt-in на потребител, изключен по
+подразбиране, за бъдещи инциденти в достъпни Обекти. Реализирани са endpoint
+за потвърден имейл, deduplication по човек/инцидент и OpenRemote link проверка.
+Миграции 010/011 са приложени след частни архиви. Няма абонаменти или мейли.
+Следва внедряване на backend, публикуване на checkbox и реален тест. Виж HANDOFF.
 
 ## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
 

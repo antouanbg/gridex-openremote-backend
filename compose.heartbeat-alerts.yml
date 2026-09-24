@@ -1,4 +1,4 @@
-# Opt-in after migration 010, with the ONE private backend --env-file.
+# Opt-in after migrations 010/011, with the ONE private backend --env-file.
 services:
   heartbeat-alert-worker:
     build: ./services/gridex-api
@@ -13,7 +13,11 @@ services:
       PGUSER: gridex
       PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
       GRIDEX_HEARTBEAT_OFFLINE_SECONDS: ${GRIDEX_HEARTBEAT_OFFLINE_SECONDS:-90}
-      GRIDEX_HEARTBEAT_ALERT_RECIPIENTS: ${GRIDEX_HEARTBEAT_ALERT_RECIPIENTS:?Site-to-email JSON required}
+      OPENREMOTE_BASE_URL: http://manager:8080
+      OPENREMOTE_REALM: gridex
+      OPENREMOTE_SERVICE_CLIENT_ID: ${OPENREMOTE_SERVICE_CLIENT_ID:-gridex-api}
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${OPENREMOTE_SERVICE_CLIENT_SECRET:?required}
+      OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
       GRIDEX_MAILGUN_REGION: ${GRIDEX_MAILGUN_REGION:?required}
       GRIDEX_MAILGUN_DOMAIN: ${GRIDEX_MAILGUN_DOMAIN:?required}
       GRIDEX_MAILGUN_FROM: ${GRIDEX_MAILGUN_FROM:?required}

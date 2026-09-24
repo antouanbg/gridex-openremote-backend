@@ -6,20 +6,24 @@
 
 The authenticated live Devices menu polls the existing Site-scoped heartbeat API
 and shows `!` when a registered device is offline. The demo has no live warning.
-The optional `heartbeat-alert-worker` sends at most one Mailgun message per
-offline episode after the configured offline interval (default 90 seconds),
-then requires an observed recovery before another episode can notify. An
-unseen ESP never triggers mail; a lost ROCK source does not produce a second
-ESP warning email. Mail is addressed only through the explicit Site UUID →
-recipient map `GRIDEX_HEARTBEAT_ALERT_RECIPIENTS` in the single private backend
-`.env`. No customer address or inventory is committed to Git. The configured
-Mailgun BCC is applied. The message contains only Site/device names and last
-observation time; no private addresses, credentials or telemetry values.
+Email is OFF by default. Each authenticated user may permanently opt in or out
+under Profile; this is one setting for all future missed-heartbeat incidents
+at Sites they can access, not an approval button for each incident. Enabling
+requires a verified email in the Keycloak identity behind OpenRemote. That
+email is copied into a private subscription record at opt-in; it is not a
+manual Site-to-email configuration. The alert worker checks current Site
+membership and OpenRemote Site linkage before every send. It sends at most one
+Mailgun message per subscriber per offline episode after the configured
+offline interval (default 90 seconds); recovery opens the way for a new event.
+Opting in during an existing outage does not send a retrospective message.
+Unseen ESP never triggers mail; a lost ROCK does not generate a second ESP mail.
+The configured Mailgun BCC applies. The message contains only Site/device
+names and last observation time; no private addresses, credentials or values.
 
 Before activation, back up and apply additive migration
-`010_heartbeat_alerts.sql` with `scripts/apply-heartbeat-alerts.mjs`, configure
-the verified recipient map, then add `compose.heartbeat-alerts.yml` to the
-existing Compose file set. A provider timeout is marked `unknown` and is not
+`010_heartbeat_alerts.sql` and `011_heartbeat_email_opt_in.sql` with their
+backup scripts, then add `compose.heartbeat-alerts.yml` to the existing Compose
+file set. A provider timeout is marked `unknown` and is not
 retried automatically: inspect Mailgun events before a manual decision. This
 is at-most-once sending, not guaranteed delivery. Verify real loss, recovery,
 one email, no repeated mail after restart, wrong-Site isolation and the owner
@@ -80,19 +84,22 @@ acceptance. Physical delivery, migration and owner browser remain unverified.
 
 Меню „Устройства“ в реална удостоверена сесия проверява съществуващия
 Site-scoped heartbeat API и показва `!` при offline устройство. В демото няма
-реално предупреждение. Незадължителният `heartbeat-alert-worker` изпраща най-много
-един Mailgun мейл за едно прекъсване след прага offline (по подразбиране 90
-секунди); ново писмо е възможно само след потвърдено възстановяване. ESP без
-никога потвърден контакт не предизвиква мейл; изгубен ROCK не създава и второ
-ESP писмо. Получателят се задава само чрез изрично съответствие Site UUID →
-адрес в `GRIDEX_HEARTBEAT_ALERT_RECIPIENTS` в единния частен backend `.env`.
-Клиентски адреси и инвентар не се записват в Git. Прилага се настроеният
-Mailgun BCC. Писмото съдържа само име на Обект/устройство и време на последно
-наблюдение, без частни адреси, пароли или телеметрични стойности.
+реално предупреждение. Мейлите са ИЗКЛЮЧЕНИ по подразбиране. Всеки влязъл
+потребител може постоянно да ги включи/изключи в Профил. Това е една настройка
+за всички бъдещи прекъсвания на устройства в Обекти, до които има достъп,
+а не одобрение за всеки отделен инцидент. За включване се изисква потвърден
+имейл в Keycloak идентичността зад OpenRemote. При включване адресът се копира
+в частен запис за абонамент; не се поддържа ръчна карта Обект–имейл. Преди
+всяко изпращане worker проверява текущите права към Обекта и OpenRemote връзката.
+Mailgun получава най-много един мейл на абониран потребител за прекъсване след
+offline прага (90 секунди по подразбиране); след възстановяване е възможен нов
+инцидент. Включване по време на текущо прекъсване не праща стар мейл. ESP без
+потвърден контакт не предизвиква писмо; изгубен ROCK не дублира ESP писмо.
+Прилага се Mailgun BCC. Писмото няма частни адреси, пароли или стойности.
 
-Преди активиране: backup и additive миграция `010_heartbeat_alerts.sql` чрез
-`scripts/apply-heartbeat-alerts.mjs`, потвърдено съответствие на получателите,
-после `compose.heartbeat-alerts.yml` към текущите Compose файлове. При timeout
+Преди активиране: backup и additive миграции `010_heartbeat_alerts.sql` и
+`011_heartbeat_email_opt_in.sql` чрез техните скриптове, после
+`compose.heartbeat-alerts.yml` към текущите Compose файлове. При timeout
 към доставчика състоянието става `unknown` и няма автоматично повторение:
 проверяват се събитията в Mailgun преди ръчно решение. Това гарантира най-много
 един опит, не гарантирана доставка. Приемането изисква реална липса/връщане на

@@ -7,6 +7,7 @@ import { createRepository } from "./repository.mjs";
 import { EnrollmentIdentity, InvitationService } from './invitations.mjs';
 import {DeviceVault} from './device-vault.mjs';
 import {DeviceHeartbeats} from './device-heartbeats.mjs';
+import {HeartbeatEmailSubscriptions} from './heartbeat-subscriptions.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -18,7 +19,8 @@ const invitations = config.enrollmentEnabled && repository.pool
   ? new InvitationService(repository.pool, new EnrollmentIdentity(config)) : null;
 const deviceVault=config.deviceVaultDirectory && config.deviceVaultKeyFile ? new DeviceVault(config.deviceVaultDirectory,config.deviceVaultKeyFile):null;
 const deviceHeartbeats = repository.pool ? new DeviceHeartbeats(repository.pool) : null;
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats }));
+const heartbeatSubscriptions = repository.pool ? new HeartbeatEmailSubscriptions(repository.pool) : null;
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats, heartbeatSubscriptions }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 

@@ -1,72 +1,79 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HeartbeatAlerts, alertRecipients } from '../src/heartbeat-alerts.mjs';
+import { HeartbeatAlerts } from '../src/heartbeat-alerts.mjs';
+import { HeartbeatEmailSubscriptions } from '../src/heartbeat-subscriptions.mjs';
 
 const siteId='11111111-1111-4111-8111-111111111111';
-const gatewayId='115a01ce-4054-4f15-8d7f-44c2175e2caa';
+const gatewayId='22222222-2222-4222-8222-222222222222';
 const date=Date.parse('2026-09-24T00:00:00Z');
 function fixture() {
-  const records=new Map();
   const source={gatewayId,siteId,sourceGatewayId:gatewayId,observedAt:new Date(date).toISOString(),
-    lastSuccessfulContactAt:null,online:true,deviceName:'ROCK Pi',siteName:'Test Lab'};
-  const rows=[source];
+    lastSuccessfulContactAt:null,online:true,deviceName:'ROCK Pi',siteName:'Test Lab',siteAssetId:'site-asset'};
+  const rows=[source],alerts=new Map(),deliveries=new Set();
+  const subscribers=[{subject:'owner',email:'owner@example.com'}];
+  let enabledAt=new Date(date-60000);
   const pool={
     async query(sql,args=[]) {
       if(sql.includes('FROM device_heartbeats'))return {rows};
-      if(sql.startsWith('UPDATE heartbeat_alerts SET notification_state=')){
-        const record=records.get(args[0]);
-        if(sql.includes("SET notification_state='attempted'")){
-          if(record?.state!=='offline'||record?.notification_state!=='pending')return {rowCount:0,rows:[]};
-          record.notification_state='attempted';return {rowCount:1,rows:[{gateway_id:args[0]}]};
-        }
-        record.notification_state=sql.includes("'queued'")?'queued':'unknown';
-        return {rowCount:1,rows:[]};
+      if(sql.includes('FROM heartbeat_email_subscriptions sub'))return {rows:enabledAt<=args[1]?subscribers:[]};
+      if(sql.startsWith('INSERT INTO heartbeat_alert_deliveries')){
+        const key=`${args[0]}:${args[1]}:${args[2]}`;
+        if(deliveries.has(key)||alerts.get(args[0])?.state!=='offline')return {rowCount:0,rows:[]};
+        deliveries.add(key);return {rowCount:1,rows:[{subject:args[2]}]};
       }
+      if(sql.startsWith('UPDATE heartbeat_alert_deliveries'))return {rowCount:1,rows:[]};
       throw new Error(`Unexpected pool SQL ${sql}`);
     },
     async connect(){return {
       async query(sql,args=[]) {
         if(sql==='BEGIN'||sql==='COMMIT'||sql==='ROLLBACK'||sql.includes('pg_advisory_xact_lock'))return {rows:[]};
-        if(sql.startsWith('SELECT state,notification_state'))return {rows:records.has(args[0])?[records.get(args[0])]:[]};
-        if(sql.startsWith('INSERT INTO heartbeat_alerts')){records.set(args[0],{state:'offline',notification_state:'pending'});return {rows:[]};}
-        if(sql.includes("SET state='healthy'")){records.get(args[0]).state='healthy';return {rows:[]};}
-        if(sql.includes("SET state='offline'")){records.set(args[0],{state:'offline',notification_state:'pending'});return {rows:[]};}
+        if(sql.startsWith('SELECT state FROM heartbeat_alerts'))return {rows:alerts.has(args[0])?[alerts.get(args[0])]:[]};
+        if(sql.startsWith('INSERT INTO heartbeat_alerts')){alerts.set(args[0],{state:'offline',openedAt:new Date(date+91000)});return {rows:[]};}
+        if(sql.includes("SET state='healthy'")){alerts.get(args[0]).state='healthy';return {rows:[]};}
+        if(sql.includes("SET state='offline'")){alerts.set(args[0],{state:'offline',openedAt:new Date(date+182000)});return {rows:[]};}
+        if(sql.startsWith('SELECT opened_at'))return {rows:[{openedAt:alerts.get(args[0]).openedAt}]};
         return pool.query(sql,args);
       },release(){}
     };}
   };
-  return {pool,records,source,rows};
+  return {pool,source,rows,alerts,deliveries,subscribers,setEnabledAt:v=>{enabledAt=v;}};
 }
-test('alert recipient mapping rejects an unscoped or invalid email',()=>{
-  assert.deepEqual(alertRecipients(JSON.stringify({[siteId]:'owner@example.com'})),{[siteId]:'owner@example.com'});
-  assert.throws(()=>alertRecipients('{"all":"owner@example.com"}'));
-  assert.throws(()=>alertRecipients(JSON.stringify({[siteId]:'a@b.example\nBcc:other@example.com'})));
+test('opt-in is false by default and enabling requires verified identity email',async()=>{
+  const calls=[];
+  const store=new HeartbeatEmailSubscriptions({query:async(sql,args)=>{
+    calls.push({sql,args});return {rows:[]};
+  }});
+  const principal={subject:'owner',email:'Owner@Example.com',emailVerified:true};
+  assert.deepEqual(await store.get(principal),{enabled:false,email:'owner@example.com'});
+  await assert.rejects(store.set({...principal,emailVerified:false},true),{code:'email_not_verified'});
+  await assert.rejects(store.set(principal,'yes'),{code:'invalid_preference'});
+  assert.deepEqual(await store.set(principal,true),{enabled:true,email:'owner@example.com'});
+  assert.equal(calls.at(-1).args[1],'owner@example.com');
+  assert.deepEqual(await store.set(principal,false),{enabled:false,email:'owner@example.com'});
 });
-test('one email per outage, none on repeat scan; recovery permits a new episode',async()=>{
-  const {pool,records,source}=fixture();let now=date+91000;let sends=0;
-  const alerts=new HeartbeatAlerts(pool,{recipients:{[siteId]:'owner@example.com'},mailgun:{},now:()=>now,
-    send:async()=>{sends++;return{id:`mail-${sends}`};}});
-  await alerts.scan();await alerts.scan();
-  assert.equal(sends,1);assert.equal(records.get(gatewayId).notification_state,'queued');
-  source.observedAt=new Date(now).toISOString();await alerts.scan();
-  assert.equal(records.get(gatewayId).state,'healthy');
+test('one email per future outage and user; recovery permits a second episode',async()=>{
+  const x=fixture();let now=date+91000,sends=0;
+  const alerts=new HeartbeatAlerts(x.pool,{mailgun:{},openRemote:{getUserLinkedAssets:async()=>[{id:'site-asset'}]},
+    now:()=>now,send:async()=>{sends++;return{id:`mail-${sends}`};}});
+  await alerts.scan();await alerts.scan();assert.equal(sends,1);
+  x.source.observedAt=new Date(now).toISOString();await alerts.scan();
+  assert.equal(x.alerts.get(gatewayId).state,'healthy');
   now+=91000;await alerts.scan();assert.equal(sends,2);
 });
-test('uncertain Mailgun result is not retried automatically',async()=>{
-  const {pool,records}=fixture();let sends=0;
-  const alerts=new HeartbeatAlerts(pool,{recipients:{[siteId]:'owner@example.com'},mailgun:{},now:()=>date+91000,
-    send:async()=>{sends++;throw new Error('timeout');}});
+test('late opt-in, revoked OpenRemote link and never-seen ESP do not send',async()=>{
+  const x=fixture();x.setEnabledAt(new Date(date+92000));let sends=0;
+  x.rows.push({gatewayId:'33333333-3333-4333-8333-333333333333',siteId,sourceGatewayId:gatewayId,
+    observedAt:new Date(date).toISOString(),lastSuccessfulContactAt:null,online:false,siteAssetId:'site-asset'});
+  const alerts=new HeartbeatAlerts(x.pool,{mailgun:{},openRemote:{getUserLinkedAssets:async()=>[]},
+    now:()=>date+91000,send:async()=>{sends++;return{id:'mail'};}});
+  await alerts.scan();assert.equal(sends,0);assert.equal(x.alerts.size,1);
+  x.setEnabledAt(new Date(date-60000));await alerts.scan();assert.equal(sends,0);
+});
+test('Mailgun timeout is not retried for the same subscriber and outage',async()=>{
+  const x=fixture();let sends=0;
+  const alerts=new HeartbeatAlerts(x.pool,{mailgun:{},openRemote:{getUserLinkedAssets:async()=>[{id:'site-asset'}]},
+    now:()=>date+91000,send:async()=>{sends++;throw new Error('timeout');}});
   const old=console.error;console.error=()=>{};
   try{await alerts.scan();await alerts.scan();}finally{console.error=old;}
-  assert.equal(sends,1);assert.equal(records.get(gatewayId).notification_state,'unknown');
-});
-test('never-seen ESP and a lost ROCK source do not create duplicate ESP mail',async()=>{
-  const {pool,records,rows}=fixture();let sends=0;
-  const espId='22222222-2222-4222-8222-222222222222';
-  rows.push({gatewayId:espId,siteId,sourceGatewayId:gatewayId,observedAt:new Date(date).toISOString(),
-    lastSuccessfulContactAt:null,online:false,deviceName:'ESP32',siteName:'Test Lab'});
-  const alerts=new HeartbeatAlerts(pool,{recipients:{[siteId]:'owner@example.com'},mailgun:{},now:()=>date+91000,
-    send:async()=>{sends++;return{id:'mail'};}});
-  await alerts.scan();
-  assert.equal(sends,1);assert.equal(records.has(espId),false);
+  assert.equal(sends,1);assert.equal(x.deliveries.size,1);
 });
