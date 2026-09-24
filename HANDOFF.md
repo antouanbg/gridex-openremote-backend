@@ -2,6 +2,12 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
+
+Backend PR #35 merged; 62/62 API tests passed. Older open PRs #1, #3–#7, #9–#13, #17, #20, #21 were inspected but NOT approved as compatible: Windows/Hyper-V plans are superseded; legacy branches conflict with current files. Review each separately against current architecture; preserve useful changes and resolve conflicts with tests, never restore old files wholesale. Migration 012, setup credentials and multi-realm runtime acceptance remain separate; no service deployment occurred.
+
+Backend PR #35 е слят; 62/62 API теста минаха. Старите PR #1, #3–#7, #9–#13, #17, #20, #21 са проверени, но НЕ са приети за съвместими: Windows/Hyper-V плановете са отменени, старите клонове конфликтуват. Следва отделен преглед, запазване на полезните промени и разрешаване с тестове, без връщане на цели стари файлове. Миграция 012, setup credentials и multi-realm runtime приемането остават отделни; няма внедряване на услуги.
+
 ## Existing owner and Mailgun correction / Собственик и Mailgun — 2026-09-24
 
 Confirmed against Phase2 history and a live read-only membership query:
