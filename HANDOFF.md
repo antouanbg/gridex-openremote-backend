@@ -112,8 +112,8 @@ after private validated backups; no subscription exists yet. The API and alert
 worker were deployed and are healthy; 0 enabled subscriptions and 0 deliveries
 were confirmed. The general endpoint revision was deployed with settings
 preserved and API healthy; unauthenticated local request returned 401. Private
-rollback: `api-inventory-nbpoQm`. PR #33 is stacked on #32. No real mail has
-been sent. Frontend PR #45 merged to main and Pages deployment succeeded.
+rollback: `api-inventory-nbpoQm`. Backend PRs #32 and #33 merged to main. No
+real mail has been sent. Frontend PR #45 merged and Pages deployment succeeded.
 Next: verify real owner-browser checkbox and one non-destructive
 outage/recovery test. Public auth regression normal-DNS probes failed from this
 Mac; local master checks passed, so do not claim external auth accepted from
@@ -134,7 +134,7 @@ BG: Собственикът уточни: един постоянен checkbox 
 частни архиви; още няма абонамент. API и worker са пуснати и работят; проверени
 са 0 включени абонамента и 0 изпращания. Общият endpoint е внедрен със запазени
 настройки и здрав API; локална заявка без вход върна 401. Частен rollback:
-`api-inventory-nbpoQm`. PR #33 е върху #32. Не е изпратен реален мейл.
+`api-inventory-nbpoQm`. Backend PR #32 и #33 са слети в main. Не е изпратен реален мейл.
 Frontend PR #45 е слят в main и Pages внедряването мина. Следва реален
 браузърен/неразрушителен тест.
 Публичните auth проби с нормален DNS от този Mac не минаха; локалният master
