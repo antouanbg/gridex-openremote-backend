@@ -2,6 +2,29 @@
 
 ## English
 
+### Missed-heartbeat warning and one-shot email (2026-09-24)
+
+The authenticated live Devices menu polls the existing Site-scoped heartbeat API
+and shows `!` when a registered device is offline. The demo has no live warning.
+The optional `heartbeat-alert-worker` sends at most one Mailgun message per
+offline episode after the configured offline interval (default 90 seconds),
+then requires an observed recovery before another episode can notify. An
+unseen ESP never triggers mail; a lost ROCK source does not produce a second
+ESP warning email. Mail is addressed only through the explicit Site UUID →
+recipient map `GRIDEX_HEARTBEAT_ALERT_RECIPIENTS` in the single private backend
+`.env`. No customer address or inventory is committed to Git. The configured
+Mailgun BCC is applied. The message contains only Site/device names and last
+observation time; no private addresses, credentials or telemetry values.
+
+Before activation, back up and apply additive migration
+`010_heartbeat_alerts.sql` with `scripts/apply-heartbeat-alerts.mjs`, configure
+the verified recipient map, then add `compose.heartbeat-alerts.yml` to the
+existing Compose file set. A provider timeout is marked `unknown` and is not
+retried automatically: inspect Mailgun events before a manual decision. This
+is at-most-once sending, not guaranteed delivery. Verify real loss, recovery,
+one email, no repeated mail after restart, wrong-Site isolation and the owner
+browser. The worker never sends commands to the devices.
+
 Observation-only path: ESP32 → ROCK Pi polling → private mTLS MQTT → heartbeat
 worker → PostgreSQL → authenticated Site administrator → Devices. No new public
 listener, direct ESP access, battery commands or VPN activation.
@@ -52,6 +75,29 @@ tracked in their repositories. SQL query test is mocked, not PostgreSQL runtime
 acceptance. Physical delivery, migration and owner browser remain unverified.
 
 ## Български
+
+### Предупреждение и еднократен мейл при липсващ heartbeat (2026-09-24)
+
+Меню „Устройства“ в реална удостоверена сесия проверява съществуващия
+Site-scoped heartbeat API и показва `!` при offline устройство. В демото няма
+реално предупреждение. Незадължителният `heartbeat-alert-worker` изпраща най-много
+един Mailgun мейл за едно прекъсване след прага offline (по подразбиране 90
+секунди); ново писмо е възможно само след потвърдено възстановяване. ESP без
+никога потвърден контакт не предизвиква мейл; изгубен ROCK не създава и второ
+ESP писмо. Получателят се задава само чрез изрично съответствие Site UUID →
+адрес в `GRIDEX_HEARTBEAT_ALERT_RECIPIENTS` в единния частен backend `.env`.
+Клиентски адреси и инвентар не се записват в Git. Прилага се настроеният
+Mailgun BCC. Писмото съдържа само име на Обект/устройство и време на последно
+наблюдение, без частни адреси, пароли или телеметрични стойности.
+
+Преди активиране: backup и additive миграция `010_heartbeat_alerts.sql` чрез
+`scripts/apply-heartbeat-alerts.mjs`, потвърдено съответствие на получателите,
+после `compose.heartbeat-alerts.yml` към текущите Compose файлове. При timeout
+към доставчика състоянието става `unknown` и няма автоматично повторение:
+проверяват се събитията в Mailgun преди ръчно решение. Това гарантира най-много
+един опит, не гарантирана доставка. Приемането изисква реална липса/връщане на
+heartbeat, един мейл, без повторение след рестарт, изолация между Обекти и
+проверка в браузъра на собственика. Worker не изпраща команди към устройствата.
 
 Път само за наблюдение: ESP32 → ROCK Pi polling → частен mTLS MQTT → worker →
 PostgreSQL → удостоверен администратор на Обекта → Устройства. Без публичен

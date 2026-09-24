@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Missed-heartbeat email — 2026-09-24 / Мейл при липсващ heartbeat
+
+EN: Implemented but NOT deployed: migration 010, Site-scoped recipient map,
+separate Mailgun alert worker and persistent at-most-once incident state. Unit
+tests cover repeated scans, recovery, uncertain Mailgun outcome and lost ROCK
+without duplicate ESP mail. Backend tests: 52 passed with loopback permission.
+The private `.env` was NOT changed: recipient/payload approval is pending.
+No real email was sent, migration not applied, worker not started. Next: obtain
+recipient approval, set the mapping in the one private `.env`, run the backed-up
+migration, start the optional Compose overlay and verify a real outage/recovery.
+See `docs/DEVICE_HEARTBEATS.md`.
+
+BG: Реализацията НЕ е внедрена: миграция 010, получател по Обект, отделен
+Mailgun worker и устойчиво състояние с най-много едно изпращане за инцидент.
+Unit тестовете покриват повторни проверки, възстановяване, несигурен Mailgun
+резултат и изгубен ROCK без дублиран ESP мейл. Backend: 52 теста минаха при
+разрешен loopback. Частният `.env` НЕ е променен: чака потвърждение за
+получателя/съдържанието. Не е изпратен реален мейл; миграцията и worker-ът
+не са пускани. Следва потвърждение, mapping в единния `.env`, backup и
+миграция, старт на Compose overlay и реален тест за отпадане/връщане.
+
 ## Six physical ROCK metrics verified / Шест реални ROCK показателя — 2026-09-24
 
 This supersedes the five-metric/CPU-pending status below. After the operator's

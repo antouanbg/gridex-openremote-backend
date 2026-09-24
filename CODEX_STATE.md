@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+## Heartbeat email alert implementation / Мейл при липса на heartbeat — 2026-09-24
+
+EN: Implemented one-shot per-episode Site-scoped Mailgun alert worker and
+additive migration 010. Not activated: explicit recipient/payload approval,
+private env mapping, migration, Compose start and real loss/recovery proof remain.
+No backend configuration or device settings were changed. See HANDOFF and
+`docs/DEVICE_HEARTBEATS.md` for exact gate. Next action: approve recipient.
+
+BG: Реализиран е еднократен за инцидент Mailgun worker по Обект и additive
+миграция 010. Не е активиран: остават одобрение на получател/съдържание,
+mapping в частния env, миграция, Compose старт и реална проверка при
+отпадане/възстановяване. Не са променени backend или device настройки.
+Точният gate е в HANDOFF и `docs/DEVICE_HEARTBEATS.md`. Следва одобрение.
+
 ## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
 
 Supersedes the five-metric/CPU-pending entry below. Fresh physical ROCK CPU
