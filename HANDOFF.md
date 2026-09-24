@@ -2,6 +2,39 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Separate-realm onboarding implementation — 2026-09-24 (not activated)
+
+BG: Добавени са миграция 012 (само workflow за поканите), проверка на issuer/
+audience за известни realm-и, отделен OpenRemote realm през master API,
+публичен PKCE portal client, нова Keycloak идентичност, email action,
+приемане и изрично активиране след проверка на OR роли. Глобално право има
+само потвърден `subject` в `GRIDEX_PLATFORM_ADMIN_SUBJECTS` на пилотния
+`gridex`; ново действие изисква вход през последните 10 минути. При грешка
+организацията не става активна. 62 API теста минават (след SMTP теста).
+НЯМА прилагане на 012, owner subject, dedicated master client, SMTP credentials
+или рестарт от тази промяна; няма изпратена реална покана. Включването е само
+чрез допълнителния compose overlay и единния частен backend `.env`. Преди
+активация: Mailgun EU SMTP credentials за Keycloak action email, BCC политика
+за тези identity писма, ограничен master setup client, проверка на ролите,
+миграция/backup, реална тестова организация и имейл, browser/tenant-isolation
+тест. Съществуващият `OpenRemoteClient` все още ползва пилотен service account
+за Asset операции; новият realm не бива да получава Обекти преди per-realm
+service access и тест. Това е честна граница на готовността.
+
+EN: Migration 012 (invitation workflow only), known-realm issuer/audience
+verification, master-authorised OpenRemote realm creation, PKCE portal client,
+identity action email, acceptance and verified OR roles are staged. Only a
+verified pilot-realm subject can have platform rights; creation needs an auth
+within 10 minutes. Failure never activates an organisation. 62 API tests pass
+after SMTP coverage. No migration, owner subject, setup client, SMTP secret or
+restart has been applied by this change, and no real mail was sent. Enable
+only via the optional compose overlay and the sole private backend `.env`.
+Before rollout: Mailgun EU SMTP for Keycloak, identity-email BCC policy,
+least-privilege master client, role verification, backup/migration, real
+recipient acceptance and tenant-isolation tests. The existing OpenRemote
+Asset service account remains pilot-realm-only; do not create tenant Sites
+until per-realm service access is implemented and verified.
+
 ## Realm decision / Решение за realm — 2026-09-24
 
 BG: Собственикът одобри **по един отделен OpenRemote realm за всяка клиентска

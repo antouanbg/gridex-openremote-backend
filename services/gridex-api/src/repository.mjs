@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql'];
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '012_organisation_onboarding.sql'];
 
 const siteRow = (row) => ({
   id: row.id,
@@ -54,23 +54,33 @@ export class PostgresRepository {
 
   async close() { await this.pool.end(); }
 
-  async listAccessibleSites(subject) {
+  async isAllowedRealm(realm) {
+    const { rows } = await this.pool.query(`SELECT 1 FROM organisations
+      WHERE openremote_realm=$1 AND status='active'
+      UNION ALL SELECT 1 FROM organisation_onboarding_invitations
+      WHERE realm=$1 AND state IN ('sent','activating') AND expires_at>now() LIMIT 1`, [realm]);
+    return rows.length > 0;
+  }
+
+  async listAccessibleSites(subject, realm = null) {
     const { rows } = await this.pool.query(`
       SELECT DISTINCT s.*, m.role AS membership_role
       FROM sites s
       JOIN organisation_memberships m ON m.organisation_id = s.organisation_id
       JOIN organisations o ON o.id=s.organisation_id AND o.status='active'
-      WHERE m.subject = $1 AND s.deleted_at IS NULL
+      WHERE m.subject = $1 AND ($2::text IS NULL OR o.openremote_realm=$2)
+      AND s.deleted_at IS NULL
       AND (m.all_sites OR EXISTS (SELECT 1 FROM membership_site_grants g
         WHERE g.organisation_id=m.organisation_id AND g.subject=m.subject AND g.site_id=s.id))
-      ORDER BY s.name`, [subject]);
+      ORDER BY s.name`, [subject, realm]);
     return rows.map(siteRow);
   }
 
-  async getMemberships(subject) {
+  async getMemberships(subject, realm = null) {
     const { rows } = await this.pool.query(`SELECT m.organisation_id AS "organisationId", m.role,
       m.all_sites AS "allSites" FROM organisation_memberships m JOIN organisations o
-      ON o.id=m.organisation_id AND o.status='active' WHERE m.subject=$1`, [subject]);
+      ON o.id=m.organisation_id AND o.status='active'
+      WHERE m.subject=$1 AND ($2::text IS NULL OR o.openremote_realm=$2)`, [subject, realm]);
     return rows;
   }
 
@@ -93,16 +103,17 @@ export class PostgresRepository {
     return { revision: rows[0].revision, ...rows[0].preferences };
   }
 
-  async requireSite(subject, siteId) {
+  async requireSite(subject, siteId, realm = null) {
     const { rows } = await this.pool.query(`
       SELECT s.*, m.role AS membership_role
       FROM sites s
       JOIN organisation_memberships m ON m.organisation_id = s.organisation_id
       JOIN organisations o ON o.id=s.organisation_id AND o.status='active'
-      WHERE s.id = $1 AND m.subject = $2 AND s.deleted_at IS NULL
+      WHERE s.id = $1 AND m.subject = $2
+      AND ($3::text IS NULL OR o.openremote_realm=$3) AND s.deleted_at IS NULL
       AND (m.all_sites OR EXISTS (SELECT 1 FROM membership_site_grants g
         WHERE g.organisation_id=m.organisation_id AND g.subject=m.subject AND g.site_id=s.id))
-      LIMIT 1`, [siteId, subject]);
+      LIMIT 1`, [siteId, subject, realm]);
     if (!rows[0]) throw new ApiError(404, "site_not_found", "The site was not found or is not accessible.");
     return siteRow(rows[0]);
   }

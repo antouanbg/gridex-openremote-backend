@@ -1,5 +1,18 @@
 # Organisation and member invitations / Покани за организации и членове
 
+Status 2026-09-24: Separate-realm first-admin onboarding is implemented as an
+opt-in code path and fixture-tested, not deployed or accepted with a real user.
+Migration 012, owner subject, dedicated master setup client, Mailgun EU SMTP
+for Keycloak action email and the existing BCC requirement are rollout gates.
+OpenRemote managed Asset access remains pilot-realm-only until a separate
+per-realm service-client design is implemented. See HANDOFF for the exact gate.
+
+Статус 2026-09-24: Потокът за първи администратор в отделен realm е подготвен
+като opt-in код и тестван с фикстури, не е внедрен/проверен с реален човек.
+Миграция 012, owner subject, отделен master setup client, Mailgun EU SMTP за
+Keycloak и изискването за BCC остават условия за пускане. Asset service
+достъпът в OpenRemote засега е само за пилотния realm; виж HANDOFF.
+
 Status: implementation in progress; NOT deployed. Owner selected one separate
 OpenRemote realm per customer organisation on 2026-09-24. Multi-realm login,
 provisioning and acceptance are still to be implemented and tested.

@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## Separate-realm onboarding staged / Подготвено провизиране по realm — 2026-09-24
+
+BG: Глобалният администратор остава в пилотния `gridex`. Backend добавя
+opt-in поток за отделен OpenRemote realm, идентичност, покана и приемане;
+миграция 012 е само за състоянието на процеса. Няма реално прилагане,
+включване, имейл или нова организация. Изискват се SMTP за новия realm,
+dedicated master client, точно owner subject, BCC решение за Keycloak писма,
+backup/миграция и реални тестове; `OpenRemoteClient` още няма per-realm Asset
+service access. Не обявявай production готовност.
+
+EN: Platform admin remains in pilot `gridex`. Opt-in backend flow stages
+separate OpenRemote realm, identity, invitation and acceptance; migration 012
+stores only workflow state. No live activation, mail or organisation yet.
+Per-realm SMTP, dedicated master client, verified owner subject, Keycloak
+email BCC solution, backup/migration and real tests remain; managed Asset
+access is still pilot-realm-only. Do not claim production readiness.
+
 ## Owner realm decision / Решение за realm — 2026-09-24
 
 BG: Одобрен е ОТДЕЛЕН OpenRemote realm за всяка клиентска организация;

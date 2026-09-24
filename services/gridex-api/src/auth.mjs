@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import { ApiError } from "./errors.mjs";
 
 const ROLE_PERMISSIONS = Object.freeze({
@@ -23,9 +23,10 @@ function stringArray(value) {
 }
 
 // Identity-provider roles must never bypass current database membership.
-export function withMembershipRoles(principal, roles, platformAdminSubjects = new Set()) {
+export function withMembershipRoles(principal, roles, platformAdminSubjects = new Set(), platformRealm = 'gridex') {
   const trustedRoles = [...new Set(roles.filter((role) => Object.hasOwn(ROLE_PERMISSIONS, role) && role !== 'admin'))];
-  const platformAdmin = principal.emailVerified && platformAdminSubjects.has(principal.subject);
+  const platformAdmin = principal.emailVerified && principal.realm === platformRealm
+    && platformAdminSubjects.has(principal.subject);
   return { ...principal, roles: [...trustedRoles, ...(platformAdmin ? ['platform_administrator'] : [])],
     permissions: [...new Set([...trustedRoles.flatMap((role) => ROLE_PERMISSIONS[role]), ...(platformAdmin ? ['platform:manage'] : [])])] };
 }
@@ -40,6 +41,9 @@ export function principalFromClaims(claims, accessToken, audience) {
   }
   return {
     subject: claims.sub,
+    realm: typeof claims.iss === 'string' ? claims.iss.split('/realms/')[1] : undefined,
+    issuer: claims.iss,
+    authTime: Number.isFinite(claims.auth_time) ? claims.auth_time : undefined,
     email: typeof claims.email === "string" ? claims.email : undefined,
     emailVerified: claims.email_verified === true,
     name: typeof claims.name === "string" ? claims.name : undefined,
@@ -54,11 +58,35 @@ export function createAuthenticator(config, options = {}) {
   const startedAt = Math.floor((options.startedAt ?? Date.now()) / 1000);
   const jwks = options.jwks || createRemoteJWKSet(new URL(config.oidcJwksUri));
   const verify = options.jwtVerify || jwtVerify;
+  const realmJwks = new Map();
   return async function authenticate(req) {
     const accessToken = bearerToken(req);
     try {
-      const { payload } = await verify(accessToken, jwks, {
-        issuer: config.oidcIssuer,
+      let issuer = config.oidcIssuer;
+      let keys = jwks;
+      if (options.isAllowedRealm) {
+        // Decode only to select a pre-authorised key set. Trust no claim until
+        // signature, issuer and audience verification below has succeeded.
+        const untrustedIssuer = decodeJwt(accessToken).iss;
+        const prefix = config.oidcIssuer.slice(0, config.oidcIssuer.lastIndexOf('/realms/') + 8);
+        if (typeof untrustedIssuer !== 'string' || !untrustedIssuer.startsWith(prefix))
+          throw new ApiError(401, 'invalid_token', 'Identity issuer is not trusted.');
+        const realm = untrustedIssuer.slice(prefix.length);
+        if (!/^[a-z][a-z0-9-]{2,30}$/.test(realm)
+            || (realm !== config.realm && !await options.isAllowedRealm(realm)))
+          throw new ApiError(401, 'invalid_token', 'Identity realm is not available.');
+        issuer = `${prefix}${realm}`;
+        if (realm !== config.realm) {
+          if (!realmJwks.has(realm)) {
+            const source = new URL(config.oidcJwksUri);
+            source.pathname = source.pathname.replace(`/realms/${config.realm}/`, `/realms/${realm}/`);
+            realmJwks.set(realm, createRemoteJWKSet(source));
+          }
+          keys = realmJwks.get(realm);
+        }
+      }
+      const { payload } = await verify(accessToken, keys, {
+        issuer,
         audience: config.oidcAudience,
         clockTolerance: config.oidcClockToleranceSeconds,
       });

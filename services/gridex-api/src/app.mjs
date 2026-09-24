@@ -120,7 +120,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -136,8 +136,31 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       const identity = await authenticate(req);
-      const memberships = await repository.getMemberships(identity.subject);
-      let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects);
+      const memberships = await repository.getMemberships(identity.subject, identity.realm);
+      let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects, config.realm);
+
+      if (url.pathname === '/api/v1/platform/organisation-invitations' && req.method === 'POST') {
+        if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
+        return json(res, 201, await onboarding.create(principal, await readJson(req, config.maximumBodyBytes)), context);
+      }
+      if (url.pathname === '/api/v1/platform/organisation-invitations' && req.method === 'GET') {
+        if (!principal.permissions.includes('platform:manage')) throw new ApiError(403, 'permission_denied', 'Platform administrator required.');
+        return json(res, 200, { enabled: Boolean(onboarding), invitations: onboarding ? await onboarding.listCreated(principal) : [] }, context);
+      }
+      const revokeOrganisation = url.pathname.match(/^\/api\/v1\/platform\/organisation-invitations\/([0-9a-f-]{36})\/revoke$/i);
+      if (revokeOrganisation && req.method === 'POST') {
+        if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
+        return json(res, 200, await onboarding.revoke(principal, revokeOrganisation[1]), context);
+      }
+      if (url.pathname === '/api/v1/me/organisation-onboarding' && req.method === 'GET') {
+        if (!onboarding) return json(res, 200, { invitations: [] }, context);
+        return json(res, 200, { invitations: await onboarding.list(principal) }, context);
+      }
+      const acceptOrganisation = url.pathname.match(/^\/api\/v1\/organisation-onboarding\/([0-9a-f-]{36})\/accept$/i);
+      if (acceptOrganisation && req.method === 'POST') {
+        if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
+        return json(res, 200, await onboarding.accept(principal, acceptOrganisation[1]), context);
+      }
 
       if (url.pathname.includes('/invitations')) {
         if (!invitations) throw new ApiError(503, 'enrollment_unavailable', 'Email enrollment is not configured.');
@@ -157,7 +180,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/me") {
         return json(res, 200, {
-          subject: principal.subject, email: principal.email, name: principal.name,
+          subject: principal.subject, realm: principal.realm, email: principal.email, name: principal.name,
           preferredUsername: principal.preferredUsername, roles: principal.roles, permissions: principal.permissions,
           memberships,
         }, context);
@@ -197,7 +220,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/sites") {
         requirePermission(principal, "site:read");
-        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject),openRemote,principal.subject);
+        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject,principal.realm),openRemote,principal.subject);
         res.setHeader('Cache-Control','no-store');
         return json(res, 200, { sites: sites.map(publicSite) }, context);
       }
@@ -206,7 +229,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (!siteRoute) throw new ApiError(404, "not_found", "The requested API route does not exist.");
       const siteId = decodeURIComponent(siteRoute[1]);
       const suffix = siteRoute[2] || "";
-      const site = await repository.requireSite(principal.subject, siteId);
+      const site = await repository.requireSite(principal.subject, siteId, principal.realm);
       principal = withMembershipRoles(identity, [site.membershipRole]);
 
       const accessRoute=suffix.match(/^\/gateways\/([0-9a-f-]{36})\/access$/i);
