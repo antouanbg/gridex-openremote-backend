@@ -167,13 +167,13 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         return json(res, 200, await repository.getUserPreferences(principal.subject), context);
       }
 
-      if (url.pathname === '/api/v1/me/heartbeat-email' && ['GET','PUT'].includes(req.method)) {
-        if(!heartbeatSubscriptions)throw new ApiError(503,'heartbeat_unavailable','Heartbeat notifications are not configured.');
+      if (['/api/v1/me/email-notifications','/api/v1/me/heartbeat-email'].includes(url.pathname) && ['GET','PUT'].includes(req.method)) {
+        if(!heartbeatSubscriptions)throw new ApiError(503,'notifications_unavailable','Email notifications are not configured.');
         res.setHeader('Cache-Control','no-store');
         if(req.method==='GET')return json(res,200,await heartbeatSubscriptions.get(principal),context);
         const input=await readJson(req,1024);
         const result=await heartbeatSubscriptions.set(principal,input?.enabled);
-        await repository.audit({principal,action:result.enabled?'heartbeat.email.enabled':'heartbeat.email.disabled',
+        await repository.audit({principal,action:result.enabled?'email.notifications.enabled':'email.notifications.disabled',
           resourceType:'notification_preference',resourceId:principal.subject,result:'success',requestId});
         return json(res,200,result,context);
       }

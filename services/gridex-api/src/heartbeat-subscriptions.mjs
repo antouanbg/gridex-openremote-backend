@@ -6,7 +6,7 @@ export class HeartbeatEmailSubscriptions {
   async get(principal) {
     const { rows }=await this.pool.query(`SELECT enabled,email FROM heartbeat_email_subscriptions WHERE subject=$1`,[principal.subject]);
     const current=principal.emailVerified&&validEmail.test(principal.email||'')?principal.email.toLowerCase():null;
-    return { enabled:rows[0]?.enabled===true&&rows[0].email===current, email:current };
+    return { enabled:rows[0]?.enabled===true&&rows[0].email===current, email:current, scope:'all_events' };
   }
   async set(principal,enabled) {
     if(typeof enabled!=='boolean')throw new ApiError(400,'invalid_preference','A boolean enabled value is required.');
@@ -19,6 +19,6 @@ export class HeartbeatEmailSubscriptions {
           AND heartbeat_email_subscriptions.email=EXCLUDED.email THEN heartbeat_email_subscriptions.enabled_at
           WHEN EXCLUDED.enabled THEN now() ELSE NULL END,updated_at=now()`,
     [principal.subject,email||'',enabled]);
-    return { enabled,email };
+    return { enabled,email,scope:'all_events' };
   }
 }

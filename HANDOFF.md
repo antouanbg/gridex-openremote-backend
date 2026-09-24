@@ -2,30 +2,49 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
-## Persistent heartbeat-email opt-in — 2026-09-24 / Постоянно включване на мейл
+## Persistent all-event email opt-in — 2026-09-24 / Постоянно включване на мейл
 
-EN: Owner clarified: a persistent user checkbox, NOT incident-by-incident
-approval. Email is OFF by default. Verified Keycloak email is captured from
+EN: Owner clarified: one persistent user checkbox for ALL future event types,
+NOT incident-by-incident approval or a heartbeat-only preference. Email is OFF
+by default. Only missed-heartbeat events have a connected producer today;
+future event producers must use the same opt-in and authorization gate before
+claiming that they send email. `GET/PUT /api/v1/me/email-notifications` is the
+general API (the previous heartbeat-specific path remains as an alias). The
+legacy `heartbeat_email_subscriptions` table currently stores this general
+preference; future producers must use it, not create independent consent.
+Verified Keycloak email is captured from
 the authenticated claim on opt-in; the worker rechecks current database Site
 membership and OpenRemote user–Site asset linkage before each send. It claims
 one delivery per user/device/outage before Mailgun and sends no retrospective
 mail if opt-in occurs during an open outage. The existing Devices menu warning
 remains separate. Migrations 010 and 011 were applied to the local database
-after private validated backups; no subscription exists yet. 53 backend tests
-pass. PR #33 is stacked on #32. No real mail has been sent. Next: deploy the
-API/alert-worker revision, publish frontend opt-in, verify real browser checkbox
-and one non-destructive outage/recovery test. See `docs/DEVICE_HEARTBEATS.md`.
+after private validated backups; no subscription exists yet. The API and alert
+worker were deployed and are healthy; 0 enabled subscriptions and 0 deliveries
+were confirmed. PR #33 is stacked on #32. No real mail has been sent. The
+general endpoint revision still needs redeployment after tests. Next: publish
+frontend opt-in, verify real browser checkbox and one non-destructive
+outage/recovery test. Public auth regression normal-DNS probes failed from this
+Mac; local master checks passed, so do not claim external auth accepted from
+this run. See `docs/DEVICE_HEARTBEATS.md`.
 
-BG: Собственикът уточни: постоянен checkbox на потребителя, НЕ одобрение за
-всеки инцидент. Мейлите са ИЗКЛЮЧЕНИ по подразбиране. Потвърденият Keycloak
+BG: Собственикът уточни: един постоянен checkbox за ВСИЧКИ бъдещи видове
+събития, НЕ одобрение за всеки инцидент и не само за heartbeat. Мейлите са
+ИЗКЛЮЧЕНИ по подразбиране. Засега само прекъсване на heartbeat има свързан
+източник; бъдещите обработчици трябва да ползват същото съгласие и проверка на
+правата. Общият API е `GET/PUT /api/v1/me/email-notifications`; старият път
+остава alias. Съществуващата таблица с историческо име пази общата настройка.
+Потвърденият Keycloak
 адрес се взема от удостоверения token при включване; worker проверява текущите
 права в базата и OpenRemote връзката потребител–Обект преди всяко писмо.
 Записва се един опит на потребител/устройство/прекъсване преди Mailgun. При
 включване по време на текущ инцидент няма стар мейл. Отделният знак в меню
 „Устройства“ остава. Миграции 010 и 011 са приложени локално след проверени
-частни архиви; още няма абонамент. Backend: 53 теста минаха. PR #33 е върху
-#32. Не е изпратен реален мейл. Следва внедряване на API/worker, публикуване
-на frontend checkbox и реален браузърен и неразрушителен тест за прекъсване.
+частни архиви; още няма абонамент. API и worker са пуснати и работят; проверени
+са 0 включени абонамента и 0 изпращания. PR #33 е върху #32. Не е изпратен
+реален мейл. Общият endpoint още трябва да се внедри след тест. Следва
+публикация на frontend checkbox и реален браузърен/неразрушителен тест.
+Публичните auth проби с нормален DNS от този Mac не минаха; локалният master
+мина, затова външният вход не е потвърден от тази проверка.
 
 ## Six physical ROCK metrics verified / Шест реални ROCK показателя — 2026-09-24
 

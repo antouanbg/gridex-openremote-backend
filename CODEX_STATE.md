@@ -1,19 +1,23 @@
 # CODEX_STATE.md
 
-## Heartbeat email opt-in / Включване на heartbeat мейли — 2026-09-24
+## All-event email opt-in / Включване на мейли за всички събития — 2026-09-24
 
-EN: Owner clarified persistent per-user opt-in, off by default, for future
-events at accessible Sites. Implemented verified-email subscription endpoint,
+EN: Owner clarified one persistent per-user opt-in for ALL future event types,
+off by default. Only heartbeat outage events are wired today; future producers
+must use the same consent and access checks. Implemented general
+`/api/v1/me/email-notifications` endpoint, verified-email subscription,
 per-user/incident delivery deduplication and OpenRemote link check. Additive
 migrations 010/011 were applied after private backups. No subscriptions or
-mail exist yet. Next: deploy backend worker/API, publish frontend checkbox,
+mail exist yet. API/worker running; deploy general endpoint revision next, then publish frontend checkbox,
 verify real session and outage. See HANDOFF.
 
-BG: Собственикът уточни постоянен opt-in на потребител, изключен по
-подразбиране, за бъдещи инциденти в достъпни Обекти. Реализирани са endpoint
+BG: Собственикът уточни един постоянен opt-in за ВСИЧКИ бъдещи видове събития,
+изключен по подразбиране. Засега реално е свързан само heartbeat; бъдещите
+източници трябва да ползват същото съгласие и проверки. Реализирани са общ endpoint
 за потвърден имейл, deduplication по човек/инцидент и OpenRemote link проверка.
 Миграции 010/011 са приложени след частни архиви. Няма абонаменти или мейли.
-Следва внедряване на backend, публикуване на checkbox и реален тест. Виж HANDOFF.
+API/worker работят; следва внедряване на общия endpoint, публикация на checkbox
+и реален тест. Виж HANDOFF.
 
 ## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
 

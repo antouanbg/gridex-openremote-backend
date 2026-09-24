@@ -18,10 +18,10 @@ test('authenticated account can opt in/out; no subscription exists by default',a
     heartbeatSubscriptions:new HeartbeatEmailSubscriptions(pool)});
   const server=createServer(app);
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  const url=`http://127.0.0.1:${server.address().port}/api/v1/me/heartbeat-email`;
+  const url=`http://127.0.0.1:${server.address().port}/api/v1/me/email-notifications`;
   try{
     let response=await fetch(url);assert.equal(response.status,200);
-    assert.deepEqual(await response.json(),{enabled:false,email:'owner@example.com'});
+    assert.deepEqual(await response.json(),{enabled:false,email:'owner@example.com',scope:'all_events'});
     response=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:true})});
     assert.equal(response.status,200);assert.equal((await response.json()).enabled,true);
     response=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false})});

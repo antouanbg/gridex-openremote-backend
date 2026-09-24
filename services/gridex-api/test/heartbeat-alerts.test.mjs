@@ -44,12 +44,12 @@ test('opt-in is false by default and enabling requires verified identity email',
     calls.push({sql,args});return {rows:[]};
   }});
   const principal={subject:'owner',email:'Owner@Example.com',emailVerified:true};
-  assert.deepEqual(await store.get(principal),{enabled:false,email:'owner@example.com'});
+  assert.deepEqual(await store.get(principal),{enabled:false,email:'owner@example.com',scope:'all_events'});
   await assert.rejects(store.set({...principal,emailVerified:false},true),{code:'email_not_verified'});
   await assert.rejects(store.set(principal,'yes'),{code:'invalid_preference'});
-  assert.deepEqual(await store.set(principal,true),{enabled:true,email:'owner@example.com'});
+  assert.deepEqual(await store.set(principal,true),{enabled:true,email:'owner@example.com',scope:'all_events'});
   assert.equal(calls.at(-1).args[1],'owner@example.com');
-  assert.deepEqual(await store.set(principal,false),{enabled:false,email:'owner@example.com'});
+  assert.deepEqual(await store.set(principal,false),{enabled:false,email:'owner@example.com',scope:'all_events'});
 });
 test('one email per future outage and user; recovery permits a second episode',async()=>{
   const x=fixture();let now=date+91000,sends=0;
