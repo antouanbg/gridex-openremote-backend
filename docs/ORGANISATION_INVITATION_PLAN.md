@@ -1,7 +1,8 @@
 # Organisation and member invitations / Покани за организации и членове
 
-Status: implementation in progress; NOT deployed. The organisation realm model
-must be selected by the owner before global invitation activation.
+Status: implementation in progress; NOT deployed. Owner selected one separate
+OpenRemote realm per customer organisation on 2026-09-24. Multi-realm login,
+provisioning and acceptance are still to be implemented and tested.
 
 ## English
 
@@ -31,13 +32,18 @@ this submenu; no other navigation items change.
    Keycloak enrollment email may be reused; never expose an admin credential
    in the browser. Pending/partial work must reconcile idempotently.
 
-The unresolved architecture choice is whether each new organisation gets its
-own OpenRemote realm, as the current `organisations.openremote_realm UNIQUE`
-schema implies, or shares the `gridex` realm with strict Site/asset links. The
-choice changes provisioning, validation and rollback. No global send endpoint
-or owner privilege will be activated before this choice and an authenticated
-owner acceptance test. Organisation member invitations already exist in the
-API; this change adds a dedicated UI route and tightens inviter Site scope.
+Architectural decision: each new organisation gets its OWN OpenRemote realm,
+consistent with `organisations.openremote_realm UNIQUE`. The existing `gridex`
+realm remains the pilot. Never reuse it as a catch-all or silently switch to
+shared-realm tenancy without explicit owner approval. Provision and verify the
+new realm through OpenRemote before activating the organisation or its first
+administrator; reconcile partial failures idempotently. The existing single-
+realm portal issuer, API authorization, client setup and Manager access must be
+designed/tested for multi-realm users without weakening isolation. No global
+send endpoint or owner privilege is activated before this work and an
+authenticated owner acceptance test. Existing-organisation member invitations
+already exist in the API; this change adds a dedicated UI route and tightens
+inviter Site scope.
 
 Acceptance: authorised platform admin can invite a new organisation admin;
 unprivileged users receive 403; email/identity failure grants nothing; recipient
@@ -73,11 +79,15 @@ mocked tests.
    данни не отиват в браузъра. Частичните операции се възстановяват
    идемпотентно.
 
-Остава избор дали всяка нова организация има собствен OpenRemote realm,
-както подсказва текущото `organisations.openremote_realm UNIQUE`, или всички
-ползват общия `gridex` realm със строги връзки за Обекти/активи. Това променя
-провизиране, проверки и връщане назад. Без глобален endpoint за покани или
-активиране на право за собственика преди избора и реален тест с неговия вход.
+Решението е ВСЯКА нова организация да получава СОБСТВЕН OpenRemote realm,
+както подсказва `organisations.openremote_realm UNIQUE`. `gridex` остава за
+пилотната организация; не го използвай като общ realm и не променяй модела
+без изрично ново одобрение. Първо провизирай и провери realm през OpenRemote,
+после активирай организацията и първия ѝ администратор; частичните грешки се
+съгласуват идемпотентно. Текущите едно-realm portal issuer, API права,
+клиент и Manager достъп изискват multi-realm проектиране и тест, без отслабване
+на изолацията. Без глобален endpoint за покани или активиране на право за
+собственика преди тази реализация и реален тест с неговия вход.
 Поканите към членове вече съществуват в API; промяната добавя отделен UI
 маршрут и затяга обхвата на Обектите на изпращащия администратор.
 

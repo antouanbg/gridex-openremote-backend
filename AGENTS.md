@@ -1,5 +1,34 @@
 # GrideX OpenRemote backend — Working rules
 
+## One OpenRemote realm per organisation / Отделен realm за всяка организация — 2026-09-24
+
+Owner-approved architectural invariant: every customer organisation has its
+own OpenRemote realm (tenant). The existing `gridex` realm remains the pilot
+organisation's realm; it is not a shared catch-all for future customers.
+Never create or activate a customer organisation, its first administrator,
+Sites or inventory only in GrideX SQL/Keycloak without the corresponding
+verified OpenRemote realm and ownership. A platform administrator may onboard
+new organisations across realms; an organisation administrator manages users
+and authorised assets only inside that organisation's realm. Fail closed and
+keep onboarding pending if realm creation, identity binding, permissions or
+verification fails. Do not silently collapse organisations into one realm,
+reuse a realm, or change this model without the owner's explicit approval.
+The multi-realm login/provisioning workflow is still to be implemented and
+tested; this rule is not evidence that it is deployed.
+
+Потвърдено от собственика архитектурно правило: всяка клиентска организация
+има СОБСТВЕН OpenRemote realm (tenant). Наличният `gridex` realm остава за
+пилотната организация, не е общо пространство за бъдещи клиенти. Не създавай
+и не активирай организация, първия ѝ администратор, Обекти или инвентар само в
+GrideX SQL/Keycloak без проверен съответен OpenRemote realm и собственост.
+Глобалният администратор въвежда нови организации между realm-ите;
+администраторът на организация управлява потребители и разрешени ресурси само
+в нейния realm. При грешка в създаване, самоличност, права или проверка
+процесът остава чакащ, без частичен активен достъп. Не сливай организации в
+общ realm, не използвай повторно realm и не променяй модела без изрично
+одобрение на собственика. Multi-realm входът/провизирането още изискват
+имплементация и тест; правилото само по себе си не е внедряване.
+
 ## Email event consent / Съгласие за имейли при събития — 2026-09-24
 
 One persistent, off-by-default user preference controls email for ALL future
