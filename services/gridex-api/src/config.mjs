@@ -48,11 +48,6 @@ export function loadConfig(env = process.env) {
     realmSetupClientSecret: env.GRIDEX_REALM_SETUP_CLIENT_SECRET || '',
     realmSetupTokenUrl: env.GRIDEX_REALM_SETUP_TOKEN_URL || 'http://keycloak:8080/auth/realms/master/protocol/openid-connect/token',
     realmSetupAdminBaseUrl: env.GRIDEX_REALM_SETUP_ADMIN_URL || 'http://keycloak:8080/auth/admin/realms',
-    realmSmtpHost: env.GRIDEX_REALM_SMTP_HOST || '',
-    realmSmtpPort: env.GRIDEX_REALM_SMTP_PORT || '',
-    realmSmtpFrom: env.GRIDEX_REALM_SMTP_FROM || '',
-    realmSmtpUser: env.GRIDEX_REALM_SMTP_USER || '',
-    realmSmtpPassword: env.GRIDEX_REALM_SMTP_PASSWORD || '',
     portalOrigin: env.GRIDEX_PORTAL_ORIGIN || '',
     platformAdminSubjects,
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
@@ -87,10 +82,8 @@ export function validateProductionConfig(config) {
     throw new Error('Enrollment requires a dedicated client secret, admin URL and allowed callback origin');
   }
   if (config.realmSetupEnabled && (!config.realmSetupClientSecret || !config.portalOrigin
-      || !config.allowedOrigins.has(config.portalOrigin) || !config.realmSmtpHost
-      || !config.realmSmtpPort || !config.realmSmtpFrom || !config.realmSmtpUser
-      || !config.realmSmtpPassword)) {
-    throw new Error('Realm setup requires dedicated master credentials, an allowed portal origin and per-realm SMTP delivery');
+      || !config.allowedOrigins.has(config.portalOrigin))) {
+    throw new Error('Realm setup requires dedicated master credentials and an allowed portal origin');
   }
   if (!config.database && !config.allowMemoryDatabase) {
     throw new Error("GrideX PostgreSQL settings are required unless GRIDEX_ALLOW_MEMORY_DB=true");

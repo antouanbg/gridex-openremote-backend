@@ -111,27 +111,27 @@ test('OpenRemote role failure keeps the organisation suspended and no portal acc
   assert.equal(f.organisations.get('example-energy').status, 'suspended');
 });
 
-test('new realm configures and verifies identity email before sending an invitation', async () => {
+test('new realms reuse the Keycloak Mailgun provider without SMTP configuration', async () => {
   const calls = [];
   const config = { openRemoteBaseUrl: 'http://manager:8080',
     realmSetupAdminBaseUrl: 'http://keycloak:8080/auth/admin/realms',
-    realmSmtpHost: 'smtp.eu.mailgun.org', realmSmtpPort: '587',
-    realmSmtpFrom: 'invite@mg.example.test', realmSmtpUser: 'sender', realmSmtpPassword: 'private' };
+    oidcAudience: 'gridex-portal', portalOrigin: 'https://gridex.example.test' };
   const setup = new OpenRemoteRealmSetup(config, async (url, options) => {
     calls.push([url, options]);
     if (options.method === 'POST') return new Response(null, { status: 201 });
     if (options.method === 'PUT') return new Response(null, { status: 204 });
     if (url.endsWith('/api/master/realm/example-energy'))
       return Response.json({ name: 'example-energy', enabled: true });
-    return Response.json({ realm: 'example-energy', smtpServer: calls.some(([, request]) => request.method === 'PUT')
-      ? { host: config.realmSmtpHost, from: config.realmSmtpFrom } : {} });
+    throw new Error('Unexpected provider request');
   });
   setup.token = async () => 'fixture-token';
   await setup.createRealm({ realm: 'example-energy', name: 'Example Energy' });
   assert.equal(calls[0][0], 'http://manager:8080/api/master/realm');
-  const smtp = JSON.parse(calls.find(([url, options]) => url.endsWith('/example-energy') && options.method === 'PUT')[1].body).smtpServer;
-  assert.equal(smtp.host, config.realmSmtpHost);
-  assert.equal(smtp.password, 'private');
-  const missing = new OpenRemoteRealmSetup({ ...config, realmSmtpPassword: '' }, async () => { throw new Error('no side effect allowed'); });
-  await assert.rejects(missing.createRealm({ realm: 'another', name: 'Another' }), { code: 'realm_email_unavailable' });
+  await setup.sendActions('example-energy', 'tenant-user');
+  assert.equal(calls.length, 3);
+  const [url, request] = calls[2];
+  assert.ok(url.includes('/example-energy/users/tenant-user/execute-actions-email?'));
+  assert.equal(new URL(url).searchParams.get('redirect_uri'), 'https://gridex.example.test/login/?realm=example-energy');
+  assert.deepEqual(JSON.parse(request.body), ['VERIFY_EMAIL','UPDATE_PASSWORD']);
+  assert.ok(calls.every(([, request]) => !request.body?.includes('smtpServer')));
 });

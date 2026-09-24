@@ -2,6 +2,23 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Existing owner and Mailgun correction / Собственик и Mailgun — 2026-09-24
+
+Confirmed against Phase2 history and a live read-only membership query:
+`antouan.bg@gmail.com` already administers active organisation **GrideX** in
+realm `gridex`, with all-Site scope. Retain this organisation, user and Test
+Lab/ROCK/ESP ownership. The new platform permission belongs on this existing
+identity. Live Keycloak image `gridex-keycloak-mailgun:26.7.3-v1` selects the
+Mailgun REST provider, has its settings and includes support BCC. Separate
+SMTP credentials and a new BCC implementation were incorrect prerequisites;
+removed from the onboarding code. No live rights or organisation were changed.
+
+Потвърдено от Phase2 и живата база: собственикът вече е administrator на
+активната организация **GrideX**, realm `gridex`, с всички Обекти. Новото
+глобално право се добавя към същата идентичност. Не се повтаря регистрацията.
+Живият Keycloak има Mailgun API модул и BCC към support; изискването за SMTP
+беше грешно и е премахнато. Няма промяна на живи права или организация.
+
 ## Separate-realm onboarding implementation — 2026-09-24 (not activated)
 
 BG: Добавени са миграция 012 (само workflow за поканите), проверка на issuer/
@@ -10,12 +27,12 @@ audience за известни realm-и, отделен OpenRemote realm пре�
 приемане и изрично активиране след проверка на OR роли. Глобално право има
 само потвърден `subject` в `GRIDEX_PLATFORM_ADMIN_SUBJECTS` на пилотния
 `gridex`; ново действие изисква вход през последните 10 минути. При грешка
-организацията не става активна. 62 API теста минават (след SMTP теста).
-НЯМА прилагане на 012, owner subject, dedicated master client, SMTP credentials
+организацията не става активна. 62 API теста минават.
+НЯМА прилагане на 012, owner subject или dedicated master client
 или рестарт от тази промяна; няма изпратена реална покана. Включването е само
 чрез допълнителния compose overlay и единния частен backend `.env`. Преди
-активация: Mailgun EU SMTP credentials за Keycloak action email, BCC политика
-за тези identity писма, ограничен master setup client, проверка на ролите,
+активация: проверка на наличния Mailgun REST модул за нов realm,
+ограничен master setup client, проверка на ролите,
 миграция/backup, реална тестова организация и имейл, browser/tenant-isolation
 тест. Съществуващият `OpenRemoteClient` все още ползва пилотен service account
 за Asset операции; новият realm не бива да получава Обекти преди per-realm
@@ -26,10 +43,10 @@ verification, master-authorised OpenRemote realm creation, PKCE portal client,
 identity action email, acceptance and verified OR roles are staged. Only a
 verified pilot-realm subject can have platform rights; creation needs an auth
 within 10 minutes. Failure never activates an organisation. 62 API tests pass
-after SMTP coverage. No migration, owner subject, setup client, SMTP secret or
+with Mailgun-provider regression coverage. No migration, owner subject, setup client or
 restart has been applied by this change, and no real mail was sent. Enable
 only via the optional compose overlay and the sole private backend `.env`.
-Before rollout: Mailgun EU SMTP for Keycloak, identity-email BCC policy,
+Before rollout: verify the existing Mailgun REST provider for a new realm,
 least-privilege master client, role verification, backup/migration, real
 recipient acceptance and tenant-isolation tests. The existing OpenRemote
 Asset service account remains pilot-realm-only; do not create tenant Sites

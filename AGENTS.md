@@ -1,5 +1,23 @@
 # GrideX OpenRemote backend — Working rules
 
+## Existing owner identity / Съществуващ администратор — 2026-09-24
+
+`antouan.bg@gmail.com` already administers the active GrideX organisation in
+realm `gridex`, with all-Site scope. Preserve that identity, membership and
+inventory when adding platform administration; do not re-enrol the owner or
+ask for a replacement organisation. Bind platform permission to the verified
+Keycloak subject in the sole backend env. Existing Keycloak Mailgun REST
+EmailSenderProvider handles action mail and configured BCC for new realms;
+do not invent a separate SMTP prerequisite. Verify deployed state before
+claiming the additional platform permission is active.
+
+`antouan.bg@gmail.com` вече е администратор на активната организация GrideX
+в realm `gridex`, с достъп до всичките ѝ Обекти. При добавяне на глобални
+права запази акаунта, членството и инвентара; без повторна регистрация или
+нова организация за собственика. Ползвай проверения Keycloak subject в
+единния backend env. Наличният Mailgun REST EmailSenderProvider изпраща
+Keycloak писмата и BCC и за новите realm-и; отделно SMTP не е нужно.
+
 ## One OpenRemote realm per organisation / Отделен realm за всяка организация — 2026-09-24
 
 Owner-approved architectural invariant: every customer organisation has its

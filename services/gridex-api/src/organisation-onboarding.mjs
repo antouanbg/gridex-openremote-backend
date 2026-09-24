@@ -57,23 +57,12 @@ export class OpenRemoteRealmSetup {
     return this.request(this.config.realmSetupAdminBaseUrl, path, token, method, body);
   }
   async createRealm({ realm, name }) {
-    if (!this.config.realmSmtpHost || !this.config.realmSmtpPassword)
-      throw new ApiError(503, 'realm_email_unavailable', 'Per-realm identity email is not configured.');
     const token = await this.token();
     await this.or('/realm', token, 'POST', { name: realm, displayName: name,
       enabled: true, registrationAllowed: false, verifyEmail: true,
       loginWithEmail: true, registrationEmailAsUsername: true });
-    await this.verifyRealm(realm, token);
-    const path = `/${encodeURIComponent(realm)}`;
-    const existing = await this.kc(path, token);
-    await this.kc(path, token, 'PUT', { ...existing,
-      smtpServer: { host: this.config.realmSmtpHost, port: this.config.realmSmtpPort,
-        from: this.config.realmSmtpFrom, auth: 'true', starttls: 'true',
-        user: this.config.realmSmtpUser, password: this.config.realmSmtpPassword } });
-    const updated = await this.kc(path, token);
-    if (updated?.smtpServer?.host !== this.config.realmSmtpHost
-        || updated?.smtpServer?.from !== this.config.realmSmtpFrom)
-      throw new ApiError(503, 'realm_email_unverified', 'Per-realm identity email could not be verified.');
+    // The deployed Keycloak EmailSenderProvider uses the shared Mailgun REST
+    // configuration, including BCC. Realm-local SMTP credentials are unnecessary.
     return this.verifyRealm(realm, token);
   }
   async verifyRealm(realm, existingToken) {
