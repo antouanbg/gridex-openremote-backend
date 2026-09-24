@@ -60,6 +60,25 @@ test('one email per future outage and user; recovery permits a second episode',a
   assert.equal(x.alerts.get(gatewayId).state,'healthy');
   now+=91000;await alerts.scan();assert.equal(sends,2);
 });
+test('ESP contact loss alerts separately while ROCK is online, without a duplicate when ROCK later disconnects',async()=>{
+  const x=fixture();let now=date+91000;
+  const espId='33333333-3333-4333-8333-333333333333';
+  x.source.observedAt=new Date(now).toISOString();
+  x.rows.push({gatewayId:espId,siteId,sourceGatewayId:gatewayId,
+    observedAt:new Date(now).toISOString(),lastSuccessfulContactAt:new Date(date).toISOString(),
+    online:false,deviceName:'ESP32',siteName:'Test Lab',siteAssetId:'site-asset'});
+  const messages=[];
+  const alerts=new HeartbeatAlerts(x.pool,{mailgun:{},openRemote:{getUserLinkedAssets:async()=>[{id:'site-asset'}]},
+    now:()=>now,send:async(_config,message)=>{messages.push(message);return{id:`mail-${messages.length}`};}});
+  await alerts.scan();await alerts.scan();
+  assert.equal(x.alerts.get(espId)?.state,'offline');
+  assert.deepEqual(messages.map(message=>message.subject),['GrideX: загубена връзка — ESP32']);
+  assert.match(messages[0].text,new RegExp(new Date(date).toISOString()));
+  now+=91000;await alerts.scan();
+  assert.equal(x.alerts.get(gatewayId)?.state,'offline');
+  assert.equal(messages.length,2);
+  assert.match(messages[1].subject,/ROCK Pi/);
+});
 test('late opt-in, revoked OpenRemote link and never-seen ESP do not send',async()=>{
   const x=fixture();x.setEnabledAt(new Date(date+92000));let sends=0;
   x.rows.push({gatewayId:'33333333-3333-4333-8333-333333333333',siteId,sourceGatewayId:gatewayId,

@@ -72,9 +72,10 @@ export class HeartbeatAlerts {
         ON CONFLICT DO NOTHING RETURNING subject`, [item.gatewayId,openedAt,subscriber.subject,subscriber.email]);
       if (claimed.rowCount!==1) continue;
       try {
+        const lastContact=item.gatewayId===item.sourceGatewayId ? item.observedAt : item.lastSuccessfulContactAt;
         const result=await this.send(this.mailgun,{
-          to:subscriber.email,subject:`GrideX: липсва heartbeat — ${item.deviceName}`,
-          text:`Няма скорошен контакт с ${item.deviceName} в Обект ${item.siteName}.\nПоследен запис: ${item.observedAt}.\nПроверете статуса в GrideX → Устройства. Това е еднократно известие за текущото прекъсване.`,
+          to:subscriber.email,subject:`GrideX: загубена връзка — ${item.deviceName}`,
+          text:`Няма скорошен контакт с ${item.deviceName} в Обект ${item.siteName}.\nПоследен успешен контакт: ${lastContact}.\nПроверете статуса в GrideX → Устройства. Това е еднократно известие за текущото прекъсване.`,
         });
         await this.pool.query(`UPDATE heartbeat_alert_deliveries SET state='queued',mailgun_message_id=$4,updated_at=now()
           WHERE gateway_id=$1 AND opened_at=$2 AND subject=$3 AND state='attempted'`,[item.gatewayId,openedAt,subscriber.subject,result.id]);

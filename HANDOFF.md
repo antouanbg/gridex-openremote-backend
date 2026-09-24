@@ -2,6 +2,26 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Device connection-loss email clarification — 2026-09-24 / Имейл при загуба на връзка
+
+EN: The existing heartbeat alert worker covers ROCK Pi message loss and ESP32
+successful-contact loss independently. A fresh ROCK with an offline ESP opens
+one ESP incident; loss of ROCK does not create a second ESP incident solely
+because ESP data stops. One email per opted-in user/device/outage; recovery is
+required before another email. An automated regression test now covers this
+sequence and the email subject names connection loss. This wording/test change
+is local only: runtime deployment, real account opt-in and a non-destructive
+physical outage/recovery test remain unverified. Do not claim live delivery.
+
+BG: Съществуващият worker следи отделно липса на съобщение от ROCK Pi и липса
+на успешен контакт с ESP32. При работещ ROCK и спрял ESP се отваря един ESP
+инцидент; спиране на ROCK не създава втори ESP инцидент само заради липсващи
+данни. Един имейл на включил потребител/устройство/прекъсване; нов имейл едва
+след възстановяване и ново прекъсване. Автоматичен тест покрива тази
+последователност, а темата на писмото назовава загубата на връзка. Промяната
+на текста/теста е само локална: внедряване, включване от реален акаунт и
+неразрушителен физически тест още не са потвърдени. Не обявявай доставка на живо.
+
 ## Persistent all-event email opt-in — 2026-09-24 / Постоянно включване на мейл
 
 EN: Owner clarified: one persistent user checkbox for ALL future event types,
