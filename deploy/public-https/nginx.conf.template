@@ -1,5 +1,7 @@
-# Render API_HOST/AUTH_HOST privately. No public OpenRemote or management routes.
-# Попълни API_HOST/AUTH_HOST локално. Без публични OpenRemote/admin маршрути.
+# Render API_HOST/AUTH_HOST privately. The auth host also carries the scoped
+# OpenRemote Manager surface; master/admin/health/metrics remain private.
+# Попълни API_HOST/AUTH_HOST локално. Auth host има ограничен Manager достъп;
+# master/admin/health/metrics остават непублични.
 worker_processes auto;
 pid /tmp/nginx.pid;
 events { worker_connections 1024; }
@@ -56,7 +58,53 @@ http {
         listen 8443 ssl;
         server_name ${AUTH_HOST};
         set $auth_backend keycloak:8080;
+        set $manager_backend manager:8080;
         limit_req zone=per_client burst=40 nodelay;
+        # Scoped external Manager: authenticated gridex realm only.
+        # Ограничен външен Manager: само автентикиран realm gridex.
+        location = /manager { return 302 /manager/?realm=gridex; }
+        location /manager/ {
+            limit_except GET { deny all; }
+            proxy_pass http://$manager_backend;
+        }
+        location /shared/ {
+            limit_except GET { deny all; }
+            proxy_pass http://$manager_backend;
+        }
+        # These two bootstrap responses are synthetic and never proxy master.
+        # Тези два bootstrap отговора са синтетични и никога не proxy-ват master.
+        location = /api/master/info {
+            limit_except GET { deny all; }
+            default_type application/json;
+            return 200 '{"version":"1.30.0","authServerUrl":"/auth"}';
+        }
+        location = /api/master/configuration/manager {
+            limit_except GET { deny all; }
+            default_type application/json;
+            return 200 '{"manager":{"realm":"gridex","clientId":"openremote","managerUrl":"https://${AUTH_HOST}","keycloakUrl":"https://${AUTH_HOST}/auth","consoleAutoEnable":false}}';
+        }
+        location = /api/gridex/asset/query {
+            limit_except POST { deny all; }
+            proxy_pass http://$manager_backend;
+        }
+        location ~ ^/api/gridex/(asset(/|$)|model(/|$)|map(/tile/[^/]+/[^/]+/[^/]+|/getCustomMapInfo)?$|realm/accessible$|user/(user|userRoles/openremote|userRealmRoles)$) {
+            limit_except GET { deny all; }
+            proxy_pass http://$manager_backend;
+        }
+        location = /websocket/events {
+            if ($http_origin != 'https://${AUTH_HOST}') { return 403; }
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Port 443;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_set_header Forwarded '';
+            proxy_read_timeout 300s;
+            proxy_pass http://$manager_backend;
+        }
         location /auth/realms/gridex/ {
             proxy_pass http://$auth_backend;
         }

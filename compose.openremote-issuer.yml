@@ -1,0 +1,8 @@
+# Read the same private backend --env-file as all other backend overrides.
+services:
+  manager:
+    image: gridex-openremote-manager:1.30.0-realm-issuer-v1
+    build: ./services/openremote-issuer
+    environment:
+      OR_KEYCLOAK_ISSUER_GRIDEX: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
+      OR_KEYCLOAK_DISABLE_ISSUER_VALIDATION: 'false'

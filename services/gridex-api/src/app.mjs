@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import {authoritativeSites,authoritativeTopology} from './inventory.mjs';
 import { assertAllowedOrigin } from "./config.mjs";
 import { requirePermission, withMembershipRoles } from "./auth.mjs";
 import { ApiError, toErrorResponse } from "./errors.mjs";
@@ -9,6 +10,7 @@ import { buildOpenRemoteAsset, DEVICE_TYPES, validateDeviceInput } from "./asset
 import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
+import { ROCK_METRICS } from "./history-ingest.mjs";
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -85,6 +87,12 @@ function canonicalStrategyVersion(row, siteId) {
     configuration: row.configuration, createdAt: row.created_at || new Date().toISOString(),
     createdBy: row.created_by || "", appliedAt: row.applied_at || row.appliedAt || null,
   } : null;
+}
+
+function normalizeDatapoints(result) {
+  const items = Array.isArray(result) ? result : Array.isArray(result?.datapoints) ? result.datapoints : [];
+  return items.filter((point) => Number.isFinite(Number(point?.x)) && Number.isFinite(Number(point?.y)))
+    .map((point) => ({ x: Number(point.x), y: Number(point.y) }));
 }
 
 async function loadSiteDevices(site, repository, openRemote) {
@@ -178,7 +186,8 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/sites") {
         requirePermission(principal, "site:read");
-        const sites = await repository.listAccessibleSites(principal.subject);
+        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject),openRemote,principal.subject);
+        res.setHeader('Cache-Control','no-store');
         return json(res, 200, { sites: sites.map(publicSite) }, context);
       }
 
@@ -206,7 +215,8 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && suffix === "/hardware") {
         requireDeviceAdmin(site,principal);
-        const topology = await repository.getTopology(site.id);
+        const topology = await authoritativeTopology(site,repository,openRemote,principal.subject);
+        res.setHeader('Cache-Control','no-store');
         return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 
@@ -216,6 +226,26 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (!deviceHeartbeats) throw new ApiError(503, 'heartbeat_unavailable', 'Heartbeat ingestion is not configured.');
         return json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
           Date.now(), config.heartbeatStaleMs, config.heartbeatOfflineMs) }, context);
+      }
+
+      if (req.method === 'GET' && suffix === '/history') {
+        requireDeviceAdmin(site, principal);
+        const now = Date.now();
+        const from = Number(url.searchParams.get('from')) || now - 24 * 60 * 60 * 1000;
+        const to = Number(url.searchParams.get('to')) || now;
+        if (!Number.isFinite(from) || !Number.isFinite(to) || from < now - config.historyMaximumRangeMs || to < from || to > now + 5000) {
+          throw new ApiError(400, 'invalid_history_range', 'History range is invalid or exceeds the configured maximum.');
+        }
+        const requestedMetric = url.searchParams.get('metric');
+        if (requestedMetric && !ROCK_METRICS[requestedMetric]) throw new ApiError(400, 'invalid_history_metric', 'The requested telemetry metric is not supported.');
+        const bindings = config.historyBindings.filter((binding) => binding.siteId === site.id && (!requestedMetric || binding.metric === requestedMetric));
+        const linked = await openRemote.getUserLinkedAssets(bindings.map((binding) => binding.assetId), principal.subject);
+        const linkedIds = new Set(linked.map((asset) => asset.id));
+        const items = await Promise.all(bindings.filter((binding) => linkedIds.has(binding.assetId)).map(async (binding) => ({
+          assetId: binding.assetId, metric: binding.metric, unit: ROCK_METRICS[binding.metric].unit,
+          points: normalizeDatapoints(await openRemote.getDatapoints(binding.assetId, binding.metric, { fromTimestamp: from, toTimestamp: to })),
+        })));
+        return json(res, 200, { from, to, items }, context);
       }
 
       if (req.method === "POST" && suffix === "/hardware-configurations") {

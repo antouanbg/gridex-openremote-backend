@@ -1,5 +1,294 @@
 # CODEX_STATE.md
 
+## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
+
+Supersedes the five-metric/CPU-pending entry below. Fresh physical ROCK CPU
+temperature is stored in OpenRemote TimescaleDB; a separate OpenRemote API
+read returned 21 points/hour and latest 52.083 °C at check. All six system
+metrics now traverse MQTT/backend/history. Frontend PR #42 is publicly
+deployed, but owner-browser rendering and cross-owner denial are unverified.
+No control or MODBUS writes were enabled.
+
+Заменя по-стария статус за пет показателя/чакаща CPU стойност. Прясна CPU
+температура от физическия ROCK е записана в OpenRemote TimescaleDB; отделна
+OpenRemote API заявка върна 21 точки/час и последна 52.083 °C при проверката.
+И шестте показателя минават през MQTT/backend/history. Frontend PR #42 е
+публикуван, но показването при owner вход и отказът за чужд собственик не са
+проверени. Без активирани control или MODBUS записи.
+
+## ROCK live history status / Статус на реалната история — 2026-09-24
+
+Five physical ROCK system metrics are reaching the existing OpenRemote
+Timescale datapoint table through MQTT and the backend outbox; repeated
+read-only counts increased from 15 to 24 each. Missing restricted history-
+writer links on five new OpenRemote Assets caused 403 retries; repaired via
+OpenRemote API with validated private backup `rock-history-writer-OSimep`.
+Provisioning now verifies/grants those links and preserves other Sites'
+bindings. CPU temperature has no live datapoints yet. External authenticated
+Devices UI and longer runtime stability are unverified. See HANDOFF top entry.
+
+Пет реални ROCK системни показателя вече стигат до OpenRemote Timescale през
+MQTT и backend outbox; броят им нарасна от 15 до 24. Липсващите връзки на пет
+Assets към ограничения writer причиняваха 403; поправени през OpenRemote API
+с проверен частен backup `rock-history-writer-OSimep`. Provisioning вече ги
+проверява и пази binding-ите на другите Обекти. CPU температура още няма
+реални записи. Външният потребителски UI и дълга стабилност не са потвърдени.
+
+## ROCK system telemetry implementation prepared / Подготвена системна телеметрия — 2026-09-23
+
+Backend now validates an allowlisted `/system/telemetry` MQTT contract, relays
+accepted samples through the durable outbox to OpenRemote datapoints, and exposes
+authorized `GET /api/v1/sites/{siteId}/history` for the Devices UI. ROCK Pi image
+code can publish CPU temperature, uptime, load1, available memory, data free
+space and journal size; it is gated by `GRIDEX_SYSTEM_TELEMETRY_ENABLED=0` in the
+example configuration and does not change control/MODBUS or Ethernet. Frontend
+Devices shows the latest OpenRemote-recorded values without Grafana. Physical
+activation, asset bindings and real-data acceptance remain a deployment gate.
+
+Подготвена е allowlist MQTT `/system/telemetry`, устойчив relay към OpenRemote
+datapoints и защитен history API за „Устройства“. ROCK Pi може да изпраща CPU
+температура, uptime, load1, свободна RAM, свободно пространство и journal size;
+примерът е изключен до провизиране и не променя control/MODBUS/Ethernet. GrideX
+показва последните записани стойности без Grafana. Физическото включване,
+binding-ите и приемането с реални данни остават deployment gate.
+
+## External Manager runtime update / Runtime външен Manager — 2026-09-22
+
+Scoped public-auth `/manager/` proxy + existing openremote client callbacks
+applied; rollback public-manager-V36M4o. Read-oriented REST surface, no new roles.
+Three generator tests/local TLS route tests/local master gate pass. The canonical
+nginx template now retains the Manager surface for future deployments. Owner
+confirmed external Manager works; authenticated assets/WebSocket/session and
+cross-owner evidence remain separate acceptance work. Two synthetic master bootstrap JSON responses
+are not master upstream exposure. Preserve runtime overlay during future proxy
+deployment; integration into normal renderer pending. See newest HANDOFF entry.
+
+Приложени са ограниченият public-auth `/manager/` proxy и callbacks за openremote;
+rollback public-manager-V36M4o. REST за преглед, без нови роли. Трите generator
+теста/local TLS маршрути/local master проверка минаха. Каноничният nginx template
+вече запазва Manager повърхността при бъдещи deployments. Собственикът потвърди,
+че външният Manager работи; отделните assets/WebSocket/session и cross-owner
+доказателства предстоят. Двата синтетични master bootstrap JSON не излагат
+master upstream. Виж най-новия HANDOFF запис.
+
+## External Manager decision / Решение за външен Manager — 2026-09-22
+
+Approved: existing public auth origin + `/manager/?realm=gridex`, existing
+certificate/443; replaces the separate `or` hostname proposal. Documentation only,
+not deployed/tested. Next: inspect Manager paths, prepare a minimal proxy allowlist
+and scoped OIDC callbacks, then security and real external browser acceptance.
+Preserve local master, public gridex issuer, asset permissions and private admin/
+health/metrics. See the dated external Manager entry in HANDOFF.md; do not mark
+the URL active or introduce a new DNS/certificate requirement for this approach.
+
+Одобрено: текущият публичен auth адрес + `/manager/?realm=gridex`, съществуващи
+сертификат/443; заменя предложението за отделен `or` hostname. Само документация,
+без внедряване/тестове. Следват проверка на Manager маршрутите, минимален proxy
+allowlist и ограничени OIDC callbacks, security и реално външно browser приемане.
+Пази local master, public gridex issuer, asset правата и непубличните admin/
+health/metrics. Виж записа за външен Manager в HANDOFF.md; не обявявай URL за
+активен и не въвеждай ново изискване за DNS/сертификат за този подход.
+
+## Publication confirmed / Публикация потвърдена — 2026-09-20
+
+Owner approved PR #40 merge; merged as bdefa64c283d37ba25f500d191af2ecfb52ea7d2.
+Frontend quality passed on reviewed head db8a5c1. Main Pages run 35536017627
+SUCCEEDED. Public release.json and /devices/ HTML both return bdefa64, including
+main-AwkwdVhj.js. This supersedes the branch-protection blocker below; protections
+were not changed. Backend PR #32 remains separate, not merged by this approval.
+No new runtime/auth/device changes this turn. Owner's real authenticated browser
+acceptance and physical temperature remain unverified; do not equate public
+bundle verification with a completed personal login/device telemetry test.
+
+Собственикът одобри merge на PR #40; слят е като bdefa64c283d37ba25f500d191af2ecfb52ea7d2.
+Frontend quality мина за проверения head db8a5c1. Main Pages run 35536017627 е
+УСПЕШЕН. Публичните release.json и /devices/ HTML връщат bdefa64 и bundle
+main-AwkwdVhj.js. Това отменя публикационния блокер по-долу; защитите са запазени.
+Backend PR #32 е отделен и не е сливан с това одобрение. Без нови runtime/auth/
+device промени в този ход. Реалното owner browser приемане и физическата
+температура още не са потвърдени; публичен bundle не доказва личен вход/телеметрия.
+
+
+## Publication gate / Публикационен блокер — 2026-09-20
+
+Backend a58aebf is pushed in PR #32 and deployed (381dee9a89bb); existing frontend
+already receives OR-backed /sites and /hardware without requiring a new bundle.
+Frontend 38295b4 is pushed in PR #40. Pages run 35535292127 built successfully
+but environment protection REJECTED deployment from feat/routes-session-restoration.
+No protection settings changed; no merge performed. New frontend validation/error
+messages are NOT public yet. Need owner merge approval for PR #40, then verify
+main Pages deployment and public revision. Real owner browser acceptance pending.
+
+Backend a58aebf е в PR #32 и е внедрен (381dee9a89bb); текущият frontend вече
+получава OR данни от /sites и /hardware и без нов bundle.
+Frontend 38295b4 е в PR #40. Pages run 35535292127 build мина, но environment
+защитата ОТКАЗА deployment от feat/routes-session-restoration. Защитата не е
+променяна; няма merge. Новите frontend проверки/съобщения още НЕ са публични.
+Нужно е owner одобрение за merge на PR #40, после проверка на main Pages
+deployment и публичната ревизия. Реалното owner browser приемане предстои.
+
+
+## OpenRemote-backed frontend inventory / Инвентар за frontend от OpenRemote — 2026-09-20
+
+API DEPLOYED image 381dee9a89bb, private rollback api-inventory-8YeBtP.
+GET /sites intersects current GrideX membership with OR user-linked Site assets;
+names come from OR. GET /hardware verifies Site/gateway bindings, realm, parent
+hierarchy and user-linked assets on every request; gateway name/model/role come
+from OR. Local port/configuration data remain execution settings only.
+No OR response -> 503; incomplete binding/ownership -> 409; no local-only fallback.
+Existing heartbeat transport and configuration editing are unchanged.
+Actual owner membership/OR data handler probe returns one accessible pilot and
+two verified gateways. Identity was injected into an isolated local handler:
+this is NOT a real owner browser/JWT login. No customer data published.
+Frontend requires inventorySource=openremote; unavailable/unprovisioned states
+hide stale inventory while preserving the session. No menu/layout changes.
+Tests: 48 API, 22 frontend unit/render, 4 browser fixture flows PASS. Includes
+deep link/refresh/expiry, ownership, no-battery BG/EN, inventory outage/recovery.
+Lint has zero errors (two pre-existing image warnings); Pages/RSC builds pass.
+Local master auth gate passes; forced-local trusted TLS public issuer/master
+denial pass. Normal-DNS external ingress probes from Mac time out; external
+owner browser login/expiry and physical temperature remain NOT verified.
+Frontend publication result will be recorded after Pages deployment; backend
+runtime already serves the compatible OR inventory contract to existing clients.
+Next: owner browser acceptance, then generic provisioning/import/update guards;
+do not treat this read integration as completion of all legacy write-path debt.
+
+API е ВНЕДРЕН: 381dee9a89bb; частен rollback api-inventory-8YeBtP.
+GET /sites пресича текущото GrideX членство с OR Site assets, свързани към
+потребителя; имената идват от OR. GET /hardware проверява Site/gateway bindings,
+realm, родителите и потребителските връзки при всяка заявка; имена/модели/роли
+идват от OR. Локалните портове/конфигурация са само изпълними настройки.
+OR отказ -> 503; непълен binding/собственост -> 409; без local-only fallback.
+Heartbeat транспортът и редакцията на конфигурации са непроменени.
+Пробата с реалните членство/OR данни връща пилотния Обект и два проверени шлюза.
+Идентичността е подадена в изолиран локален handler — НЕ е реален owner browser/
+JWT вход. Няма публикувани клиентски данни.
+Frontend изисква inventorySource=openremote; при отказ/непровизиран ресурс
+скрива стария инвентар, без да прекратява сесията. Без промени в меню/оформление.
+Минават: 48 API, 22 frontend unit/render и 4 browser fixture сценария, включително
+deep link/refresh/expiry, права, BG/EN без батерия и OR отказ/възстановяване.
+Lint е без грешки (две стари image предупреждения); Pages/RSC build минава.
+Local master auth проверките минават; forced-local trusted TLS public issuer и
+забраната за master минават. Normal-DNS ingress от Mac е timeout; външен owner
+browser вход/expiry и физическа температура НЕ са потвърдени.
+Frontend публикацията ще се запише след Pages deployment; backend вече обслужва
+съвместимия OR inventory договор и за текущите клиенти.
+Следва owner browser приемане, после общи provisioning/import/update защити.
+Това read интегриране не приключва дълга по старите write пътища.
+
+
+## Pilot inventory reconciled / Пилотен инвентар съгласуван — 2026-09-20
+
+DEPLOYED via supported OpenRemote APIs: pilot Site -> ROCK -> ESP, with the
+existing temperature asset reparented under ROCK (same ID/history writer).
+All four assets have verified owner links. Owner lacked OR read:assets: granted
+that role with restricted_user, NOT unrestricted asset/admin writes. Existing
+GrideX administrator membership unchanged. New tokens may be needed to see roles.
+Site binding and two gateway bindings are projections of verified OR resources
+(migration 009), not independently provisioned inventory. No physical activation,
+Ethernet, certificates, MQTT configuration or BESS control changes.
+Private backups: inventory-or-XXk1AE before asset creation; inventory-or-ypRcM2
+before owner role assignment. Both database dumps passed pg_restore --list;
+OR/owner snapshots are private. Final read-back: inventory-or-dHQvbb.
+A partial SQL audit failure was corrected; retry reused the same OR IDs.
+Eight verification tests + 37 API regression tests PASS; live snapshot validates
+hierarchy, owner links, bindings and history writer restricted to its one asset.
+Sandbox HTTP tests initially failed EPERM; approved local-port rerun passed.
+NOT claimed: owner browser acceptance, physical temperature receipt, or generic
+UI/import provisioning enforcement. Those remain pending under the canonical
+backend plan. Do not resume local-only bootstrap scripts. Documentation rules
+published in backend PR #32, frontend PR #40 and edge PR #20; not merged here.
+
+ВНЕДРЕНО през OpenRemote API: пилотен Обект -> ROCK -> ESP; съществуващият
+температурен asset е преместен под ROCK със същия ID/history writer.
+Проверени са връзките на четирите assets към собственика. Липсващото OR
+read:assets право е добавено с restricted_user, БЕЗ неограничени asset/admin
+записи. GrideX администраторското членство е запазено. За новите роли може да
+е нужен нов token. Site binding и двата gateway bindings (миграция 009) са
+проекции на потвърдени OR ресурси, не отделно провизиран инвентар.
+Без физическо активиране, Ethernet, сертификати, MQTT настройки или BESS промени.
+Частни backups: inventory-or-XXk1AE преди assets и inventory-or-ypRcM2 преди
+owner ролите; двата database dump-а са проверени с pg_restore --list.
+OR/owner snapshots са частни; последна проверка inventory-or-dHQvbb.
+Поправен е частичен SQL audit отказ; повторението използва същите OR IDs.
+8 verification + 37 API regression теста МИНАВАТ; реалният snapshot потвърждава
+йерархия, owner links, bindings и writer само до неговия температурен asset.
+Първият HTTP тест е блокиран от sandbox EPERM; разрешеното повторение минава.
+НЕ са потвърдени: owner browser приемане, физическа температура и универсална
+UI/import защита. Те остават задачи по backend плана. Без local-only bootstrap.
+Правилата са публикувани в backend PR #32, frontend PR #40 и edge PR #20;
+тук не са merge-вани.
+
+
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+2026-09-20: OpenRemote resource authority review documented in AGENTS/HANDOFF
+and docs/OPENREMOTE_PROVISIONING_AUTHORITY.md. Local-only Site/gateway records
+and incomplete OR hierarchy are migration debt. Runtime NOT changed; unified
+provisioning, reconciliation and seven acceptance tasks remain pending.
+2026-09-20: Правилото OpenRemote да е основен ресурсен регистър е записано в
+AGENTS/HANDOFF и новия документ. Local-only Обект/шлюзове и непълната OR йерархия
+са миграционен дълг. Runtime НЕ е променен; реализацията и приемането предстоят.
+
+2026-09-20 17:43 UTC: issuer fix DEPLOYED (Manager 26d8f5d46e25); service query,
+local auth and temporary PKCE pass. Owner-scoped temperature asset/restricted
+writer and history worker 757c2c99dabc DEPLOYED, migration 008 backed up/applied.
+37 API tests and isolated Timescale write/permission probe pass; probe removed.
+Physical temperature NOT received: ROCK publisher update requires local access,
+SSH refused. No frontend/physical success claim. Newest HANDOFF is authoritative.
+2026-09-20 17:43 UTC: issuer fix ВНЕДРЕН; service query/local auth/PKCE минават.
+Owner температурен asset/restricted writer/worker са ВНЕДРЕНИ; 008 с backup.
+37 API теста и isolated Timescale/permissions probe минават; пробата е премахната.
+Физическа температура НЯМА: нужен ROCK update, SSH отказан. Виж новия HANDOFF.
+
+2026-09-20: Timescale history preparation, NOT deployed. Existing OR TimescaleDB
+2.26.4 confirmed, zero measurement rows. Manager rejects public-issuer service
+token; no auth bypass or runtime changes. See newest HANDOFF and
+docs/TIMESCALE_DEVICE_HISTORY.md for concrete completion gates.
+2026-09-20: подготовка за Timescale история, НЕ е внедрена. Налична OR TimescaleDB
+2.26.4, нула измервания. Manager отказва служебния public-issuer token; няма
+заобикаляне на auth или runtime промени. Виж най-новия HANDOFF и документа.
+
 2026-09-20 07:19 UTC: owner-approved 365-day Remember Me APPLIED; API restart
 gate DEPLOYED, image dd06bf203540 healthy. 31 tests and actual temporary PKCE
 pass. Local auth/TLS isolation pass; normal-DNS public probes timeout. Owner

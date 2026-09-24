@@ -8,13 +8,14 @@ test('database roles, selected sites and revocation override a stale admin token
   const a = { id: 'a', organisationId: 'org-a', name: 'A' };
   const b = { id: 'b', organisationId: 'org-b', name: 'B' };
   const c = { id: 'c', organisationId: 'org-b', name: 'C' };
+  for(const s of [a,b,c]){s.openremoteSiteAssetId='OR-'+s.id;s.openremoteRealm='test';}
   const repository = new MemoryRepository({ sites: [a, b, c], memberships: [
     { subject: 'user', organisationId: 'org-a', role: 'administrator', allSites: true },
     { subject: 'user', organisationId: 'org-b', role: 'viewer', siteIds: ['b'] },
   ] });
   const identity = { subject: 'user', roles: ['admin'], permissions: ['hardware:manage'] };
   const server = createServer(createApp({ repository, authenticate: async () => identity,
-    config: { allowedOrigins: new Set(), writesEnabled: true, maximumBodyBytes: 1000 }, openRemote: {} }));
+    config: { allowedOrigins: new Set(), writesEnabled: true, maximumBodyBytes: 1000 }, openRemote: {getUserLinkedAssets:async ids=>[a,b,c].filter(s=>ids.includes(s.openremoteSiteAssetId)).map(s=>({id:s.openremoteSiteAssetId,name:s.name,realm:'test',attributes:{gridexResourceKind:{value:'site'},gridexResourceId:{value:s.id}}}))} }));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const url = `http://127.0.0.1:${server.address().port}/api/v1`;
   try {

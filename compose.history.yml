@@ -1,16 +1,9 @@
-# Use with the backend Compose project and its ONE private --env-file.
 services:
-  gridex-api:
-    environment:
-      GRIDEX_REAUTH_ON_API_RESTART: ${GRIDEX_REAUTH_ON_API_RESTART:-false}
-      GRIDEX_HEARTBEAT_STALE_SECONDS: ${GRIDEX_HEARTBEAT_STALE_SECONDS:-30}
-      GRIDEX_HEARTBEAT_OFFLINE_SECONDS: ${GRIDEX_HEARTBEAT_OFFLINE_SECONDS:-90}
-      GRIDEX_HISTORY_BINDINGS: ${GRIDEX_HISTORY_BINDINGS:-[]}
-      GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS: ${GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS:-744}
-  heartbeat-worker:
+  history-worker:
+    image: gridex-history-worker:temperature-v1
     build: ./services/gridex-api
     user: "${GRIDEX_MQTT_READER_UID:?required}:${GRIDEX_MQTT_READER_GID:?required}"
-    command: [node, src/heartbeat-worker.mjs]
+    command: [node, src/history-worker.mjs]
     restart: unless-stopped
     read_only: true
     cap_drop: [ALL]
@@ -20,9 +13,14 @@ services:
       PGDATABASE: gridex
       PGUSER: gridex
       PGPASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
-      GRIDEX_MQTT_URL: ${GRIDEX_MQTT_URL:?private mqtts URL required}
-      GRIDEX_MQTT_TOPIC_PREFIX: ${GRIDEX_MQTT_TOPIC_PREFIX:-gridex/v1}
-      GRIDEX_HEARTBEAT_BINDINGS: ${GRIDEX_HEARTBEAT_BINDINGS:?approved inventory bindings required}
+      OPENREMOTE_BASE_URL: http://manager:8080
+      OPENREMOTE_REALM: gridex
+      OPENREMOTE_SERVICE_CLIENT_ID: ${GRIDEX_HISTORY_WRITER_CLIENT_ID:?required}
+      OPENREMOTE_SERVICE_CLIENT_SECRET: ${GRIDEX_HISTORY_WRITER_CLIENT_SECRET:?required}
+      OIDC_ISSUER: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
+      OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
+      GRIDEX_HISTORY_BINDINGS: ${GRIDEX_HISTORY_BINDINGS:?required}
+      GRIDEX_MQTT_URL: ${GRIDEX_MQTT_URL:?required}
       GRIDEX_MQTT_CA_FILE: /run/mqtt/ca.crt
       GRIDEX_MQTT_CLIENT_CERT_FILE: /run/mqtt/client.crt
       GRIDEX_MQTT_CLIENT_KEY_FILE: /run/mqtt/client.key

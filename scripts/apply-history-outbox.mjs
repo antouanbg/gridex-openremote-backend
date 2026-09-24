@@ -1,0 +1,12 @@
+import fs from 'node:fs';import path from 'node:path';import{spawnSync}from'node:child_process';
+const[backupRoot,apply]=process.argv.slice(2);if(!backupRoot||apply!=='--apply')throw Error('Usage PRIVATE_BACKUPS --apply');
+const backup=path.join(backupRoot,'history-outbox-'+Date.now());fs.mkdirSync(backup,{recursive:true,mode:0o700});
+const dump=spawnSync('docker',['--context','colima-gridex','exec','gridex-mac-gridex-db-1','pg_dump','-U','gridex','-d','gridex','-Fc'],{maxBuffer:128*1024*1024});
+if(dump.status!==0||dump.stdout.subarray(0,5).toString()!=='PGDMP')throw Error('Database backup failed');
+fs.writeFileSync(path.join(backup,'gridex.dump'),dump.stdout,{mode:0o600});
+const check=spawnSync('docker',['--context','colima-gridex','exec','-i','gridex-mac-gridex-db-1','pg_restore','--list'],{input:dump.stdout});
+if(check.status!==0)throw Error('Backup index invalid');
+const sql=fs.readFileSync(new URL('../services/gridex-api/migrations/008_history_outbox.sql',import.meta.url));
+const r=spawnSync('docker',['--context','colima-gridex','exec','-i','gridex-mac-gridex-db-1','psql','-X','-v','ON_ERROR_STOP=1','-U','gridex','-d','gridex'],{input:sql});
+if(r.status!==0)throw Error('History outbox migration failed');
+console.log('History transport outbox created; private database backup: '+backup);

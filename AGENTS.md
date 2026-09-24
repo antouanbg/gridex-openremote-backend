@@ -1,5 +1,163 @@
 # GrideX OpenRemote backend — Working rules
 
+## Telemetry provisioning completion gate / Проверка за завършено провизиране
+
+For each newly provisioned OpenRemote telemetry Asset, verify both the owner's
+asset link and the existing restricted history-writer service user's asset link.
+The writer keeps `restricted_user`, `read:assets` and `write:attributes`; never
+grant it `write:assets` or broad admin rights to cure delivery errors. Check
+MQTT receipt, outbox drain and actual OpenRemote Timescale datapoints before
+claiming live history. A successful ROCK publish alone is insufficient. Preserve
+other Sites' bindings when updating one gateway; keep control/commissioning
+locks. Record missing sensors and external UI acceptance separately.
+
+За всеки нов OpenRemote Asset за телеметрия проверявай връзката към собственика
+и към съществуващия ограничен history writer. Не разширявай правата му до
+`write:assets` или admin заради грешка при доставка. Доказвай MQTT, изпразнена
+опашка и реални Timescale записи, преди да обявиш историята за активна. Успешен
+ROCK publish не е достатъчен. Пази binding-ите на другите Обекти и control
+locks; липсващите сензори и външното UI приемане остават отделни проверки.
+
+## Scoped public Manager exception / Ограничено изключение за публичен Manager — 2026-09-22
+
+Owner selected the existing public auth origin + `/manager/?realm=gridex` for
+external Manager access, sharing HTTPS 443 and its certificate, not a new `or`
+hostname. This supersedes the browser-to-GrideX-API-only restriction solely for
+authenticated Manager use and its reviewed required API/WebSocket paths.
+No catch-all upstream exposure; retain asset/realm permissions and block public
+master, Keycloak admin, health and metrics. Preserve local master/public gridex
+issuer separation and the mandatory auth regression gate. Follow HANDOFF's
+2026-09-22 implementation/acceptance checklist. Approval is not deployment.
+
+Собственикът избра текущия публичен auth адрес + `/manager/?realm=gridex` за
+външен Manager достъп със същите HTTPS 443 и сертификат, не нов `or` hostname.
+Това отменя ограничението browser само към GrideX API единствено за автентикиран
+Manager и проверените му необходими API/WebSocket маршрути. Без общо излагане
+на upstream; запази asset/realm правата и блокирай публични master, Keycloak
+admin, health и metrics. Пази local master/public gridex issuer разделението
+и задължителната auth проверка. Следвай списъка за реализация/приемане от
+2026-09-22 в HANDOFF. Одобрение не означава внедряване.
+
+## Strategic invariant: OpenRemote-only inventory / Стратегическо правило — 2026-09-20
+
+Owner-confirmed: OpenRemote is the ONLY authoritative place for all operational
+inventory, Sites, devices, gateways, sensors and resource relationships. This
+applies equally to user actions through the frontend and Codex/operator actions
+under owner instructions: create/provision/update resources through supported
+OpenRemote APIs, normally orchestrated by the authorized GrideX backend. Never
+bypass OpenRemote by SQL, import, scripts, browser storage or a second registry.
+Do not expose administrative credentials in the frontend. No local-only resource
+may be presented as provisioned. Require verified OR identity, hierarchy,
+owner/realm access and durable bindings before success; outages and partial
+failures stay pending/failed and must reconcile idempotently.
+Local drafts, delivery queues and disposable read projections are allowed ONLY
+as workflow data referencing OR or a pending request, never independent inventory.
+Device configuration/NVS and certificates are execution artifacts, not a registry.
+Keycloak identity and business records are separate concerns. Anonymous demo
+fixtures remain explicitly synthetic, never registered customer/live inventory.
+This decision supersedes conflicting older local-only provisioning instructions.
+Preserve existing data and safety locks; reconcile legacy orphans with backup,
+not blind deletion. Canonical plan: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Documentation is not runtime enforcement; migration and acceptance remain pending.
+
+Потвърдено от собственика: OpenRemote е ЕДИНСТВЕНОТО основно място за целия
+оперативен инвентар, Обекти, устройства, шлюзове, сензори и ресурсните им връзки.
+Правилото важи еднакво за потребителя през frontend и за Codex/оператор по
+инструкции на собственика: създаване/провизиране/обновяване през поддържаните
+OpenRemote API, обичайно чрез GrideX backend с проверени права. Без заобикаляне
+чрез SQL, import, скриптове, browser storage или втори регистър. Без admin тайни
+във frontend. Local-only ресурс не се показва като провизиран. Успех изисква
+проверени OR идентичност, йерархия, собственик/realm права и устойчив binding;
+отказите остават pending/failed и се съгласуват идемпотентно.
+Локални чернови, опашки и възстановими проекции за четене са допустими САМО като
+данни за процеса с връзка към OR или чакаща заявка, никога независим инвентар.
+Device конфигурации/NVS и сертификати са изпълними настройки, не регистър.
+Keycloak идентичности и бизнес записи са отделни. Анонимното демо остава ясно
+синтетично, не регистриран клиентски/live инвентар.
+Решението отменя противоречащи стари инструкции за local-only provisioning.
+Пази данните и safety locks; съгласувай наследените записи с backup, без сляпо
+изтриване. Каноничен план: backend docs/OPENREMOTE_PROVISIONING_AUTHORITY.md.
+Документацията не е runtime защита; миграцията и приемането предстоят.
+
+
+## OpenRemote provisioning authority — mandatory / Задължително — 2026-09-20
+
+OpenRemote is the authoritative registry for Sites, ROCK/ESP gateways and nodes,
+meters, inverters, batteries, chargers, sensors and their asset relationships.
+Provision through GrideX UI/API orchestration of supported OpenRemote APIs;
+never create an independent active inventory in another database or bypass
+OpenRemote with bootstrap/import scripts. Do not write OpenRemote asset tables
+directly. A local draft/pending intent is allowed, but configured/provisioned
+success requires verified asset existence, realm, parent/Site, owner access and
+a durable local-to-OpenRemote binding. Heartbeat receipt is not provisioning.
+Missing/unavailable OpenRemote means pending/failed/reconciliation required,
+never a successful local-only fallback. Updates must also reconcile both sides.
+Use idempotency and recovery after partial failures; do not blindly delete
+assets on retries. Keycloak identity, business records, scoped permissions,
+invitations, drafts, audit and transport outboxes may remain outside OpenRemote;
+they are not a second operational resource registry. Keep measurement history
+in existing OpenRemote TimescaleDB and preserve commissioning/control locks.
+Isolated test fixtures are not a production provisioning path. Existing orphan
+records are migration debt: preserve data, ownership, keys and history until an
+approved, backed-up reconciliation. Before marking work complete, test outages,
+retries, partial failures, cross-owner denial and matching UI/OR resource trees.
+See docs/OPENREMOTE_PROVISIONING_AUTHORITY.md. This rule is a requirement, not
+evidence that existing code or runtime has already been corrected.
+
+OpenRemote е основният регистър за Обекти, ROCK/ESP шлюзове и възли, метри,
+инвертори, батерии, зарядни, сензори и връзките между техните assets. GrideX
+UI/API организира provisioning през поддържаните OpenRemote API; забранен е
+втори независим активен инвентар в друга база, включително чрез bootstrap/import
+скриптове. Без директни записи в OpenRemote asset таблици. Допуска се локална
+чернова/чакаща заявка, но успех configured/provisioned изисква проверени asset,
+realm, родител/Обект, достъп на собственика и устойчива връзка към локалния запис.
+Heartbeat не доказва provisioning. При липсващ/недостъпен OpenRemote статусът
+е pending/failed/reconciliation required, не успешен local-only fallback.
+Обновяванията също трябва да съгласуват двете страни. Изисквай идемпотентност и
+възстановяване след частичен отказ; без сляпо изтриване при повторен опит.
+Keycloak идентичности, бизнес записи, ограничени права, покани, чернови, audit
+и transport outbox могат да са извън OpenRemote, но не като втори ресурсен
+регистър. Историята остава в наличната OpenRemote TimescaleDB; commissioning/
+control locks се пазят. Изолираните тестови fixtures не са production път.
+Съществуващите несвързани записи са миграционен дълг: пази данни, собственост,
+ключове и история до одобрено съгласуване с backup. Преди приключване тествай
+откази, повторения, частични грешки, забрана за чужд собственик и еднакви дървета
+в UI/OR. Виж docs/OPENREMOTE_PROVISIONING_AUTHORITY.md. Правилото не доказва,
+че текущият код или runtime вече са поправени.
+
+## Historical measurements / Исторически измервания — 2026-09-20
+
+Manager 1.30.0 pilot uses the pinned services/openremote-issuer image patch.
+Preserve local master and public gridex issuer separation. Rebuild its signed-JWT
+regression test on upgrades; never replace it with disabled issuer validation.
+Manager 1.30.0 pilot използва pinned services/openremote-issuer patch. Пази
+local master/public gridex разделението; при upgrade изпълни signed-JWT
+regression теста. Никога не го заменяй с изключена issuer проверка.
+
+Use existing OpenRemote TimescaleDB for historical measurements from meters,
+inverters, batteries, chargers and other provisioned sensors. Per-device metric
+selection, measurement, publication and heartbeat periods must remain distinct;
+never impose a global 15-minute interval. Preserve unknown values as null.
+Keep current heartbeat state separate from measurement history. Record desired
+profiles separately from edge acknowledgement. Follow
+docs/TIMESCALE_DEVICE_HISTORY.md, including its open runtime acceptance gates.
+No second time-series service by default, no issuer-validation bypass, no
+master credentials in ingestion workers. Two years included is the commercial
+policy; do not enable deletion before export/paid retention/restore safeguards.
+All operator settings use the single backend env. Tests and live evidence,
+not the presence of the extension or MQTT heartbeat alone, establish completion.
+
+Историята от метри, инвертори, батерии, зарядни и други заведени сензори е в
+съществуващата OpenRemote TimescaleDB. Показателите и периодите за измерване,
+публикуване и heartbeat са отделни по устройство; без общи 15 минути.
+Неизвестните стойности са null. Текущ heartbeat не е история от измервания;
+желан профил не е edge потвърждение. Следвай docs/TIMESCALE_DEVICE_HISTORY.md
+и незавършените runtime проверки. Без втора time-series услуга по подразбиране,
+без изключена issuer проверка или master credentials в worker. Две години са
+включени по бизнес политика; без изтриване преди export/paid retention/restore
+защити. Един backend env. Приключване доказват тестове и реални измервания,
+не само налична extension или получен MQTT heartbeat.
+
 ## Approved per-Site transports / Одобрени транспорти по Обект — 2026-09-19
 
 Owner explicitly approves implementation and publication of both selectable

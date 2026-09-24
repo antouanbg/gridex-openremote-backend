@@ -48,19 +48,22 @@ Journal recovery/replay is a separate future flow, never a live heartbeat.
   read-only sharing needs explicit grants; public demo must be sanitized and
   opt-in, not anonymous access to the owner's live inventory.
 
-### 3. Proposed selectable ROCK sensors — NOT implemented
+### 3. Selectable ROCK sensors — implementation prepared, activation remains per Site
 
-Add an allowlisted `sensor-profile` configuration section inside existing
-Devices settings, not a new menu. Per-device selection requires Site admin.
+The edge publisher and backend relay now support an allowlisted `sensor-profile`
+inside the existing Devices settings, not a new menu. The publisher is gated by
+`GRIDEX_SYSTEM_TELEMETRY_ENABLED` and never changes control/MODBUS behaviour.
+Per-device activation still requires Site-admin approval and a matching ROCK
+acknowledgement; the example image keeps the flag disabled until provisioned.
 
 | Sensor ID | Unit | Proposed sample/send | Display |
 | --- | --- | --- | --- |
-| `cpu.temperature` | °C | 10 s / 30 s | ROCK health card and history |
-| `system.uptime` | s | 30 s / 30 s | ROCK details / restart evidence |
-| `cpu.load1` | load (not %) | 30 s / 30 s | Diagnostics |
-| `memory.available` | bytes | 30 s / 60 s | Available RAM and capacity |
-| `storage.data.free` | bytes | 60 s / 60 s | Data partition headroom |
-| `journal.size` | bytes | 60 s / 60 s | Journal backlog/storage, not recovery ACK |
+| `cpuTemperatureC` | °C | 10 s / 30 s | ROCK health card and history |
+| `uptimeSeconds` | s | 30 s / 30 s | ROCK details / restart evidence |
+| `load1` | load (not %) | 30 s / 30 s | Diagnostics |
+| `memoryAvailableBytes` | bytes | 30 s / 60 s | Available RAM and capacity |
+| `storageDataFreeBytes` | bytes | 60 s / 60 s | Data partition headroom |
+| `journalSizeBytes` | bytes | 60 s / 60 s | Journal backlog/storage, not recovery ACK |
 
 Initial proposal enables temperature + uptime only when capability detection
 confirms them. Unsupported sensors are "unavailable", never invented zeroes.
@@ -70,13 +73,13 @@ No arbitrary shell command, sysfs path or upload script may be entered in UI.
 Temperature warning/critical thresholds are model-specific and versioned; no
 automatic power/control action follows a temperature alarm in this test.
 
-Proposed new topic `/system/telemetry` with exact per-gateway publish/read ACL:
+The implemented topic is `/system/telemetry` with exact per-gateway publish/read ACL:
 
 ```json
 {"schemaVersion":1,"gatewayId":"gateway-example","observedAt":"2026-09-19T12:00:00Z","bootId":"opaque-boot-id","sequence":42,"configRevision":3,"samples":[{"sensorId":"cpu.temperature","value":48.2,"unit":"Cel","quality":"good","observedAt":"2026-09-19T12:00:00Z"}]}
 ```
 
-Example is illustrative, not a real sample. QoS 1, retain=false, max 32 KiB,
+The payload is capability-filtered and uses the approved metric IDs above. QoS 1, retain=false, max 32 KiB,
 max 32 allowlisted samples; key deduplication by device/bootId/sequence. TLS
 publisher binding overrides any claimed payload identity. Missing/invalid
 samples do not refresh their last-good timestamp. Store latest and bounded
@@ -112,7 +115,7 @@ No new per-service settings file, no shared certificate between Sites.
 | API heartbeat deployment | Applied, healthy, actual SQL read verified; unrelated activation work preserved |
 | Deploy worker | BLOCKED on verified physical certificate/topic binding |
 | Real ROCK/ESP records → owner Devices screen | TODO; no synthetic records in real inventory |
-| Sensor-profile API/collector/storage/UI | SPECIFIED ONLY |
+| Sensor-profile API/collector/storage/UI | Implemented in edge publisher, backend relay/history API and Devices card; physical activation pending |
 | Foreign-Site denial, expiry/reboot/duplicate/offline tests | Required before live acceptance |
 
 ## Български — същият договор
@@ -155,10 +158,13 @@ freshness, driver и commissioning се показват отделно. Ням�
 Текущите права са verified Site admin. Бъдещо споделяне изисква grants; демото
 е обезличено и opt-in, не публичен достъп до реалния inventory.
 
-Втората таблица е ПРЕДЛОЖЕНИЕ: CPU температура °C (10/30 s), uptime s (30/30),
-load1 без % (30/30), available RAM bytes (30/60), свободно data пространство
-bytes и journal size bytes (60/60). Изборът е в текущите Устройства, без ново
-меню. По подразбиране температура/uptime само ако capability проверката ги
+Системният publisher и backend relay вече поддържат allowlist профил за сензори
+в съществуващите Устройства, без ново меню. Изпращането се включва с
+`GRIDEX_SYSTEM_TELEMETRY_ENABLED`; примерният image остава изключен до одобрено
+провизиране. Метриките са CPU температура `cpuTemperatureC` °C (10/30 s),
+uptime `uptimeSeconds` s (30/30), load1 без % (30/30), RAM
+`memoryAvailableBytes` (30/60), свободно data пространство
+`storageDataFreeBytes` и journal size `journalSizeBytes` (60/60). По подразбиране температура/uptime само ако capability проверката ги
 поддържа. Неподдържаното е unavailable, не нула. Thermal zone се избира по
 поддържан тип, не сляпо zone0; millidegrees→°C, без невъзможни/nonfinite числа.
 Няма произволни shell команди/sysfs paths от UI. Температурни прагове са
@@ -182,7 +188,9 @@ audit rollback. UI показва supported/enabled/last sample/quality/config s
 Без ключове в UI/MQTT/log/Git. Deployment defaults са в единния backend env,
 Site изборите — versioned DB и съществуващия защитен ROCK config.
 
-Статус: LAN proxy и синтетични mTLS/ACL тестове са проверени; миграция 007 е
+Статус: LAN proxy и синтетични mTLS/ACL тестове са проверени; publisher, relay,
+history API и картата в Устройства са реализирани, но физическото включване на
+профила за конкретен Site остава след одобрено провизиране. Миграция 007 е
 приложена с частен pg_dump backup и проверен archive listing, без restore
 репетиция. Физическото съпоставяне е BLOCKED от липсващ удостоверен достъп и
 липсващи MQTT настройки във внесения файл. Worker/API runtime, реални данни към

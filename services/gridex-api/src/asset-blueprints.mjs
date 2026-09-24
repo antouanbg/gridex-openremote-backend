@@ -1,16 +1,17 @@
 import { ApiError } from "./errors.mjs";
+import {historyMeta,defaultTelemetryProfile,validateTelemetryProfile} from './telemetry-profile.mjs';
 
-const readMeta = [{ name: "accessRestrictedRead", value: true }];
-const telemetryMeta = [...readMeta, { name: "storeDataPoints", value: true }, { name: "readOnly", value: true }];
+const readMeta = {accessRestrictedRead:true};
+const telemetryMeta = historyMeta();
 
-const attribute = (type, value = null, meta = telemetryMeta) => ({ type, value, meta });
+const attribute = (type, value = null, meta = telemetryMeta) => ({ type, value, meta: {...meta} });
 
 export const DEVICE_BLUEPRINTS = Object.freeze({
   inverter: {
     openRemoteType: "ElectricityProducerAsset",
     capabilities: ["telemetry", "pv-production", "power-limit"],
     attributes: {
-      online: attribute("boolean", false),
+      online: attribute("boolean"),
       actualPowerKw: attribute("number"),
       pvPowerKw: attribute("number"),
       acVoltageV: attribute("number"),
@@ -28,7 +29,7 @@ export const DEVICE_BLUEPRINTS = Object.freeze({
     openRemoteType: "ElectricityBatteryAsset",
     capabilities: ["telemetry", "charge", "discharge", "soc-limits"],
     attributes: {
-      online: attribute("boolean", false),
+      online: attribute("boolean"),
       socPct: attribute("number"),
       sohPct: attribute("number"),
       voltageV: attribute("number"),
@@ -48,7 +49,7 @@ export const DEVICE_BLUEPRINTS = Object.freeze({
     openRemoteType: "ElectricityConsumerAsset",
     capabilities: ["telemetry", "import-export", "software-fuse-input"],
     attributes: {
-      online: attribute("boolean", false),
+      online: attribute("boolean"),
       measurementPoint: attribute("text", "PCC", readMeta),
       activePowerKw: attribute("number"),
       reactivePowerKvar: attribute("number"),
@@ -69,14 +70,14 @@ export const DEVICE_BLUEPRINTS = Object.freeze({
     openRemoteType: "ElectricityChargerAsset",
     capabilities: ["telemetry", "charge-control", "dynamic-load-limit"],
     attributes: {
-      online: attribute("boolean", false),
+      online: attribute("boolean"),
       connectorState: attribute("text"),
       chargingPowerKw: attribute("number"),
       sessionEnergyKwh: attribute("number"),
       totalEnergyKwh: attribute("number"),
       maximumPowerKw: attribute("number", null, readMeta),
       requestedCurrentLimitA: attribute("number", null, readMeta),
-      vehicleConnected: attribute("boolean", false),
+      vehicleConnected: attribute("boolean"),
       transactionId: attribute("text"),
       alarmCodes: attribute("text", null),
     },
@@ -84,6 +85,20 @@ export const DEVICE_BLUEPRINTS = Object.freeze({
 });
 
 export const DEVICE_TYPES = Object.freeze(Object.keys(DEVICE_BLUEPRINTS));
+
+function profileFor(device) {
+  const attributes = DEVICE_BLUEPRINTS[device.type].attributes;
+  const metrics = Object.keys(attributes).filter(key => attributes[key].meta.storeDataPoints === true);
+  const profile = device.connection?.telemetryProfile
+    ? validateTelemetryProfile(device.connection.telemetryProfile, metrics)
+    : defaultTelemetryProfile(metrics);
+  // OpenRemote stores received events; interval aggregation requires a separate,
+  // tested ingestion policy. Never silently store every event for that request.
+  if (profile.historyMode !== 'all_received') {
+    throw new ApiError(400, 'history_policy_not_supported', 'Interval history is not deployed. Use all_received.');
+  }
+  return {metrics, profile};
+}
 
 export function validateDeviceInput(input) {
   if (!input || typeof input !== "object") throw new ApiError(400, "invalid_device", "A device object is required.");
@@ -96,6 +111,7 @@ export function validateDeviceInput(input) {
   if (input.serialNumber !== undefined && input.serialNumber !== null && typeof input.serialNumber !== "string") {
     throw new ApiError(400, "invalid_device", "serialNumber must be text.");
   }
+  profileFor(input);
   return {
     type: input.type,
     name: input.name.trim(),
@@ -114,12 +130,16 @@ export function validateDeviceInput(input) {
 export function buildOpenRemoteAsset(device, site, overrides = {}) {
   const blueprint = DEVICE_BLUEPRINTS[device.type];
   if (!blueprint) throw new ApiError(400, "invalid_device_type", "Unsupported device type.");
+  const {metrics, profile}=profileFor(device);
+  const measurements=structuredClone(blueprint.attributes);
+  for(const key of metrics)measurements[key].meta.storeDataPoints=profile.metrics.includes(key);
   const identityAttributes = {
-    gridexDeviceId: attribute("text", device.id, []),
+    gridexDeviceId: attribute("text", device.id, {}),
+    gridexTelemetryProfile: attribute('JSON',profile,{readOnly:true}),
     manufacturer: attribute("text", device.manufacturer, readMeta),
     model: attribute("text", device.model, readMeta),
-    serialNumber: attribute("text", device.serialNumber, []),
-    driverKey: attribute("text", device.driverKey, []),
+    serialNumber: attribute("text", device.serialNumber, {}),
+    driverKey: attribute("text", device.driverKey, {}),
     protocol: attribute("text", device.protocol, readMeta),
   };
   return {
@@ -127,7 +147,7 @@ export function buildOpenRemoteAsset(device, site, overrides = {}) {
     name: device.name,
     realm: site.openremoteRealm,
     parentId: overrides.parentAssetId || site.openremoteSiteAssetId,
-    attributes: { ...identityAttributes, ...structuredClone(blueprint.attributes) },
+    attributes: { ...identityAttributes, ...measurements },
   };
 }
 
