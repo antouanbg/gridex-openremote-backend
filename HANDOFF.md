@@ -1,5 +1,29 @@
 # Handoff — GrideX OpenRemote backend
 
+Repository / GitHub: `antouanbg/gridex-openremote-backend`
+
+## Six physical ROCK metrics verified / Шест реални ROCK показателя — 2026-09-24
+
+This supersedes the five-metric/CPU-pending status below. After the operator's
+CPU sensor opt-in, OpenRemote TimescaleDB contains fresh `cpuTemperatureC`
+datapoints. A separate read through the OpenRemote datapoint API returned 21
+CPU readings in the last hour, latest 52.083 °C at that check. The other five
+system metrics continue to arrive. The full ROCK → MQTT → backend outbox →
+OpenRemote history path is therefore confirmed for all six metrics. Public
+Devices UI is published through frontend PR #42; authenticated owner-browser
+rendering, cross-owner denial and longer stability remain separate acceptance
+checks. No new writer roles, Ethernet/VPN/control or battery MODBUS changes.
+
+Това заменя по-стария статус за пет показателя/чакаща CPU температура. След
+включването на CPU сензора от оператора OpenRemote TimescaleDB съдържа пресни
+`cpuTemperatureC` datapoints. Отделна заявка през OpenRemote datapoint API
+върна 21 CPU измервания за последния час, последно 52.083 °C при проверката.
+Другите пет показателя продължават да пристигат. Пътят ROCK → MQTT → backend
+outbox → OpenRemote history е потвърден за всички шест. Публичният екран
+„Устройства“ е публикуван през frontend PR #42; реалното показване при owner
+вход, отказът за чужд собственик и дългата стабилност са отделни проверки.
+Без нови роли, Ethernet/VPN/control или MODBUS промени към батерията.
+
 ## ROCK system telemetry live path / Реален път на телеметрията — 2026-09-24
 
 Physical ROCK activation reported `ROCK_SYSTEM_TELEMETRY_ACTIVE` with one
@@ -58,8 +82,6 @@ the existing commissioning acknowledgement.
 температура, uptime, load1, RAM, свободно място и journal; примерният env е
 изключен до одобрено провизиране. Устройства показва последните стойности без
 Grafana. Няма live deployment или промяна на control/MODBUS/Ethernet.
-
-Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## External Manager activated; acceptance incomplete / Активиран Manager; непълно приемане — 2026-09-22
 

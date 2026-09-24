@@ -1,5 +1,21 @@
 # CODEX_STATE.md
 
+## Six ROCK system metrics verified / Шест ROCK показателя потвърдени — 2026-09-24
+
+Supersedes the five-metric/CPU-pending entry below. Fresh physical ROCK CPU
+temperature is stored in OpenRemote TimescaleDB; a separate OpenRemote API
+read returned 21 points/hour and latest 52.083 °C at check. All six system
+metrics now traverse MQTT/backend/history. Frontend PR #42 is publicly
+deployed, but owner-browser rendering and cross-owner denial are unverified.
+No control or MODBUS writes were enabled.
+
+Заменя по-стария статус за пет показателя/чакаща CPU стойност. Прясна CPU
+температура от физическия ROCK е записана в OpenRemote TimescaleDB; отделна
+OpenRemote API заявка върна 21 точки/час и последна 52.083 °C при проверката.
+И шестте показателя минават през MQTT/backend/history. Frontend PR #42 е
+публикуван, но показването при owner вход и отказът за чужд собственик не са
+проверени. Без активирани control или MODBUS записи.
+
 ## ROCK live history status / Статус на реалната история — 2026-09-24
 
 Five physical ROCK system metrics are reaching the existing OpenRemote
