@@ -4,24 +4,28 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Missed-heartbeat email — 2026-09-24 / Мейл при липсващ heartbeat
 
-EN: Implemented but NOT deployed: migration 010, Site-scoped recipient map,
+EN: Implemented but mail NOT activated: migration 010, Site-scoped recipient map,
 separate Mailgun alert worker and persistent at-most-once incident state. Unit
 tests cover repeated scans, recovery, uncertain Mailgun outcome and lost ROCK
 without duplicate ESP mail. Backend tests: 52 passed with loopback permission.
-The private `.env` was NOT changed: recipient/payload approval is pending.
-No real email was sent, migration not applied, worker not started. Next: obtain
-recipient approval, set the mapping in the one private `.env`, run the backed-up
-migration, start the optional Compose overlay and verify a real outage/recovery.
+Migration 010 was applied to the local GrideX DB after validated private backup
+`heartbeat-alerts-xHLbcW/gridex.dump`; the new table has eight columns. The
+private `.env` was NOT changed: recipient/payload approval is pending. No real
+email was sent and the worker is not started. Backend PR #33 is stacked on #32.
+Next: obtain recipient approval, set the mapping in the one private `.env`,
+start the optional Compose overlay and verify a real outage/recovery.
 See `docs/DEVICE_HEARTBEATS.md`.
 
-BG: Реализацията НЕ е внедрена: миграция 010, получател по Обект, отделен
+BG: Изпращането НЕ е активирано: миграция 010, получател по Обект, отделен
 Mailgun worker и устойчиво състояние с най-много едно изпращане за инцидент.
 Unit тестовете покриват повторни проверки, възстановяване, несигурен Mailgun
 резултат и изгубен ROCK без дублиран ESP мейл. Backend: 52 теста минаха при
-разрешен loopback. Частният `.env` НЕ е променен: чака потвърждение за
-получателя/съдържанието. Не е изпратен реален мейл; миграцията и worker-ът
-не са пускани. Следва потвърждение, mapping в единния `.env`, backup и
-миграция, старт на Compose overlay и реален тест за отпадане/връщане.
+разрешен loopback. Миграция 010 е приложена в локалната GrideX база след
+проверен частен backup `heartbeat-alerts-xHLbcW/gridex.dump`; новата таблица
+има осем колони. Частният `.env` НЕ е променен: чака потвърждение за
+получателя/съдържанието. Не е изпратен реален мейл и worker-ът не е пускан.
+Backend PR #33 е върху #32. Следва потвърждение, mapping в единния `.env`,
+старт на Compose overlay и реален тест за отпадане/връщане.
 
 ## Six physical ROCK metrics verified / Шест реални ROCK показателя — 2026-09-24
 
