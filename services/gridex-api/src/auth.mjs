@@ -23,10 +23,11 @@ function stringArray(value) {
 }
 
 // Identity-provider roles must never bypass current database membership.
-export function withMembershipRoles(principal, roles) {
+export function withMembershipRoles(principal, roles, platformAdminSubjects = new Set()) {
   const trustedRoles = [...new Set(roles.filter((role) => Object.hasOwn(ROLE_PERMISSIONS, role) && role !== 'admin'))];
-  return { ...principal, roles: trustedRoles,
-    permissions: [...new Set(trustedRoles.flatMap((role) => ROLE_PERMISSIONS[role]))] };
+  const platformAdmin = principal.emailVerified && platformAdminSubjects.has(principal.subject);
+  return { ...principal, roles: [...trustedRoles, ...(platformAdmin ? ['platform_administrator'] : [])],
+    permissions: [...new Set([...trustedRoles.flatMap((role) => ROLE_PERMISSIONS[role]), ...(platformAdmin ? ['platform:manage'] : [])])] };
 }
 
 export function principalFromClaims(claims, accessToken, audience) {

@@ -11,6 +11,12 @@ export function loadConfig(env = process.env) {
   const realm = env.OPENREMOTE_REALM || "gridex";
   const oidcIssuer = (env.OIDC_ISSUER || `${openRemoteBaseUrl}/auth/realms/${realm}`).replace(/\/$/, "");
   const oidcAudience = env.OIDC_AUDIENCE || "gridex-portal";
+  const platformAdminSubjects = new Set((env.GRIDEX_PLATFORM_ADMIN_SUBJECTS || '')
+    .split(',').map(value => value.trim()).filter(Boolean));
+  for (const subject of platformAdminSubjects) {
+    if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(subject))
+      throw new Error('GRIDEX_PLATFORM_ADMIN_SUBJECTS must contain Keycloak subject UUIDs, never email addresses');
+  }
   let historyBindings = [];
   if (env.GRIDEX_HISTORY_BINDINGS) {
     try {
@@ -36,6 +42,7 @@ export function loadConfig(env = process.env) {
     oidcTokenEndpoint: env.OIDC_TOKEN_ENDPOINT || `${oidcIssuer}/protocol/openid-connect/token`,
     oidcJwksUri: env.OIDC_JWKS_URI || `${oidcIssuer}/protocol/openid-connect/certs`,
     oidcAudience,
+    platformAdminSubjects,
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',

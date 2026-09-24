@@ -2,6 +2,27 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Organisation invitations / Покани за организации — 2026-09-24 (partial)
+
+BG: Съществуващият API за покани към активна организация е затегнат: преди
+Keycloak/Mailgun страничен ефект проверява, че администраторът може да дава
+достъп точно до избраните Обекти; при приемане проверява повторно. Тестовете
+минават. Подготвена е настройка в единния `.env` за обвързване на глобално
+администраторско право с точен, потвърден Keycloak `subject`; стойност още не е
+въведена и правото НЕ е активно. Глобална покана за нова организация НЕ е
+реализирана: трябва избор за отделен или общ OpenRemote realm, после сигурно
+провизиране в OpenRemote, покана, приемане, одит и интеграционен тест.
+Виж `docs/ORGANISATION_INVITATION_PLAN.md`. Няма изпратена покана или
+внедряване от тази промяна.
+
+EN: Existing active-organisation invitations now validate the inviter's exact
+Site grants before external identity/mail effects and again on acceptance.
+Tests pass. Exact verified Keycloak-subject binding for platform administration
+is staged in the sole backend `.env`, but the owner subject is not configured,
+so the privilege is inactive. New-organisation invitation remains unimplemented
+until the OpenRemote realm model is chosen and provisioning/acceptance/audit
+are proven end to end. No invitation was sent and this change is not deployed.
+
 ## Persistent all-event email opt-in — 2026-09-24 / Постоянно включване на мейл
 
 EN: Owner clarified: one persistent user checkbox for ALL future event types,

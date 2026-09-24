@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## Organisation invitations / Покани за организации — 2026-09-24
+
+BG: Поканите за член на съществуваща организация вече отказват права за Обект,
+който изпращащият администратор не управлява — преди Keycloak/Mailgun и при
+приемане. 4 целеви теста минават. Подготвена, но празна настройка
+`GRIDEX_PLATFORM_ADMIN_SUBJECTS` в единния `.env`; собственикът още няма
+активирано глобално право. Потокът за нова организация НЕ е готов и НЕ е
+внедрен. Блокира изборът за отделни/общ OpenRemote realm; после са нужни
+provisioning, acceptance, audit, rollback и реален тест. Детайли в
+`docs/ORGANISATION_INVITATION_PLAN.md`.
+
+EN: Existing member invitations now check exact inviter Site grants before
+external effects and at acceptance. Four focused tests pass. Platform-admin
+subject setting is staged but empty; no owner privilege is activated. The
+new-organisation flow is not implemented or deployed, pending realm choice and
+end-to-end provisioning/acceptance/audit tests.
+
 ## All-event email opt-in / Включване на мейли за всички събития — 2026-09-24
 
 EN: Owner clarified one persistent per-user opt-in for ALL future event types,

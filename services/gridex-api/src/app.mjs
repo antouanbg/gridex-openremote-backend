@@ -137,7 +137,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       const identity = await authenticate(req);
       const memberships = await repository.getMemberships(identity.subject);
-      let principal = withMembershipRoles(identity, memberships.map((m) => m.role));
+      let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects);
 
       if (url.pathname.includes('/invitations')) {
         if (!invitations) throw new ApiError(503, 'enrollment_unavailable', 'Email enrollment is not configured.');

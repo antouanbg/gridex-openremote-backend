@@ -63,10 +63,21 @@ export class InvitationService {
     catch (error) { await db.query('ROLLBACK'); throw error; } finally { db.release(); }
   }
   async admin(db, subject, org) {
-    const { rows } = await db.query(`SELECT m.role FROM organisation_memberships m JOIN organisations o
+    const { rows } = await db.query(`SELECT m.role,m.all_sites FROM organisation_memberships m JOIN organisations o
       ON o.id=m.organisation_id WHERE m.subject=$1 AND m.organisation_id=$2
       AND o.status='active' FOR SHARE OF m,o`, [subject, org]);
     if (rows[0]?.role !== 'administrator') throw new ApiError(403, 'permission_denied', 'Organisation administrator required.');
+    return rows[0];
+  }
+  async permittedSites(db, subject, org, siteIds) {
+    const admin = await this.admin(db, subject, org);
+    const sites = await db.query(`SELECT id FROM sites WHERE organisation_id=$1
+      AND id=ANY($2::uuid[]) AND deleted_at IS NULL
+      AND ($3 OR EXISTS(SELECT 1 FROM membership_site_grants g WHERE
+        g.organisation_id=$1 AND g.subject=$4 AND g.site_id=sites.id))
+      FOR SHARE`, [org, siteIds, admin.all_sites, subject]);
+    if (sites.rows.length !== siteIds.length)
+      throw new ApiError(403, 'site_access_denied', 'Only Sites managed by this administrator may be granted.');
   }
   async audit(db, subject, id, action) {
     await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
@@ -75,14 +86,11 @@ export class InvitationService {
   async create(principal, org, body) {
     const input = validateInvitation(body);
     // Authorize before any external identity side effect, then recheck in transaction.
-    await this.transaction(db => this.admin(db, principal.subject, org));
+    await this.transaction(db => this.permittedSites(db, principal.subject, org, input.siteIds));
     const user = await this.identity.prepareUser(input.email);
     const id = randomUUID();
     await this.transaction(async db => {
-      await this.admin(db, principal.subject, org);
-      const sites = await db.query(`SELECT id FROM sites WHERE organisation_id=$1
-        AND id=ANY($2::uuid[]) AND deleted_at IS NULL FOR SHARE`, [org, input.siteIds]);
-      if (sites.rows.length !== input.siteIds.length) throw new ApiError(400, 'invalid_sites', 'Sites must belong to the organisation.');
+      await this.permittedSites(db, principal.subject, org, input.siteIds);
       await db.query(`INSERT INTO organisation_invitations(id,organisation_id,email,subject,role,site_ids,state,created_by,expires_at)
         VALUES($1,$2,$3,$4,$5,$6,'pending_delivery',$7,now()+interval '24 hours')`,
       [id, org, input.email, user.subject, input.role, input.siteIds, principal.subject]);
@@ -120,9 +128,11 @@ export class InvitationService {
       const invite = rows[0];
       if (!invite) throw new ApiError(404, 'invitation_unavailable', 'Invitation unavailable.');
       // A revoked/suspended inviter cannot leave a usable privilege-granting link.
-      await this.admin(db, invite.created_by, invite.organisation_id);
+      const admin = await this.admin(db, invite.created_by, invite.organisation_id);
       const sites = await db.query(`SELECT id FROM sites WHERE organisation_id=$1 AND id=ANY($2::uuid[])
-        AND deleted_at IS NULL FOR SHARE`, [invite.organisation_id, invite.site_ids]);
+        AND deleted_at IS NULL AND ($3 OR EXISTS(SELECT 1 FROM membership_site_grants g WHERE
+          g.organisation_id=$1 AND g.subject=$4 AND g.site_id=sites.id))
+        FOR SHARE`, [invite.organisation_id, invite.site_ids, admin.all_sites, invite.created_by]);
       if (sites.rows.length !== invite.site_ids.length) throw new ApiError(409, 'invalid_sites', 'Invited sites changed.');
       const inserted = await db.query(`INSERT INTO organisation_memberships(organisation_id,subject,role,all_sites)
         VALUES($1,$2,$3,false) ON CONFLICT DO NOTHING RETURNING subject`, [invite.organisation_id, principal.subject, invite.role]);
