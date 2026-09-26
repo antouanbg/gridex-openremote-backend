@@ -2,6 +2,29 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Първа клиентска покана — 2026-09-26 (код подготвен, live включването е спряно)
+
+Собственикът попълва име, realm код и имейл в наличното подменю
+`/customers/users/` и натиска „Изпрати“. Потокът използва Keycloak action
+имейл през действащия Mailgun provider: получателят потвърждава имейл,
+задава парола, влиза в собствения realm и приема поканата. Не се въвеждат
+данни за клиента в чат и не се пререгистрира `antouan.bg@gmail.com`.
+Подготвени са еднократен скрипт за backup/миграция 012/API rollout и
+ограничена проверка на промените в Compose. За организация без Обекти
+поканата на член вече допуска празен `siteIds` — без никакъв достъп до Обекти;
+правата се дават изрично после. Тази промяна не добавя делегиране на
+`administrator` роля; това остава отделна задача.
+
+Живото включване е отказано от автоматичната проверка на правомощията,
+защото изисква **постоянен** Keycloak master service client с `create-realm`
+и OpenRemote master `read:admin`/`write:admin`, съхранен в единния частен
+backend `.env`. Нужно е изрично одобрение точно за този обхват, преди
+създаване на client, миграция, рестарт или изпращане на първа покана.
+Нито едно от тези live действия не е изпълнено. При разрешение: изпълни
+подготвения rollout, провери API и външния UI, после собственикът въвежда
+получателя и тества изпращане/приемане. Не обявявай формата за активна преди
+тези проверки.
+
 ## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
 
 Backend PR #35 merged; 62/62 API tests passed. Older open PRs #1, #3–#7, #9–#13, #17, #20, #21 were inspected but NOT approved as compatible: Windows/Hyper-V plans are superseded; legacy branches conflict with current files. Review each separately against current architecture; preserve useful changes and resolve conflicts with tests, never restore old files wholesale. Migration 012, setup credentials and multi-realm runtime acceptance remain separate; no service deployment occurred.

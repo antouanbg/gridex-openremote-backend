@@ -6,9 +6,9 @@ export function validateInvitation(input) {
   const siteIds = input?.siteIds;
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       || !['viewer', 'operator', 'energy_manager', 'integrator'].includes(input?.role)
-      || !Array.isArray(siteIds) || !siteIds.length || siteIds.length > 100
+      || !Array.isArray(siteIds) || siteIds.length > 100
       || siteIds.some(id => typeof id !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))) {
-    throw new ApiError(400, 'invalid_invitation', 'Email, supported role and explicit siteIds are required.');
+    throw new ApiError(400, 'invalid_invitation', 'Email, supported role and explicit siteIds array are required.');
   }
   return { email, role: input.role, siteIds: [...new Set(siteIds)] };
 }

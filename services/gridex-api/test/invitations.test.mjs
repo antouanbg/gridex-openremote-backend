@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateInvitation, EnrollmentIdentity, InvitationService } from '../src/invitations.mjs';
 const site = '11111111-1111-4111-8111-111111111111';
-test('invitation validates email, explicit sites and non-administrator role', () => {
+test('invitation validates email, explicit site scope and non-administrator role', () => {
   assert.deepEqual(validateInvitation({ email: ' User@example.invalid ', role: 'viewer', siteIds: [site, site] }),
     { email: 'user@example.invalid', role: 'viewer', siteIds: [site] });
-  for (const patch of [{ email: 'bad' }, { role: 'administrator' }, { role: 'admin' }, { siteIds: [] }, { siteIds: ['bad'] }]) {
+  assert.deepEqual(validateInvitation({ email: 'user@example.invalid', role: 'viewer', siteIds: [] }).siteIds, []);
+  for (const patch of [{ email: 'bad' }, { role: 'administrator' }, { role: 'admin' }, { siteIds: null }, { siteIds: ['bad'] }]) {
     assert.throws(() => validateInvitation({ email: 'user@example.invalid', role: 'viewer', siteIds: [site], ...patch }));
   }
 });
