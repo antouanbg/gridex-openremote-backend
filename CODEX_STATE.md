@@ -1,5 +1,16 @@
 # CODEX_STATE.md
 
+## Текущо състояние на поканите — 2026-09-26
+
+Актуалното решение е описано в `docs/ORGANISATION_INVITATION_PLAN.md` и
+`HANDOFF.md`. Пилотният owner акаунт и активите му се пазят. `platform:manage`
+идва само от проверен subject в пилотния realm; постоянният setup client е
+backend-only и не е потребител. Отделен OpenRemote realm за всеки нов клиент;
+първият администратор се кани от глобалния, членовете — от администратора на
+тяхната организация с изрични роли/Обекти. Няма права преди приемане.
+Миграция 012/setup client са активни; първи реален клиент и изолацията още не
+са проверени. По-старите „pending deployment“ записи по-долу са исторически.
+
 ## Verified existing owner and mail / Проверен собственик и поща — 2026-09-24
 
 Live read-only check: `antouan.bg@gmail.com`, subject

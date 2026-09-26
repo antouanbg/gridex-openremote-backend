@@ -1,0 +1,15 @@
+    # BEGIN GRIDEX PUBLIC DOCS -- static content only, no API or management upstream
+    server {
+        listen 8443 ssl;
+        server_name doc.gridex.tech;
+        ssl_certificate /certs/docs/fullchain.pem;
+        ssl_certificate_key /certs/docs/privkey.pem;
+        set $docs_backend gridex-docs:8080;
+        limit_req zone=per_client burst=40 nodelay;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        location / {
+            limit_except GET { deny all; }
+            proxy_pass http://$docs_backend;
+        }
+    }
+    # END GRIDEX PUBLIC DOCS
