@@ -1,6 +1,8 @@
 // Runs inside the API container. The master password arrives only on stdin.
-// Creates a dedicated client limited to creating and administering realms it
-// creates, plus the OpenRemote master realm API roles required by provisioning.
+// Creates a dedicated backend-only client. OpenRemote realm management requires
+// the master `admin` realm role in addition to its API roles. This grants
+// instance-wide administrative authority; the API allows only the owner's
+// verified pilot-realm subject to initiate an organisation invitation.
 import { randomBytes } from 'node:crypto';
 
 let raw = '';
@@ -49,7 +51,8 @@ try {
   const serviceUser = await admin(`/clients/${client.id}/service-account-user`);
   if (!serviceUser?.id) throw new Error('Setup service account was not created');
   const createRealm = await admin('/roles/create-realm');
-  await admin(`/users/${serviceUser.id}/role-mappings/realm`, 'POST', [createRealm]);
+  const superAdmin = await admin('/roles/admin');
+  await admin(`/users/${serviceUser.id}/role-mappings/realm`, 'POST', [createRealm, superAdmin]);
   const openremote = await admin('/clients?clientId=openremote');
   if (!Array.isArray(openremote) || openremote.length !== 1)
     throw new Error('Master OpenRemote client was not found');
@@ -70,6 +73,7 @@ try {
   const realmRoles = claims.realm_access?.roles || [];
   const orRoles = claims.resource_access?.openremote?.roles || [];
   if (!audience.includes('openremote') || !realmRoles.includes('create-realm')
+      || !realmRoles.includes('admin')
       || roleNames.some(role => !orRoles.includes(role))) {
     throw new Error('Dedicated setup token is missing a required audience or role');
   }
