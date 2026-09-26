@@ -25,6 +25,21 @@ backend `.env`. Нужно е изрично одобрение точно за 
 получателя и тества изпращане/приемане. Не обявявай формата за активна преди
 тези проверки.
 
+Допълнение 2026-09-26: собственикът одобри точно горните постоянни роли и
+публикуването на backend branch `feat/live-organisation-invitations`
+(`f0a8b35`). Read-only preflight беше чист; пълните API тестове минаха 62/62.
+Опитът за активация направи частен backup и построи образ, но OpenRemote
+отказа `GET /api/master/realm` с 403 за service client с `create-realm` и
+`read:admin`/`write:admin`. Клиентът беше премахнат; миграция 012 не е приложена,
+API не е рестартиран, health остава ready. Според OpenRemote RealmResource
+управлението на realm-и изисква master **Super admin**, т.е. realm роля `admin`,
+която е по-широка от досега одобреното. Не добавяй тази роля мълчаливо.
+Следва: изричен избор/одобрение за постоянна super-admin автоматизация или
+друг процес с човешко потвърждение за всеки нов realm; едва след това поправи
+setup проверката, тествай и активирай. Frontend поправката за покани без
+Обекти е локален commit `70e7c22`; публикуването ѝ бе отказано като отделен
+неодобрен payload, не го заобикаляй.
+
 ## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
 
 Backend PR #35 merged; 62/62 API tests passed. Older open PRs #1, #3–#7, #9–#13, #17, #20, #21 were inspected but NOT approved as compatible: Windows/Hyper-V plans are superseded; legacy branches conflict with current files. Review each separately against current architecture; preserve useful changes and resolve conflicts with tests, never restore old files wholesale. Migration 012, setup credentials and multi-realm runtime acceptance remain separate; no service deployment occurred.

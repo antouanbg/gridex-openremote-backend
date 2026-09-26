@@ -95,10 +95,17 @@ try {
   compose(files, ['build', 'gridex-api']);
   console.log('Updated API image built.');
   const source = fs.readFileSync(new URL('./prepare-organisation-setup-inner.mjs', import.meta.url), 'utf8');
-  setupClient = JSON.parse(run('docker', [...docker, 'exec', '-i', 'gridex-mac-gridex-api-1',
+  const setupResult = spawnSync('docker', [...docker, 'exec', '-i', 'gridex-mac-gridex-api-1',
     'node', '--input-type=module', '-e', source], {
-    input: JSON.stringify({ password: env.OR_ADMIN_PASSWORD }),
-  }));
+    input: JSON.stringify({ password: env.OR_ADMIN_PASSWORD }), encoding: 'utf8',
+    timeout: 300000, maxBuffer: 1024 * 1024,
+  });
+  if (setupResult.status !== 0) {
+    const diagnostic = (setupResult.stderr || '').split('\n').find(line =>
+      /^(Error:|TypeError:|ReferenceError:|SyntaxError:)/.test(line)) || 'no diagnostic';
+    throw new Error(`Setup client creation failed: ${diagnostic}`);
+  }
+  setupClient = JSON.parse(setupResult.stdout);
   if (!setupClient.clientUuid || !setupClient.secret) throw new Error('Setup client verification incomplete');
   console.log('Dedicated master setup client and OpenRemote master access verified.');
 
