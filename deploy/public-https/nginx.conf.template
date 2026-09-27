@@ -108,6 +108,11 @@ http {
         location /auth/realms/gridex/ {
             proxy_pass http://$auth_backend;
         }
+        # Explicitly approved first customer realm; do not use a wildcard.
+        # Изрично първият клиентски realm; без общ шаблон.
+        location /auth/realms/novacom/ {
+            proxy_pass http://$auth_backend;
+        }
         location /auth/resources/ {
             proxy_pass http://$auth_backend;
         }
