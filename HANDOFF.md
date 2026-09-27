@@ -2,6 +2,33 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Одобрени права и избор на устройства — 2026-09-27
+
+Собственикът потвърди в „EMS OpenRemote architecture Phase3“: само GrideX
+ROCK Pi E/OLIMEX ESP32-EVB за хардуерен избор, максимум две одобрени роли;
+Обект създава само администраторът на организацията. Одобрен потребител
+вижда само разрешения му Обект; интеграторът и администраторът могат да
+подготвят конфигурация, но commissioning/пускане засега е само за
+администратора. Супер администраторът вижда всички потребители/права,
+без да слива realm-и. Изборът е в GrideX frontend, OpenRemote е единственият
+авторитетен инвентар.
+
+Текущата промяна допуска Site-scoped прочит на OR-проверения hardware
+инвентар/heartbeat, интеграторска чернова след OR проверка на gateway
+topology, а credential route остава administrator-only. **Незавършено:**
+Локален `npm test`: 63/63 преминаха. Промяната не е внедрена и не е
+проверена с клиентски realm/browser.
+няма POST `/api/v1/sites`; `OpenRemoteClient` е с фиксиран `config.realm`,
+а POST `/sites/:id/devices` първо записва локален ред. Не използвай този
+маршрут за нов клиент. Нужни са tenant-aware OR create, owner/asset links,
+идемпотентно съгласуване, отказ при частичен провал, cross-tenant тестове
+и browser приемане преди live UI.
+
+EN: Organisation admin alone creates Sites and commissions. Site-scoped
+integrators may draft; authorised members read. Platform admin sees users
+and rights across tenants, not pooled assets. Customer Site/device creation
+remains blocked on tenant-aware OpenRemote provisioning and acceptance.
+
 ## Решение 2026-09-27 — одобрение и провизиране
 
 Новата изрична инструкция на собственика: всеки нов функционален избор извън

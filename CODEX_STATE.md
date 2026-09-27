@@ -1,5 +1,25 @@
 # CODEX_STATE.md
 
+## Одобрен клиентски процес за устройства — 2026-09-27
+
+Само потвърден GrideX ROCK Pi E/OLIMEX ESP32-EVB се предлага за избор.
+Обект създава само администраторът на организацията. Одобрен потребител
+вижда разрешения му Обект; интеграторът може да подготвя чернова, както и
+администраторът. Commissioning/пускане засега остава само за администратора.
+Супер администраторът вижда всички потребители и права, но realm-ите са
+отделни. Това е изрично решение на собственика в Phase3.
+
+Локален код: GET hardware/heartbeat е за Site-scoped member след OR проверка,
+device-setup GET/PUT е за verified integrator/administrator след OR topology
+проверка; credential route не е разширен. `npm test`: 63/63 преминаха.
+Не е внедрено. Нов Site POST и tenant-aware OR create липсват; текущият
+device POST е пилотен и local-first. Не го използвай за нов клиент. Следва
+OR-first create/link/reconcile, cross-tenant тест, UI и live приемане.
+
+EN: Approved ROCK/ESP only; organisation admin creates Sites and commissions,
+Site-scoped integrator drafts. Local backend tests pass. New customer creation
+is still blocked on tenant-aware OpenRemote provisioning.
+
 ## Решение на собственика — 2026-09-27
 
 За всяка нова функционалност извън изрично одобреното задай конкретен въпрос

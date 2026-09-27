@@ -437,6 +437,7 @@ export class MemoryRepository {
     this.memberships = seed.memberships || [];
     this.devices = seed.devices || [];
     this.topologies = new Map();
+    this.gatewayBindings = seed.gatewayBindings || [];
     this.preferences = new Map();
     this.configurations = new Map();
     this.strategies = new Map();
@@ -498,6 +499,7 @@ export class MemoryRepository {
     const next = { revision: expectedRevision + 1, configuration }; this.configurations.set(`${siteId}:${section}`, next); return next;
   }
   async getTopology(siteId) { return this.topologies.get(siteId) || { configuration: null, gateways: [], devices: await this.listDevices(siteId) }; }
+  async getGatewayBindings(siteId) { return this.gatewayBindings.filter(item => item.siteId === siteId); }
   async getDailyBatteryEconomics() { return { available: false }; }
   async getActiveStrategy(siteId) { return (this.strategies.get(siteId) || []).find((item) => item.lifecycle === "active") || null; }
   async getStrategyDraft(siteId) { return [...(this.strategies.get(siteId) || [])].reverse().find((item) => item.lifecycle === "draft") || null; }

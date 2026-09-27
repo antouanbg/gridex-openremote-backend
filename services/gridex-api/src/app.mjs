@@ -248,14 +248,17 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (req.method === "GET" && suffix === "/hardware") {
-        requireDeviceAdmin(site,principal);
+        requirePermission(principal, 'site:read');
         const topology = await authoritativeTopology(site,repository,openRemote,principal.subject);
         res.setHeader('Cache-Control','no-store');
         return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 
       if (req.method === 'GET' && suffix === '/device-heartbeats') {
-        requireDeviceAdmin(site, principal);
+        requirePermission(principal, 'site:read');
+        await authoritativeSites([site], openRemote, principal.subject).then(items => {
+          if (items.length !== 1) throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');
+        });
         res.setHeader('Cache-Control', 'no-store');
         if (!deviceHeartbeats) throw new ApiError(503, 'heartbeat_unavailable', 'Heartbeat ingestion is not configured.');
         return json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
@@ -291,12 +294,14 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (suffix === '/device-setup' && ['GET', 'PUT'].includes(req.method)) {
-        requireDeviceAdmin(site, principal);
+        requirePermission(principal, 'hardware:manage');
+        if (!principal.emailVerified) throw new ApiError(403, 'permission_denied', 'Verified email is required.');
+        const topology = await authoritativeTopology(site, repository, openRemote, principal.subject);
         res.setHeader('Cache-Control', 'no-store');
         if (req.method === 'GET') return json(res, 200, {...await repository.getSiteConfiguration(site.id, 'device-setup'), imported: (await repository.getSiteConfiguration(site.id, 'device-import')).configuration}, context);
         const body = await readJson(req, config.maximumBodyBytes);
         if (body.confirmed !== true) throw new ApiError(400, 'confirmation_required', 'Confirm saving the draft.');
-        const setup = validateDeviceSetup(body.configuration, await repository.getTopology(site.id));
+        const setup = validateDeviceSetup(body.configuration, topology);
         const saved = await repository.saveSiteConfiguration(site.id, 'device-setup', setup, expectedRevision(req), principal.subject);
         await repository.audit({principal, siteId, action:'device.setup.draft.saved', resourceType:'site_configuration', resourceId:'device-setup', result:'success', requestId, details:{revision:saved.revision}});
         return json(res, 200, saved, context);
