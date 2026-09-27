@@ -9,7 +9,13 @@ export function managerLocations(origin) {
   return `
         # BEGIN GRIDEX PUBLIC MANAGER -- generated, realm and user permissions apply
         set $manager_backend manager:8080;
-        location = /manager { return 302 /manager/?realm=gridex; }
+        location = /manager { return 302 ${origin}/manager/?realm=gridex; }
+        # The public Manager is the pilot realm only. An old customer realm
+        # hint in this browser must not open its branded Manager entry page.
+        location = /manager/ {
+            if ($arg_realm != gridex) { return 302 ${origin}/manager/?realm=gridex; }
+            ${readonly}
+        }
         location /manager/ { ${readonly} }
         location /shared/ { ${readonly} }
         # Public synthetic bootstrap only: no master upstream or configuration data.

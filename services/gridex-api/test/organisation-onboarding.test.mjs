@@ -113,23 +113,29 @@ test('OpenRemote role failure keeps the organisation suspended and no portal acc
 
 test('new realms reuse the Keycloak Mailgun provider without SMTP configuration', async () => {
   const calls = [];
+  let identityRealm = { realm: 'example-energy', displayName: 'Example Energy', enabled: true };
   const config = { openRemoteBaseUrl: 'http://manager:8080',
     realmSetupAdminBaseUrl: 'http://keycloak:8080/auth/admin/realms',
     oidcAudience: 'gridex-portal', portalOrigin: 'https://gridex.example.test' };
   const setup = new OpenRemoteRealmSetup(config, async (url, options) => {
     calls.push([url, options]);
     if (options.method === 'POST') return new Response(null, { status: 201 });
-    if (options.method === 'PUT') return new Response(null, { status: 204 });
+    if (options.method === 'PUT') {
+      identityRealm = JSON.parse(options.body);
+      return new Response(null, { status: 204 });
+    }
     if (url.endsWith('/api/master/realm/example-energy'))
       return Response.json({ name: 'example-energy', enabled: true });
+    if (url.endsWith('/auth/admin/realms/example-energy')) return Response.json(identityRealm);
     throw new Error('Unexpected provider request');
   });
   setup.token = async () => 'fixture-token';
   await setup.createRealm({ realm: 'example-energy', name: 'Example Energy' });
   assert.equal(calls[0][0], 'http://manager:8080/api/master/realm');
+  assert.equal(identityRealm.displayName, 'GrideX');
   await setup.sendActions('example-energy', 'tenant-user');
-  assert.equal(calls.length, 3);
-  const [url, request] = calls[2];
+  assert.equal(calls.length, 6);
+  const [url, request] = calls[5];
   assert.ok(url.includes('/example-energy/users/tenant-user/execute-actions-email?'));
   assert.equal(new URL(url).searchParams.get('redirect_uri'), 'https://gridex.example.test/login/?realm=example-energy');
   assert.deepEqual(JSON.parse(request.body), ['VERIFY_EMAIL','UPDATE_PASSWORD']);
