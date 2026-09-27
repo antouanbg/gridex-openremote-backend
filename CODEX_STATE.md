@@ -1,5 +1,21 @@
 # CODEX_STATE.md
 
+## Replacement action email / Ново еднократно писмо — 2026-09-27
+
+Owner approved one reissue for the existing `novacom` pending invitation.
+Keycloak accepted the request through the existing Mailgun provider; DB shows
+one `sent` invitation, refreshed 24-hour expiry and exactly one successful
+resend audit event. No organisation or user was duplicated. Inbox delivery,
+recipient password setup, sign-in, acceptance and isolation remain to verify.
+Do not use or repeat the old pasted URL. The one-shot operator script refuses
+a second attempt; investigate provider events before any manual retry.
+
+Собственикът потвърди едно ново писмо за същата `novacom` покана. Keycloak
+прие заявката през наличния Mailgun модул; базата показва един запис `sent`,
+подновен 24-часов срок и един успешен audit запис. Няма дублирана организация
+или потребител. Получаването, паролата, входът, приемането и изолацията още
+се проверяват. Не използвай стария линк от чата и не повтаряй без проверка.
+
 ## First customer action link / Първи клиентски линк — 2026-09-27
 
 Live proxy root cause: only `/auth/realms/gridex/` was public, while the

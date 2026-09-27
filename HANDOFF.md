@@ -2,6 +2,35 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## First customer action email reissued / Ново писмо за първия клиент — 2026-09-27
+
+EN: The owner explicitly authorised one replacement action email for the
+existing `novacom` invitation after the original one-time URL was pasted into
+chat. Read-only checks found exactly one unexpired `sent` invitation with a
+matching unverified Keycloak identity and no active organisation. The private
+operator ran an inspect-first, one-shot script inside the existing API
+container; it records an audit attempt before contacting Keycloak to prevent
+blind duplicates and extends the invitation by 24 hours. Keycloak accepted
+the Execute Actions Email request. Post-check: invitation remains `sent`,
+expiry is more than 23 hours away, `delivered_at` refreshed, and exactly one
+successful reissue audit event exists. No second organisation or identity was
+created. Provider/inbox delivery, recipient action, sign-in and acceptance
+are not yet verified. Do not paste the replacement URL into chat; do not run
+the operator script again or issue another mail without inspecting audit and
+provider events. The separate organisation-suspension request is tracked in
+the new Codex task “Временно спиране на клиентска организация”.
+
+BG: Собственикът разреши едно ново писмо за **същата** чакаща покана след
+публикуването на стария еднократен линк в чата. Проверено е: една валидна
+покана `sent`, съвпадаща непотвърдена Keycloak самоличност и няма активна
+организация. Скриптът първо проверява, записва audit опит преди Keycloak
+заявката, блокира сляпо повторение и удължава поканата с 24 часа. Keycloak
+прие заявката за писмо; след това има точно един успешен audit запис и нов
+срок. Не е създавана нова организация или акаунт. Доставката в пощата,
+отварянето, входът и приемането предстоят да се потвърдят от получателя.
+Новият линк не се изпраща в чата. Не стартирай скрипта повторно без проверка
+на одита и Mailgun. Временното спиране е отделна Codex задача.
+
 ## First customer action-email proxy repair / Първи клиентски линк — 2026-09-27
 
 EN: The first `novacom` Keycloak Verify Email / Update Password email arrived,
