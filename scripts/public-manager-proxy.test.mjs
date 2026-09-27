@@ -10,6 +10,8 @@ test('bootstrap is synthetic, scoped and without upstream master',()=>{
   assert.match(block,/return 200/); assert.doesNotMatch(block,/proxy_pass/);
  }
  assert.doesNotMatch(s,/location \/api\/gridex\/ \{/);
+ assert.match(s,/location = \/manager\/ \{/);
+ assert.match(s,/if \(\$arg_realm != gridex\) \{ return 302 https:\/\/auth\.example\.test\/manager\/\?realm=gridex; \}/);
  assert.match(s,/http_origin/); assert.match(s,/proxy_set_header Forwarded ''/);
 });
 test('preserve unrelated proxy and refuse duplicate or mismatched layout',()=>{

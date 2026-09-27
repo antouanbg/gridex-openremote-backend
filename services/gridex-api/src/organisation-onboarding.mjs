@@ -63,7 +63,18 @@ export class OpenRemoteRealmSetup {
       loginWithEmail: true, registrationEmailAsUsername: true });
     // The deployed Keycloak EmailSenderProvider uses the shared Mailgun REST
     // configuration, including BCC. Realm-local SMTP credentials are unnecessary.
-    return this.verifyRealm(realm, token);
+    const record = await this.verifyRealm(realm, token);
+    // The OpenRemote realm keeps the customer name internally. The unauthenticated
+    // Keycloak login must not disclose it in its public heading.
+    const identityRealm = await this.kc(`/${encodeURIComponent(realm)}`, token);
+    if (identityRealm?.realm !== realm) throw new ApiError(503, 'realm_not_verified', 'Identity realm could not be verified.');
+    await this.kc(`/${encodeURIComponent(realm)}`, token, 'PUT', {
+      ...identityRealm, displayName: 'GrideX', displayNameHtml: '',
+    });
+    const publicBrand = await this.kc(`/${encodeURIComponent(realm)}`, token);
+    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml)
+      throw new ApiError(503, 'public_realm_brand_not_verified', 'The public login branding was not verified.');
+    return record;
   }
   async verifyRealm(realm, existingToken) {
     const token = existingToken || await this.token();

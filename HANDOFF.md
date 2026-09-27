@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Unauthenticated customer name and public Manager isolation — 2026-09-27
+
+EN: The owner reports that the first customer received its new action email,
+registered and can sign in; the platform owner then saw that customer's name
+before login in the same browser. Two independent exposures were verified:
+public Manager accepted a `?realm=novacom` hint, and the novacom Keycloak
+login HTML included its real organisation display name. The live Manager
+proxy now redirects both `/manager` and `/manager/?realm=novacom` to the
+platform-only `https://auth.gridex.tech/manager/?realm=gridex` (no internal
+port), preserving the exact customer action-email route. The existing
+Keycloak realm's public display name was changed to neutral `GrideX`, while
+the OpenRemote realm name, identity, permissions and inventory were not
+changed. Private backups: `public-manager-realm-mQm8Qc`,
+`public-manager-realm-mJVRij` and `customer-login-brand-hr5xU7` under the
+runtime private-backups directory. Local no-cookie checks: customer Manager
+entry 302 to gridex, gridex Manager 200, customer and platform login forms
+present, customer name absent from customer login HTML, unauthenticated API
+401, customer asset API 404, public master 404. Normal external DNS cannot
+be resolved from this Mac; owner browser sign-in and cross-account isolation
+still require acceptance. Source and future-realm generic branding are staged
+here; PR/merge remains. No account or asset was deleted.
+
+BG: Собственикът потвърди получено ново писмо, регистрация и вход на клиента,
+но видя неговото име преди вход от същия браузър. Потвърдени бяха два
+независими източника: публичният Manager приемаше `?realm=novacom`, а
+Keycloak login HTML показваше истинското име. Живото proxy вече пренасочва
+Manager към `gridex` без вътрешен порт и пази точния клиентски маршрут за
+писмата. Публичното име на съществуващия клиентски Keycloak realm вече е
+неутрално „GrideX“; името, правата и инвентарът в OpenRemote не са променяни.
+Частните backups са посочени по-горе. Локално без сесия са проверени
+пренасочването, двете форми, липсата на клиентското име, API 401, клиентски
+asset API 404 и master 404. Външният DNS от Mac не работи; реален браузърен
+вход и изолация между акаунтите предстоят. Кодът и защитата за бъдещи realm-и
+са подготвени, но PR/merge предстоят. Нищо не е изтрито.
+
 ## Exact first-customer auth route / Точен първи клиентски маршрут — 2026-09-27
 
 EN: The live public proxy previously allowed only `/auth/realms/gridex/`, so

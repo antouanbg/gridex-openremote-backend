@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## Public realm identity leak repair — 2026-09-27
+
+Live Manager entry is now fixed to the pilot `gridex` realm; an unauthenticated
+customer realm hint redirects to the platform entry. The exact customer
+action-email path remains available. The first customer Keycloak login heading
+is generic GrideX; OpenRemote organisation data and access remain unchanged.
+Backend source stages the same generic heading for future realms. Three proxy
+tests and five onboarding tests pass; local no-cookie HTTPS checks pass.
+Source PR/merge and real owner/customer browser acceptance remain. Frontend
+tab-scoped realm and session-state repair is in the companion frontend worktree.
+
+Публичният Manager вече отваря само пилотния `gridex` realm; клиентски hint
+преди вход се пренасочва. Точният клиентски маршрут за поканата остава.
+Keycloak заглавието е неутрално GrideX; организацията в OpenRemote и правата
+не са променяни. Подготвена е същата защита за бъдещи realm-и. Три proxy и
+пет onboarding теста плюс локални HTTPS проверки минаха. PR/merge и реалните
+браузърни входове предстоят. Frontend поправката е в отделен worktree.
+
 ## Customer action email routing / Клиентско писмо — 2026-09-27
 
 The first `novacom` action email exposed a missing public proxy route. Live
