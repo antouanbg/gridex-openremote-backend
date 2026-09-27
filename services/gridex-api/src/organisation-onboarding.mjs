@@ -56,6 +56,40 @@ export class OpenRemoteRealmSetup {
   async kc(path, token, method = 'GET', body) {
     return this.request(this.config.realmSetupAdminBaseUrl, path, token, method, body);
   }
+  async setOrganisationAccess(realm, enabled) {
+    if (!realmPattern.test(realm) || ['master', this.config.realm].includes(realm))
+      throw new ApiError(403, 'protected_realm', 'The platform realm cannot be changed.');
+    const token = await this.token();
+    const path = `/${encodeURIComponent(realm)}`;
+    const record = await this.or(`/realm${path}`, token);
+    if (record?.name !== realm) throw new ApiError(503, 'realm_not_verified', 'Realm identity mismatch.');
+    if (!enabled) {
+      // Realm-local text also covers direct Keycloak login attempts.
+      const messages = {
+        en: 'Your organisation is temporarily suspended. Contact the super administrator.',
+        bg: 'Организацията е временно спряна. Свържете се със супер администратора.',
+      };
+      for (const [locale, message] of Object.entries(messages)) {
+        const response = await this.fetch(`${this.config.realmSetupAdminBaseUrl}${path}/localization/${locale}/realmNotEnabledMessage`, {
+          method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' },
+          body: message, signal: AbortSignal.timeout(10000),
+        });
+        if (!response.ok) throw new ApiError(503, 'suspension_message_failed', 'Suspension login text could not be configured.');
+      }
+    }
+    // OpenRemote owns realm changes; preserve every existing setting and asset.
+    await this.or(`/realm${path}`, token, 'PUT', { ...record, enabled, notBefore: enabled ? record.notBefore : Math.max(Number(record.notBefore) || 0, Math.floor(Date.now()/1000)) });
+    if (!enabled) {
+      const identitySettings = await this.kc(path, token);
+      await this.kc(path, token, 'PUT', { internationalizationEnabled: true,
+        supportedLocales: [...new Set([...(identitySettings.supportedLocales || []), 'en', 'bg'])] });
+    }
+    const actual = await this.or(`/realm${path}`, token);
+    const identityRealm = await this.kc(path, token);
+    if (actual?.name !== realm || actual.enabled !== enabled || identityRealm?.realm !== realm || identityRealm.enabled !== enabled)
+      throw new ApiError(503, 'realm_access_not_verified', 'OpenRemote and Keycloak realm access do not agree.');
+    if (!enabled) await this.kc(`${path}/logout-all`, token, 'POST');
+  }
   async createRealm({ realm, name }) {
     const token = await this.token();
     await this.or('/realm', token, 'POST', { name: realm, displayName: name,

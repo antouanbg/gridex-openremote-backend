@@ -32,7 +32,8 @@ function cors(res, config, origin) {
   res.setHeader("Access-Control-Expose-Headers", "ETag, X-Request-Id");
 }
 
-function json(res, status, body, context) {
+async function json(res, status, body, context) {
+  if (status < 400) await context.checkAccess?.();
   const payload = JSON.stringify(body);
   cors(res, context.config, context.origin);
   res.setHeader("X-Request-Id", context.requestId);
@@ -120,7 +121,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -132,34 +133,52 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/health") {
         const online = await openRemote.health();
-        return json(res, online ? 200 : 503, { status: online ? "ready" : "degraded", openRemote: online ? "online" : "offline", writesEnabled: config.writesEnabled }, context);
+        return await json(res, online ? 200 : 503, { status: online ? "ready" : "degraded", openRemote: online ? "online" : "offline", writesEnabled: config.writesEnabled }, context);
       }
 
       const identity = await authenticate(req);
+      context.checkAccess = () => repository.assertOrganisationAccess?.(identity);
+      await context.checkAccess();
+      res.setHeader('Cache-Control', 'no-store');
       const memberships = await repository.getMemberships(identity.subject, identity.realm);
       let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects, config.realm);
 
+      if (url.pathname === '/api/v1/platform/organisations' && req.method === 'GET') {
+        requirePermission(principal, 'platform:manage');
+        if (!organisationAccess) throw new ApiError(503, 'organisation_access_unavailable', 'Organisation access management is unavailable.');
+        return await json(res, 200, { organisations: await organisationAccess.list(principal) }, context);
+      }
+      const organisationAccessRoute = url.pathname.match(/^\/api\/v1\/platform\/organisations\/([0-9a-f-]{36})\/(access|delivery)$/i);
+      if (organisationAccessRoute && req.method === 'POST') {
+        requirePermission(principal, 'platform:manage');
+        if (!organisationAccess) throw new ApiError(503, 'organisation_access_unavailable', 'Organisation access management is unavailable.');
+        const result = organisationAccessRoute[2] === 'access'
+          ? await organisationAccess.change(principal, organisationAccessRoute[1], await readJson(req, 2048))
+          : await organisationAccess.checkDelivery(principal, organisationAccessRoute[1]);
+        return await json(res, 200, result, context);
+      }
+
       if (url.pathname === '/api/v1/platform/organisation-invitations' && req.method === 'POST') {
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
-        return json(res, 201, await onboarding.create(principal, await readJson(req, config.maximumBodyBytes)), context);
+        return await json(res, 201, await onboarding.create(principal, await readJson(req, config.maximumBodyBytes)), context);
       }
       if (url.pathname === '/api/v1/platform/organisation-invitations' && req.method === 'GET') {
         if (!principal.permissions.includes('platform:manage')) throw new ApiError(403, 'permission_denied', 'Platform administrator required.');
-        return json(res, 200, { enabled: Boolean(onboarding), invitations: onboarding ? await onboarding.listCreated(principal) : [] }, context);
+        return await json(res, 200, { enabled: Boolean(onboarding), invitations: onboarding ? await onboarding.listCreated(principal) : [] }, context);
       }
       const revokeOrganisation = url.pathname.match(/^\/api\/v1\/platform\/organisation-invitations\/([0-9a-f-]{36})\/revoke$/i);
       if (revokeOrganisation && req.method === 'POST') {
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
-        return json(res, 200, await onboarding.revoke(principal, revokeOrganisation[1]), context);
+        return await json(res, 200, await onboarding.revoke(principal, revokeOrganisation[1]), context);
       }
       if (url.pathname === '/api/v1/me/organisation-onboarding' && req.method === 'GET') {
-        if (!onboarding) return json(res, 200, { invitations: [] }, context);
-        return json(res, 200, { invitations: await onboarding.list(principal) }, context);
+        if (!onboarding) return await json(res, 200, { invitations: [] }, context);
+        return await json(res, 200, { invitations: await onboarding.list(principal) }, context);
       }
       const acceptOrganisation = url.pathname.match(/^\/api\/v1\/organisation-onboarding\/([0-9a-f-]{36})\/accept$/i);
       if (acceptOrganisation && req.method === 'POST') {
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
-        return json(res, 200, await onboarding.accept(principal, acceptOrganisation[1]), context);
+        return await json(res, 200, await onboarding.accept(principal, acceptOrganisation[1]), context);
       }
 
       if (url.pathname.includes('/invitations')) {
@@ -168,18 +187,18 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (orgRoute && req.method === 'POST') {
           const result = orgRoute[2] ? await invitations.revoke(identity, orgRoute[1], orgRoute[2])
             : await invitations.create(identity, orgRoute[1], await readJson(req, config.maximumBodyBytes));
-          return json(res, orgRoute[2] ? 200 : 201, result, context);
+          return await json(res, orgRoute[2] ? 200 : 201, result, context);
         }
         if (url.pathname === '/api/v1/me/invitations' && req.method === 'GET') {
-          return json(res, 200, { invitations: await invitations.list(identity) }, context);
+          return await json(res, 200, { invitations: await invitations.list(identity) }, context);
         }
         const accept = url.pathname.match(/^\/api\/v1\/invitations\/([0-9a-f-]{36})\/accept$/i);
-        if (accept && req.method === 'POST') return json(res, 200, await invitations.accept(identity, accept[1]), context);
+        if (accept && req.method === 'POST') return await json(res, 200, await invitations.accept(identity, accept[1]), context);
         throw new ApiError(404, 'not_found', 'Invitation route not found.');
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/me") {
-        return json(res, 200, {
+        return await json(res, 200, {
           subject: principal.subject, realm: principal.realm, email: principal.email, name: principal.name,
           preferredUsername: principal.preferredUsername, roles: principal.roles, permissions: principal.permissions,
           memberships,
@@ -187,42 +206,42 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/me/preferences") {
-        return json(res, 200, await repository.getUserPreferences(principal.subject), context);
+        return await json(res, 200, await repository.getUserPreferences(principal.subject), context);
       }
 
       if (['/api/v1/me/email-notifications','/api/v1/me/heartbeat-email'].includes(url.pathname) && ['GET','PUT'].includes(req.method)) {
         if(!heartbeatSubscriptions)throw new ApiError(503,'notifications_unavailable','Email notifications are not configured.');
         res.setHeader('Cache-Control','no-store');
-        if(req.method==='GET')return json(res,200,await heartbeatSubscriptions.get(principal),context);
+        if(req.method==='GET')return await json(res,200,await heartbeatSubscriptions.get(principal),context);
         const input=await readJson(req,1024);
         const result=await heartbeatSubscriptions.set(principal,input?.enabled);
         await repository.audit({principal,action:result.enabled?'email.notifications.enabled':'email.notifications.disabled',
           resourceType:'notification_preference',resourceId:principal.subject,result:'success',requestId});
-        return json(res,200,result,context);
+        return await json(res,200,result,context);
       }
 
       if (req.method === "PUT" && url.pathname === "/api/v1/me/preferences") {
         const input = await readJson(req, config.maximumBodyBytes);
         const updated = await repository.updateUserPreferences(principal.subject, input, expectedRevision(req));
         res.setHeader("ETag", String(updated.revision));
-        return json(res, 200, updated, context);
+        return await json(res, 200, updated, context);
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/device-types") {
         requirePermission(principal, "asset:read");
-        return json(res, 200, { items: DEVICE_TYPES, hardware: SUPPORTED_HARDWARE }, context);
+        return await json(res, 200, { items: DEVICE_TYPES, hardware: SUPPORTED_HARDWARE }, context);
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/strategies/catalog") {
         requirePermission(principal, "strategy:read");
-        return json(res, 200, { items: STRATEGY_CATALOG }, context);
+        return await json(res, 200, { items: STRATEGY_CATALOG }, context);
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/sites") {
         requirePermission(principal, "site:read");
         const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject,principal.realm),openRemote,principal.subject);
         res.setHeader('Cache-Control','no-store');
-        return json(res, 200, { sites: sites.map(publicSite) }, context);
+        return await json(res, 200, { sites: sites.map(publicSite) }, context);
       }
 
       const siteRoute = url.pathname.match(/^\/api\/v1\/sites\/([^/]+)(\/.*)?$/);
@@ -241,24 +260,24 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if(!gateway)throw new ApiError(404,'not_found','Gateway not found.');
         if(gateway.role!=='controller')throw new ApiError(400,'rockpi_only','Access to ESP32 must go through ROCK Pi.');
         res.setHeader('Cache-Control','no-store');
-        if(req.method==='GET')return json(res,200,await deviceVault.status(site.id,gateway.id),context);
+        if(req.method==='GET')return await json(res,200,await deviceVault.status(site.id,gateway.id),context);
         const result=await deviceVault.store(site.id,gateway.id,await readJson(req,24576));
         await repository.audit({principal,siteId,action:'gateway.credential.replaced',resourceType:'gateway',resourceId:gateway.id,result:'success',requestId,details:{version:result.version}});
-        return json(res,200,result,context);
+        return await json(res,200,result,context);
       }
 
       if (req.method === "GET" && suffix === "/hardware") {
         requireDeviceAdmin(site,principal);
         const topology = await authoritativeTopology(site,repository,openRemote,principal.subject);
         res.setHeader('Cache-Control','no-store');
-        return json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
+        return await json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 
       if (req.method === 'GET' && suffix === '/device-heartbeats') {
         requireDeviceAdmin(site, principal);
         res.setHeader('Cache-Control', 'no-store');
         if (!deviceHeartbeats) throw new ApiError(503, 'heartbeat_unavailable', 'Heartbeat ingestion is not configured.');
-        return json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
+        return await json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
           Date.now(), config.heartbeatStaleMs, config.heartbeatOfflineMs) }, context);
       }
 
@@ -279,7 +298,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           assetId: binding.assetId, metric: binding.metric, unit: ROCK_METRICS[binding.metric].unit,
           points: normalizeDatapoints(await openRemote.getDatapoints(binding.assetId, binding.metric, { fromTimestamp: from, toTimestamp: to })),
         })));
-        return json(res, 200, { from, to, items }, context);
+        return await json(res, 200, { from, to, items }, context);
       }
 
       if (req.method === "POST" && suffix === "/hardware-configurations") {
@@ -287,19 +306,19 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const input = validateHardwareConfiguration(await readJson(req, config.maximumBodyBytes));
         const result = await repository.saveHardwareConfiguration(site.id, input, principal.subject);
         await repository.audit({ principal, siteId, action: "hardware.configuration.created", resourceType: "hardware_configuration", resourceId: result.id, result: "success", requestId, details: { revision: result.revision } });
-        return json(res, 201, result, context);
+        return await json(res, 201, result, context);
       }
 
       if (suffix === '/device-setup' && ['GET', 'PUT'].includes(req.method)) {
         requireDeviceAdmin(site, principal);
         res.setHeader('Cache-Control', 'no-store');
-        if (req.method === 'GET') return json(res, 200, {...await repository.getSiteConfiguration(site.id, 'device-setup'), imported: (await repository.getSiteConfiguration(site.id, 'device-import')).configuration}, context);
+        if (req.method === 'GET') return await json(res, 200, {...await repository.getSiteConfiguration(site.id, 'device-setup'), imported: (await repository.getSiteConfiguration(site.id, 'device-import')).configuration}, context);
         const body = await readJson(req, config.maximumBodyBytes);
         if (body.confirmed !== true) throw new ApiError(400, 'confirmation_required', 'Confirm saving the draft.');
         const setup = validateDeviceSetup(body.configuration, await repository.getTopology(site.id));
         const saved = await repository.saveSiteConfiguration(site.id, 'device-setup', setup, expectedRevision(req), principal.subject);
         await repository.audit({principal, siteId, action:'device.setup.draft.saved', resourceType:'site_configuration', resourceId:'device-setup', result:'success', requestId, details:{revision:saved.revision}});
-        return json(res, 200, saved, context);
+        return await json(res, 200, saved, context);
       }
 
       const configurationRoute = suffix.match(/^\/configurations\/([^/]+)$/);
@@ -307,7 +326,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         requirePermission(principal, "site:read");
         const section = decodeURIComponent(configurationRoute[1]);
         if (!CONFIGURATION_SECTIONS.has(section)) throw new ApiError(404, "configuration_section_not_found", "The configuration section does not exist.");
-        return json(res, 200, { section, ...(await repository.getSiteConfiguration(site.id, section)) }, context);
+        return await json(res, 200, { section, ...(await repository.getSiteConfiguration(site.id, section)) }, context);
       }
 
       if (configurationRoute && req.method === "PUT") {
@@ -320,13 +339,13 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const updated = await repository.saveSiteConfiguration(site.id, section, configuration, expectedRevision(req), principal.subject);
         await repository.audit({ principal, siteId, action: "site.configuration.updated", resourceType: "site_configuration", resourceId: section, result: "success", requestId, details: { revision: updated.revision } });
         res.setHeader("ETag", String(updated.revision));
-        return json(res, 200, { section, ...updated }, context);
+        return await json(res, 200, { section, ...updated }, context);
       }
 
       if (req.method === "GET" && suffix === "/strategy") {
         requirePermission(principal, "strategy:read");
         const active = await repository.getActiveStrategy(site.id);
-        return json(res, 200, { strategy: canonicalStrategyVersion(active, site.id) }, context);
+        return await json(res, 200, { strategy: canonicalStrategyVersion(active, site.id) }, context);
       }
 
       if (req.method === "POST" && suffix === "/strategy/drafts") {
@@ -336,7 +355,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const baseRevision = Number(body.baseRevision ?? 0);
         if (!Number.isInteger(baseRevision) || baseRevision < 0) throw new ApiError(400, "invalid_base_revision", "baseRevision must be a non-negative integer.");
         const draft = await repository.createCanonicalStrategyDraft(site.id, baseRevision, configuration, principal.subject);
-        return json(res, 201, canonicalStrategyDraft(draft, site.id), context);
+        return await json(res, 201, canonicalStrategyDraft(draft, site.id), context);
       }
 
       const canonicalDraftRoute = suffix.match(/^\/strategy\/drafts\/([^/]+)(\/(?:validate|simulate|activate))?$/);
@@ -346,7 +365,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const body = await readJson(req, config.maximumBodyBytes);
         const configuration = validateStrategyConfiguration(body.configuration);
         const draft = await repository.updateCanonicalStrategyDraft(site.id, draftId, configuration, expectedRevision(req));
-        return json(res, 200, canonicalStrategyDraft(draft, site.id), context);
+        return await json(res, 200, canonicalStrategyDraft(draft, site.id), context);
       }
 
       if (canonicalDraftRoute && req.method === "POST" && canonicalDraftRoute[2] === "/validate") {
@@ -358,7 +377,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const warnings = devices.some((device) => device.type === "meter") ? [] : [{ path: "/grid", code: "pcc_meter_missing", message: "A PCC meter is required before commissioning." }];
         const validation = { valid: errors.length === 0, errors, warnings };
         await repository.setCanonicalDraftValidation(site.id, draft.id, validation);
-        return json(res, 200, validation, context);
+        return await json(res, 200, validation, context);
       }
 
       if (canonicalDraftRoute && req.method === "POST" && canonicalDraftRoute[2] === "/simulate") {
@@ -369,7 +388,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const from = Date.parse(body.horizonFrom); const to = Date.parse(body.horizonTo);
         if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from || to - from > 7 * 86400000) throw new ApiError(400, "invalid_simulation_horizon", "Simulation horizon must be valid and no longer than 168 hours.");
         const simulation = await repository.queueStrategySimulation(site.id, draft.id, draft.revision, body, principal.subject);
-        return json(res, 202, { simulationId: simulation.id, draftId: draft.id, status: simulation.status, horizonFrom: simulation.horizon_from, horizonTo: simulation.horizon_to, inputVersions: simulation.input_versions || {}, violations: simulation.violations || [] }, context);
+        return await json(res, 202, { simulationId: simulation.id, draftId: draft.id, status: simulation.status, horizonFrom: simulation.horizon_from, horizonTo: simulation.horizon_to, inputVersions: simulation.input_versions || {}, violations: simulation.violations || [] }, context);
       }
 
       if (canonicalDraftRoute && req.method === "POST" && canonicalDraftRoute[2] === "/activate") {
@@ -385,13 +404,13 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           await openRemote.writeManagedAttribute(site.openremoteStrategyAssetId, "strategyDocument", { revision: requested.revision, configuration: requested.configuration });
         } catch (error) { await repository.rejectCanonicalActivation(site.id, requested.revision); throw error; }
         await repository.audit({ principal, siteId, action: "strategy.activation.requested", resourceType: "strategy", resourceId: requested.id, result: "accepted", requestId, details: { revision: requested.revision } });
-        return json(res, 202, { siteId: site.id, code: requested.configuration.code, lifecycle: "activating", desiredRevision: requested.revision, rejectionReasons: [], safety: { limitsValid: false, controlReady: false, writesEnabled: config.writesEnabled, edgeOnline: false } }, context);
+        return await json(res, 202, { siteId: site.id, code: requested.configuration.code, lifecycle: "activating", desiredRevision: requested.revision, rejectionReasons: [], safety: { limitsValid: false, controlReady: false, writesEnabled: config.writesEnabled, edgeOnline: false } }, context);
       }
 
       if (req.method === "GET" && suffix === "/strategy/versions") {
         requirePermission(principal, "strategy:read");
         const versions = await repository.listStrategyVersions(site.id);
-        return json(res, 200, { items: versions.map((item) => canonicalStrategyVersion(item, site.id)) }, context);
+        return await json(res, 200, { items: versions.map((item) => canonicalStrategyVersion(item, site.id)) }, context);
       }
 
       if (req.method === "GET" && suffix === "/strategy/status") {
@@ -400,12 +419,12 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const desired = versions[0] || null;
         const asset = site.openremoteStrategyAssetId ? await openRemote.getManagedAsset(site.openremoteStrategyAssetId) : null;
         const attributeValue = (name) => asset?.attributes?.[name]?.value ?? null;
-        return json(res, 200, { siteId: site.id, code: desired?.configuration?.code || attributeValue("strategyCode"), lifecycle: attributeValue("strategyLifecycle") || desired?.lifecycle || "draft", desiredRevision: desired?.revision || 0, appliedRevision: attributeValue("strategyAppliedRevision"), rejectionReasons: attributeValue("strategyLastError") ? [attributeValue("strategyLastError")] : [], safety: { limitsValid: attributeValue("limitsValid") === true, controlReady: attributeValue("controlReady") === true, writesEnabled: config.writesEnabled, edgeOnline: attributeValue("edgeOnline") === true } }, context);
+        return await json(res, 200, { siteId: site.id, code: desired?.configuration?.code || attributeValue("strategyCode"), lifecycle: attributeValue("strategyLifecycle") || desired?.lifecycle || "draft", desiredRevision: desired?.revision || 0, appliedRevision: attributeValue("strategyAppliedRevision"), rejectionReasons: attributeValue("strategyLastError") ? [attributeValue("strategyLastError")] : [], safety: { limitsValid: attributeValue("limitsValid") === true, controlReady: attributeValue("controlReady") === true, writesEnabled: config.writesEnabled, edgeOnline: attributeValue("edgeOnline") === true } }, context);
       }
 
       if (req.method === "GET" && ["/devices", "/assets"].includes(suffix)) {
         requirePermission(principal, "asset:read");
-        return json(res, 200, { items: await loadDeviceRecords(site, repository, openRemote) }, context);
+        return await json(res, 200, { items: await loadDeviceRecords(site, repository, openRemote) }, context);
       }
 
       if (req.method === "POST" && ["/devices", "/assets"].includes(suffix)) {
@@ -417,7 +436,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           const asset = await openRemote.createAsset(buildOpenRemoteAsset(device, site));
           const configured = await repository.bindOpenRemoteAsset(device.id, asset.id);
           await repository.audit({ principal, siteId, action: "device.provisioned", resourceType: "device", resourceId: device.id, result: "success", requestId, details: { type: device.type } });
-          return json(res, 201, publicDeviceConfiguration(configured), context);
+          return await json(res, 201, publicDeviceConfiguration(configured), context);
         } catch (error) {
           await repository.markDeviceProvisioningFailed(device.id);
           await repository.audit({ principal, siteId, action: "device.provisioned", resourceType: "device", resourceId: device.id, result: "failed", requestId, details: { type: device.type } });
@@ -429,9 +448,9 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (deviceRoute && req.method === "GET") {
         requirePermission(principal, "asset:read");
         const device = await repository.getDevice(site.id, decodeURIComponent(deviceRoute[1]));
-        if (!device.openremoteAssetId) return json(res, 200, { ...publicDeviceConfiguration(device), live: null }, context);
+        if (!device.openremoteAssetId) return await json(res, 200, { ...publicDeviceConfiguration(device), live: null }, context);
         const asset = await openRemote.getManagedAsset(device.openremoteAssetId);
-        return json(res, 200, { ...publicDeviceConfiguration(device), live: normalizeDevice(device, asset) }, context);
+        return await json(res, 200, { ...publicDeviceConfiguration(device), live: normalizeDevice(device, asset) }, context);
       }
 
       if (deviceRoute && req.method === "PATCH") {
@@ -452,29 +471,35 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         }
         await repository.audit({ principal, siteId, action: "device.updated", resourceType: "device", resourceId: deviceId, result: "success", requestId, details: { previousRevision: current.revision, revision: updated.revision } });
         res.setHeader("ETag", String(updated.revision));
-        return json(res, 200, publicDeviceConfiguration(updated), context);
+        return await json(res, 200, publicDeviceConfiguration(updated), context);
       }
 
       if (req.method === "GET" && suffix === "/snapshot") {
         requirePermission(principal, "asset:read");
-        return json(res, 200, await loadSnapshot(site, repository, openRemote), context);
+        return await json(res, 200, await loadSnapshot(site, repository, openRemote), context);
       }
 
       if (req.method === "GET" && suffix === "/events") {
         requirePermission(principal, "asset:read");
         cors(res, config, origin);
         res.setHeader("X-Request-Id", requestId);
-        res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", Connection: "keep-alive" });
+        res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-store, no-transform", Connection: "keep-alive" });
         let closed = false;
         req.on("close", () => { closed = true; });
         let previous = "";
         while (!closed) {
           try {
+            await context.checkAccess();
             const snapshot = await loadSnapshot(site, repository, openRemote);
+            await context.checkAccess();
             const serialized = JSON.stringify(snapshot);
             if (serialized !== previous) { res.write(`event: snapshot\ndata: ${serialized}\n\n`); previous = serialized; }
             else res.write(": keepalive\n\n");
           } catch (error) {
+            if (['organisation_suspended','reauthentication_required'].includes(error.code)) {
+              res.write(`event: access-denied\ndata: ${JSON.stringify({error:error.code})}\n\n`);
+              res.end(); return;
+            }
             res.write(`event: upstream-error\ndata: ${JSON.stringify({ error: error.code || "openremote_error", requestId })}\n\n`);
           }
           await new Promise((resolve) => setTimeout(resolve, config.snapshotRefreshMs));
@@ -493,13 +518,13 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         const payload = { ...command, requestedAt: new Date().toISOString(), requestedBy: principal.subject, ttlSeconds: command.ttlSeconds || 15 };
         await openRemote.writeManagedAttribute(site.openremoteControlAssetId, "powerCommand", payload);
         await repository.audit({ principal, siteId, action: "control.power.requested", resourceType: "control", resourceId: site.openremoteControlAssetId, result: "accepted", requestId, details: { sequence: command.sequence } });
-        return json(res, 202, { accepted: true, sequence: command.sequence, commandId: requestId }, context);
+        return await json(res, 202, { accepted: true, sequence: command.sequence, commandId: requestId }, context);
       }
 
       throw new ApiError(404, "not_found", "The requested API route does not exist.");
     } catch (error) {
       const response = toErrorResponse(error, requestId);
-      return json(res, response.status, response.body, context);
+      return await json(res, response.status, response.body, context);
     }
   };
 }

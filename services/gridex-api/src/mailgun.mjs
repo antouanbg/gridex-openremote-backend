@@ -37,3 +37,21 @@ export async function sendMailgun(config, { to, subject, text, testMode = false 
   if (typeof result.id !== 'string') throw new Error('Mailgun returned no message ID');
   return { status: testMode ? 'test_accepted' : 'queued', id: result.id };
 }
+
+// Accepted/queued is not delivered. Match both provider ID and intended recipient,
+// so a successful BCC delivery cannot stand in for the customer's delivery.
+export async function checkMailgunDelivery(config, messageId, recipient, fetcher = fetch) {
+  const query = new URLSearchParams({ 'message-id': messageId.replace(/^<|>$/g, ''), recipient, limit: '100' });
+  const response = await fetcher(`${config.base}/v3/${encodeURIComponent(config.domain)}/events?${query}`, {
+    headers: { Authorization: `Basic ${Buffer.from(`api:${config.key}`).toString('base64')}` },
+    redirect: 'error', signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error('Mail delivery verification unavailable');
+  const payload = await response.json();
+  if (!Array.isArray(payload.items)) throw new Error('Invalid mail delivery result');
+  const events = payload.items.filter(event => event.recipient?.toLowerCase() === recipient.toLowerCase()
+    && event.message?.headers?.['message-id']?.replace(/^<|>$/g, '') === messageId.replace(/^<|>$/g, ''));
+  if (events.some(event => event.event === 'delivered')) return 'delivered';
+  if (events.some(event => event.event === 'failed' && event.severity === 'permanent')) return 'failed';
+  return 'queued';
+}

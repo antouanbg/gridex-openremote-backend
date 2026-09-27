@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '012_organisation_onboarding.sql'];
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql'];
 
 const siteRow = (row) => ({
   id: row.id,
@@ -56,10 +56,19 @@ export class PostgresRepository {
 
   async isAllowedRealm(realm) {
     const { rows } = await this.pool.query(`SELECT 1 FROM organisations
-      WHERE openremote_realm=$1 AND status='active'
+      WHERE openremote_realm=$1 AND status IN ('active','suspended')
       UNION ALL SELECT 1 FROM organisation_onboarding_invitations
       WHERE realm=$1 AND state IN ('sent','activating') AND expires_at>now() LIMIT 1`, [realm]);
     return rows.length > 0;
+  }
+
+  async assertOrganisationAccess(identity) {
+    const { rows } = await this.pool.query(`SELECT status,access_valid_after FROM organisations WHERE openremote_realm=$1`, [identity.realm]);
+    const org = rows[0];
+    if (org && org.status !== 'active') throw new ApiError(403, 'organisation_suspended',
+      'Your organisation is suspended. Contact the super administrator. / Организацията е временно спряна. Свържете се със супер администратора.');
+    if (Number(org?.access_valid_after) > 0 && (!Number.isFinite(identity.authTime) || identity.authTime <= Number(org.access_valid_after)))
+      throw new ApiError(401, 'reauthentication_required', 'Sign in again after organisation access was restored.');
   }
 
   async listAccessibleSites(subject, realm = null) {
