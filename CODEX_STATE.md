@@ -1,5 +1,24 @@
 # CODEX_STATE.md
 
+## First customer action link / Първи клиентски линк — 2026-09-27
+
+Live proxy root cause: only `/auth/realms/gridex/` was public, while the
+delivered action email targets the new `novacom` realm. A strictly exact
+`/auth/realms/novacom/` route is now active; no wildcard, `master` or admin
+exposure. Local HTTPS route checks and local master auth checks passed; normal
+public DNS from this Mac still times out. The real action URL was deliberately
+not used. Next: owner requests a fresh link, tests it externally, completes
+email verification/password setup, signs in to `novacom` and accepts the
+pending invitation; then verify realm isolation. Add a reviewed exact proxy
+route before sending email for each future customer realm. See HANDOFF for
+backup and detailed checks.
+
+Български: причината бе публично разрешен само `gridex`, а писмото сочи към
+`novacom`. Включен е единствено точният `novacom` маршрут; `master` и admin
+остават забранени. Локалните HTTPS и master auth проверки минаха; външният
+DNS маршрут от Mac още дава timeout. Истинският еднократен линк не е ползван.
+Следва нов линк и външно приемане от собственика, после тест за изолация.
+
 ## Текущо състояние на поканите — 2026-09-26
 
 Актуалното решение е описано в `docs/ORGANISATION_INVITATION_PLAN.md` и

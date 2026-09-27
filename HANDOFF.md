@@ -2,6 +2,44 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## First customer action-email proxy repair / Първи клиентски линк — 2026-09-27
+
+EN: The first `novacom` Keycloak Verify Email / Update Password email arrived,
+but the action link did not open. The live public proxy allowed only
+`/auth/realms/gridex/`: local trusted-TLS checks returned 200 for `gridex`,
+404 for `novacom` and 404 for `master`. The existing `novacom` realm returned
+200 directly inside the Keycloak network. Added **only** the exact
+`/auth/realms/novacom/` public route, without a realm wildcard. A broader
+wildcard proposal was rejected by automatic security review and was never
+applied. The first activation was rolled back when an immediate post-reload
+check raced nginx; the second with bounded retry succeeded. Private backup:
+`GrideX-runtime/private-backups/customer-realm-proxy-6K5KUH`.
+
+After activation, local HTTPS results: `gridex=200`, `novacom=200`,
+`novacom/action-token` without a key `=400` from Keycloak, unlisted realm
+`=404`, `master=404`, public admin `=404`, API `/api/v1/me=401`, docs `=200`.
+Local master issuer/admin console/fresh login-form checks passed. Normal-DNS
+public checks from this Mac timed out, as before; external browser completion,
+password setup, invitation acceptance and cross-realm denial are **not yet
+verified**. The actual one-time URL was not opened or logged by the agent.
+Because it was pasted into chat, issue a fresh action link before acceptance.
+Future realms require their own reviewed proxy route before sending an action
+email; do not add a wildcard or expose `master` to solve this.
+
+BG: Първото писмо за `novacom` бе доставено, но линкът не се отваряше.
+Действащото публично proxy допускаше само `gridex`: локално `gridex=200`,
+`novacom=404`, `master=404`, а вътрешният Keycloak отговаряше `novacom=200`.
+Добавен е **само** точният маршрут `/auth/realms/novacom/`, без общ шаблон.
+По-широкият вариант бе спрян от автоматичния преглед и никога не е внедряван.
+Първият опит се върна сам заради проверка твърде скоро след nginx reload;
+вторият с ограничено изчакване мина. След това локалният HTTPS дава
+`novacom=200`, action-token **без ключ** `400` от Keycloak, непосочен realm
+и `master=404`, admin `404`, API `401`, docs `200`. Локалните master проверки
+минаха. Външният DNS маршрут от Mac продължава да изтича по timeout; реално
+отваряне на нов линк, парола, приемане и междуорганизационен отказ предстоят.
+Публикуваният в чата еднократен линк не е използван; издайте нов. За бъдещ
+realm е нужна отделно проверена proxy настройка **преди** писмото.
+
 ## Публична документация — 2026-09-26
 
 По одобрения адрес `doc.gridex.tech` е издаден отделен доверен сертификат чрез

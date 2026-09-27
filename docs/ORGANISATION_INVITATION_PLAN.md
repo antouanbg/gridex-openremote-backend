@@ -2,6 +2,23 @@
 
 ## Current authority and status / Актуално решение и статус — 2026-09-26
 
+2026-09-27 action-email gate: The first `novacom` email was delivered, but the
+public auth proxy initially returned 404 for its realm. The exact
+`/auth/realms/novacom/` route now passes local HTTPS checks; a broad realm
+wildcard was rejected and never deployed. Before sending any future customer
+action email, provision and verify its own public realm route while keeping
+`master` and admin blocked. External recipient completion, acceptance and
+tenant-isolation checks remain outstanding. The first one-time URL was shared
+in chat and must be replaced; no token is recorded here.
+
+2026-09-27: Първото писмо за `novacom` бе доставено, но публичното auth proxy
+първоначално връщаше 404 за неговия realm. Точният маршрут
+`/auth/realms/novacom/` вече минава локалните HTTPS проверки; общ шаблон
+бе спрян и никога не е внедряван. Преди писмо за бъдещ клиент провери
+отделния му публичен realm маршрут, като `master` и admin остават затворени.
+Външното приемане и проверката на изолацията предстоят. Първият еднократен
+линк бе споделен в чата и трябва да се замени; тук не пазим токени.
+
 The older implementation plan below is historical; its “not deployed” gates
 are superseded by this section. The existing owner account remains the human
 platform administrator **and** administrator of the pilot GrideX organisation;
