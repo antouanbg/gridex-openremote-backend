@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Първа клиентска покана — 2026-09-27
+
+Клиентът е потвърден и поканата е валидна, но остава `sent`: няма Accept
+audit и няма активно клиентско членство. Backend list връща поканата за
+правилния акаунт. Регресията за списък без членство мина. След изричното
+приемане провери цялата верига и изолацията според AGENTS.md; регистрация
+или вход сами по себе си не са активация.
+
+EN: Verified customer and valid invite remain `sent`; no acceptance audit or
+active membership. Pending-list regression passes; real acceptance and
+isolation checks are required.
+
 ## Public realm identity leak repair — 2026-09-27
 
 Live Manager entry is now fixed to the pilot `gridex` realm; an unauthenticated
