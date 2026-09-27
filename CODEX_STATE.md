@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## Realm routing — 2026-09-28
+
+Одобрено: общият вход е имейл → ограничен backend lookup само по
+покани/членство → правилен Keycloak realm с PKCE; паролата остава в Keycloak.
+Не бъркай грешен realm с грешна парола. Lookup не удостоверява потребителя
+и не дава права. Нов клиентски realm изисква публичен proxy маршрут и
+реален входен тест преди да се твърди, че е готов. Запази изолацията на
+организациите и fail-closed авторизацията; подробности в HANDOFF.
+
+EN: Email-first lookup is a routing hint, never authentication. Check the
+actual realm before password diagnosis and proxy coverage for new realms.
+
 ## Решение на собственика — 2026-09-27
 
 За всяка нова функционалност извън изрично одобреното задай конкретен въпрос

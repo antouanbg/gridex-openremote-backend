@@ -2,6 +2,28 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Одобрен email-first вход / Realm discovery — 2026-09-28
+
+Общият GrideX вход трябва първо да поиска имейла от поканата. Новият
+неудостоверен POST `/api/v1/auth/login-realm` връща realm-ите от валидни
+изпратени или приети покани; не изисква/приема парола и не дава права.
+При един realm порталът отваря неговия Keycloak OIDC+PKCE, при няколко
+предлага избор. Непознат имейл получава платформения realm като routing
+fallback, без потвърждение, че акаунт съществува. Response е no-store;
+има Origin проверка, малък body limit и ограничение на повторните заявки.
+Проверката по покани е само routing hint, не заместител на Keycloak,
+OpenRemote/членство или scope проверката. Преди диагностика „грешна парола“
+провери дали клиентът не е изпратен към `gridex` вместо своя realm.
+Публичното proxy вече има маршрути само за `gridex` и `novacom`: за бъдещ
+realm изрично публикувай и тествай auth пътя преди покана. Не отваряй
+безусловно всички realm-и и не променяй други покани или права.
+
+EN: A bounded public email-only endpoint returns routing realms from valid
+invitations. It neither authenticates nor grants rights; passwords stay at
+Keycloak. Current public auth proxy covers only gridex and novacom; each new
+realm needs an explicit route before invitation. Local tests are not live
+deployment evidence.
+
 ## Решение 2026-09-27 — одобрение и провизиране
 
 Новата изрична инструкция на собственика: всеки нов функционален избор извън

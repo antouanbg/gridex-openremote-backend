@@ -1,5 +1,20 @@
 # GrideX OpenRemote backend — Working rules
 
+## Email-first multi-realm login / Вход по имейл — 2026-09-28
+
+The owner approved an unauthenticated, bounded email-only realm routing hint
+based on valid invitations/accepted membership. It is not authentication and
+must never grant access, accept a password or bypass OpenRemote/Keycloak
+authorisation. Diagnose wrong realm before bad password. Test public proxy
+coverage for each new realm before sending invitations; only the pilot and
+novacom routes currently exist. Preserve the fail-closed tenant boundary.
+
+Одобрен е ограничен публичен lookup само по имейл и валидна покана/прието
+членство. Това е подсказка за маршрут, не удостоверяване: без парола и без
+права, без заобикаляне на OpenRemote/Keycloak. Проверявай грешен realm преди
+да твърдиш „грешна парола“. Преди покана в нов realm тествай публичния proxy
+път; засега са публикувани само пилотният и novacom. Пази tenant изолацията.
+
 ## Owner approval for every new function / Одобрение за всяка нова функция
 
 Before implementing a new API capability, permission, onboarding gate,
