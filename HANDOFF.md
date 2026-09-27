@@ -24,6 +24,20 @@ Keycloak. Current public auth proxy covers only gridex and novacom; each new
 realm needs an explicit route before invitation. Local tests are not live
 deployment evidence.
 
+Проверка на реалното внедряване: работещият `gridex-mac-gridex-api-1` контейнер
+е стартиран с Compose файлове от отделния checkout/branch
+`gridex-backend-organisation-freeze` (`feat/organisation-freeze`), не от
+`main` или този PR. Не стартирай `docker compose up` от email-first worktree:
+това може да отпадне неприетата freeze функционалност. Преди production
+внедряване съвмести двете линии, тествай всички API сценарии, направи backup
+и подмени **само** `gridex-api` по безопасен план с rollback; след това провери
+реалния lookup за клиентския имейл. Frontend се публикува чак след backend.
+
+EN: The live API Compose project points to the separate
+`feat/organisation-freeze` checkout, not main. Do not deploy this PR's checkout
+over it. Reconcile both branches and prepare a tested API-only rollout with
+rollback before publishing frontend.
+
 ## Решение 2026-09-27 — одобрение и провизиране
 
 Новата изрична инструкция на собственика: всеки нов функционален избор извън
