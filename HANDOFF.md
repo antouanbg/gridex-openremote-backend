@@ -4,6 +4,11 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## Нов клиентски Обект и GrideX устройство — подготвено, не внедрено — 2026-09-27
 
+Публикация: PR [#43](https://github.com/antouanbg/gridex-openremote-backend/pull/43),
+commit `cbac726`. Frontend PR [#55](https://github.com/antouanbg/gridex-energy-os/pull/55)
+и Docusaurus PR [#4](https://github.com/antouanbg/gridex-docs/pull/4) са
+подготвени. Това **не е** production deploy или приемателен тест.
+
 Последно решение на собственика в Phase3: продължаваме със създаване на **нов**
 Обект и ROCK Pi E/OLIMEX ESP32-EVB за всяка активирана клиентска организация.
 Само нейният администратор създава; интеграторът може да настройва чернова,
