@@ -1,11 +1,11 @@
 import {ApiError} from './errors.mjs';
 const attr=(asset,name)=>asset?.attributes?.[name]?.value;
 const pending=()=>new ApiError(409,'inventory_reconciliation_required','Inventory must be provisioned and linked in OpenRemote.');
-async function ownedAssets(openRemote,ids,subject) {
+async function ownedAssets(openRemote,ids,subject,context) {
  if(!subject||ids.some(id=>!id)||new Set(ids).size!==ids.length) throw pending();
  if(!ids.length)return [];
  try {
-  const assets=await openRemote.getUserLinkedAssets(ids,subject);
+  const assets=await openRemote.getUserLinkedAssets(ids,subject,context);
   if(!Array.isArray(assets))throw Error('Invalid inventory response');
   return assets;
  }catch {throw new ApiError(503,'inventory_unavailable','OpenRemote inventory is temporarily unavailable.');}
@@ -13,9 +13,9 @@ async function ownedAssets(openRemote,ids,subject) {
 function verifySite(site,asset) {
  if(!asset||asset.realm!==site.openremoteRealm||attr(asset,'gridexResourceKind')!=='site'||attr(asset,'gridexResourceId')!==site.id||!asset.name) throw pending();
 }
-export async function authoritativeSites(sites,openRemote,subject) {
+export async function authoritativeSites(sites,openRemote,subject,context) {
  const bound=sites.filter(s=>s.openremoteSiteAssetId);
- const assets=await ownedAssets(openRemote,bound.map(s=>s.openremoteSiteAssetId),subject);
+ const assets=await ownedAssets(openRemote,bound.map(s=>s.openremoteSiteAssetId),subject,context);
  return bound.flatMap(site=>{
   const asset=assets.find(a=>a.id===site.openremoteSiteAssetId);
   if(!asset)return []; // A removed OR user link revokes visibility.
@@ -23,14 +23,14 @@ export async function authoritativeSites(sites,openRemote,subject) {
   return [{...site,name:asset.name}];
  });
 }
-export async function authoritativeTopology(site,repository,openRemote,subject) {
+export async function authoritativeTopology(site,repository,openRemote,subject,context) {
  if(!site.openremoteSiteAssetId)throw pending();
  const local=await repository.getTopology(site.id);
  const bindings=await repository.getGatewayBindings(site.id);
  if(bindings.length!==local.gateways.length||local.gateways.some(g=>!bindings.some(b=>b.gatewayId===g.id)))throw pending();
  if(local.devices.some(d=>!d.openremoteAssetId))throw pending();
  const ids=[site.openremoteSiteAssetId,...bindings.map(b=>b.assetId),...local.devices.map(d=>d.openremoteAssetId)];
- const assets=await ownedAssets(openRemote,ids,subject);
+ const assets=await ownedAssets(openRemote,ids,subject,context);
  if(assets.length!==ids.length||ids.some(id=>!assets.some(a=>a.id===id)))throw pending();
  const byId=new Map(assets.map(a=>[a.id,a]));
  const siteAsset=byId.get(site.openremoteSiteAssetId);verifySite(site,siteAsset);

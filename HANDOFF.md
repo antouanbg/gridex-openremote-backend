@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Нов клиентски Обект и GrideX устройство — подготвено, не внедрено — 2026-09-27
+
+Последно решение на собственика в Phase3: продължаваме със създаване на **нов**
+Обект и ROCK Pi E/OLIMEX ESP32-EVB за всяка активирана клиентска организация.
+Само нейният администратор създава; интеграторът може да настройва чернова,
+не да създава или пуска. Без нов елемент в менюто, без физическо активиране.
+
+Локален код: нови POST `/api/v1/sites` и `/api/v1/sites/:id/gateways` с точен
+realm, проверено membership и email, `Idempotency-Key`, SQL intent за процеса,
+OpenRemote-first asset/parent/owner проверка и локална проекция едва след успех.
+Клиентските legacy local-first POST `/hardware-configurations` и `/devices`
+са затворени. `OpenRemoteClient` вече приема realm за новите клиентски
+операции; пилотният service-token read остава непроменен. Локални 70/70
+backend теста минаха (вкл. HTTP, отказ/повторение и чужд realm);
+няма реален клиентски тест или deploy.
+
+Пречка: поканата за `antouan@novacom.bg` е проверена read-only като `sent`,
+валидна и обвързана, но организацията още няма активно членство. Първото
+влизане през клиентския realm трябва да задейства автоматичното приемане.
+Не прави ръчно членство, нов акаунт или тестов Обект, преди да се провери
+този преход. След него: проверка на клиентския portal token срещу OpenRemote,
+реален create/read-back/owner link за нов Обект и ROCK/ESP, отказ към чужд
+realm, мобилен/desktop интерфейс и безопасен backend→frontend deploy. Ако
+OR/SQL частичен отказ не се съгласува, не обявявай готовност. Старите
+equipment update и активна hardware revision остават отделен дълг.
+Поканен интегратор също трябва да има изричен OpenRemote asset link към
+разрешения Обект; SQL grant сам по себе си не дава видимост в новия
+fail-closed read path. Не обявявай тази част за работеща без реален тест.
+
+EN: Local tenant-aware Site and approved gateway provisioning is prepared,
+not deployed or accepted with a customer account. The invited `novacom`
+administrator still has a sent invitation and no membership. Complete that
+verified transition, then test OpenRemote token/asset/link and browser access
+before publishing. No physical commissioning is enabled.
+
 ## Одобрени права и избор на устройства — 2026-09-27
 
 Собственикът потвърди в „EMS OpenRemote architecture Phase3“: само GrideX

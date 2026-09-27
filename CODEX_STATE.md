@@ -1,5 +1,20 @@
 # CODEX_STATE.md
 
+## 2026-09-27 — клиентски Site/gateway provisioning
+
+Изрично одобрено в Phase3: нов клиентски Обект и само ROCK Pi E/OLIMEX
+ESP32-EVB от GrideX UI за активна организация, administrator-only create.
+Кодът локално има tenant-aware OR-first POST с идемпотентна intent заявка,
+read-back/owner link и SQL проекция само след проверка. Старите customer
+local-first POST са ограничени. Тестове с имитации минават; реален клиентски
+token, browser, миграция и deploy още не са проверени. Не твърди live.
+Поканата за `antouan@novacom.bg` остава `sent`/без членство; първо вход през
+`novacom`, после read-only проверка на `accepted`/membership и tenant denial.
+
+EN: Customer Site/gateway creation is local only. Verify the first-admin
+acceptance, actual OpenRemote customer token, cross-tenant denial and live
+browser flow before release; preserve locks and pilot inventory.
+
 ## Одобрен клиентски процес за устройства — 2026-09-27
 
 Само потвърден GrideX ROCK Pi E/OLIMEX ESP32-EVB се предлага за избор.

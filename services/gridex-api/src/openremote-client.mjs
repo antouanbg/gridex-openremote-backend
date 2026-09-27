@@ -19,13 +19,14 @@ export class OpenRemoteClient {
     }
   }
 
-  async request(path, { token, method = "GET", body, signal } = {}) {
+  async request(path, { token, method = "GET", body, signal, realm = this.config.realm } = {}) {
+    if (!/^[a-z][a-z0-9-]{2,30}$/.test(realm)) throw new ApiError(400, "invalid_realm", "The OpenRemote realm is invalid.");
     const headers = new Headers({ Accept: "application/json" });
     if (token) headers.set("Authorization", `Bearer ${token}`);
     if (body !== undefined) headers.set("Content-Type", "application/json");
     const timeout = AbortSignal.timeout(this.config.openRemoteRequestTimeoutMs);
     const response = await this.fetch(
-      `${this.config.openRemoteBaseUrl}/api/${encodeURIComponent(this.config.realm)}${path}`,
+      `${this.config.openRemoteBaseUrl}/api/${encodeURIComponent(realm)}${path}`,
       { method, headers, body: body === undefined ? undefined : JSON.stringify(body), signal: signal ? AbortSignal.any([signal, timeout]) : timeout },
     );
     if (!response.ok) {
@@ -43,17 +44,18 @@ export class OpenRemoteClient {
     return this.request("/asset/user/current", { token: userToken });
   }
 
-  async getUserLinkedAssets(ids, subject) {
+  async getUserLinkedAssets(ids, subject, { realm, token } = {}) {
     if (!ids.length) return [];
-    return this.queryAssets({ ids, userIds: [subject] }, await this.getServiceToken());
+    const pilotRealm=!realm||realm===this.config.realm;
+    return this.queryAssets({ ids, userIds: [subject] },pilotRealm?await this.getServiceToken():token,realm);
   }
 
-  queryAssets(query, token) {
-    return this.request("/asset/query", { token, method: "POST", body: query });
+  queryAssets(query, token, realm) {
+    return this.request("/asset/query", { token, method: "POST", body: query, realm });
   }
 
-  getAsset(assetId, userToken) {
-    return this.request(`/asset/${encodeURIComponent(assetId)}`, { token: userToken });
+  getAsset(assetId, userToken, realm) {
+    return this.request(`/asset/${encodeURIComponent(assetId)}`, { token: userToken, realm });
   }
 
   async getAssets(assetIds, userToken) {
@@ -96,6 +98,20 @@ export class OpenRemoteClient {
 
   async createAsset(asset) {
     return this.request("/asset", { token: await this.getServiceToken(), method: "POST", body: asset });
+  }
+
+  createUserAsset(asset, token, realm) {
+    return this.request("/asset", { token, method: "POST", body: asset, realm });
+  }
+
+  linkUserAsset(assetId, subject, token, realm) {
+    return this.request("/asset/user/link", { token, method: "POST", realm,
+      body: [{ id: { realm, userId: subject, assetId } }] });
+  }
+
+  userAssetLinks(subject, token, realm) {
+    return this.request(`/asset/user/link?realm=${encodeURIComponent(realm)}&userId=${encodeURIComponent(subject)}`,
+      { token, realm });
   }
 
   async updateAsset(assetId, asset) {

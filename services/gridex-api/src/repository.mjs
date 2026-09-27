@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '012_organisation_onboarding.sql'];
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_inventory_provisioning.sql'];
 
 const siteRow = (row) => ({
   id: row.id,
@@ -82,6 +82,91 @@ export class PostgresRepository {
       ON o.id=m.organisation_id AND o.status='active'
       WHERE m.subject=$1 AND ($2::text IS NULL OR o.openremote_realm=$2)`, [subject, realm]);
     return rows;
+  }
+
+  async requireOrganisationAdministrator(subject, realm, organisationId) {
+    const { rows } = await this.pool.query(`SELECT o.id,o.openremote_realm FROM organisations o
+      JOIN organisation_memberships m ON m.organisation_id=o.id
+      WHERE o.id=$1 AND o.openremote_realm=$2 AND o.status='active'
+        AND m.subject=$3 AND m.role='administrator' AND m.all_sites=true`,
+      [organisationId, realm, subject]);
+    if (!rows[0]) throw new ApiError(403, 'permission_denied', 'Organisation administrator access is required.');
+    return {id:rows[0].id,realm:rows[0].openremote_realm};
+  }
+
+  async claimInventoryIntent({organisationId,siteId=null,kind,key,payloadHash,subject,realm}) {
+    const id=randomUUID(),resourceId=randomUUID();
+    const created=await this.pool.query(`INSERT INTO inventory_provisioning_intents
+      (id,organisation_id,site_id,kind,idempotency_key,payload_hash,resource_id,state,created_by)
+      VALUES($1,$2,$3,$4,$5,$6,$7,'pending',$8)
+      ON CONFLICT(organisation_id,kind,idempotency_key) DO NOTHING RETURNING *`,
+      [id,organisationId,siteId,kind,key,payloadHash,resourceId,subject]);
+    if(created.rows[0])return {intent:{...created.rows[0],realm},complete:false};
+    const existing=await this.pool.query(`SELECT * FROM inventory_provisioning_intents
+      WHERE organisation_id=$1 AND kind=$2 AND idempotency_key=$3`,[organisationId,kind,key]);
+    const row=existing.rows[0];
+    if(!row||row.payload_hash!==payloadHash||row.site_id!==siteId||row.created_by!==subject)
+      throw new ApiError(409,'idempotency_conflict','The request key was used for a different inventory request.');
+    if(row.state==='complete')return {intent:{...row,realm},complete:true};
+    const retried=await this.pool.query(`UPDATE inventory_provisioning_intents
+      SET state='pending',attempt_started_at=now(),updated_at=now()
+      WHERE id=$1 AND (state='failed' OR attempt_started_at<now()-interval '60 seconds') RETURNING *`,[row.id]);
+    if(!retried.rows[0])throw new ApiError(409,'provisioning_in_progress','This inventory request is already running.');
+    return {intent:{...retried.rows[0],realm},complete:false};
+  }
+
+  async recordInventoryAsset(intentId,assetId) {
+    await this.pool.query(`UPDATE inventory_provisioning_intents SET openremote_asset_id=$2,updated_at=now()
+      WHERE id=$1 AND state='pending'`,[intentId,assetId]);
+  }
+  async failInventoryIntent(intentId) {
+    await this.pool.query(`UPDATE inventory_provisioning_intents SET state='failed',updated_at=now()
+      WHERE id=$1 AND state='pending'`,[intentId]);
+  }
+  async completeSiteIntent(intent,{name,timezone,marketCode},assetId) {
+    const client=await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const {rows}=await client.query(`INSERT INTO sites
+        (id,organisation_id,name,timezone,market_code,status,openremote_realm,openremote_site_asset_id)
+        SELECT $1,o.id,$2,$3,$4,'commissioning',o.openremote_realm,$5 FROM organisations o
+        WHERE o.id=$6 AND o.status='active' AND o.openremote_realm=$7
+        RETURNING *, 'administrator'::text AS membership_role`,
+        [intent.resource_id,name,timezone,marketCode,assetId,intent.organisation_id,intent.realm]);
+      if(!rows[0])throw new ApiError(409,'organisation_inactive','The organisation is not active.');
+      await client.query(`UPDATE inventory_provisioning_intents SET state='complete',openremote_asset_id=$2,updated_at=now()
+        WHERE id=$1 AND resource_id=$3`,[intent.id,assetId,intent.resource_id]);
+      await client.query('COMMIT');return siteRow(rows[0]);
+    }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+  }
+
+  async completeGatewayIntent(intent,{name,hardwareModel,role},assetId,subject) {
+    const client=await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`hardware:${intent.site_id}`]);
+      const config=await client.query(`SELECT * FROM hardware_configurations WHERE site_id=$1
+        ORDER BY revision DESC LIMIT 1 FOR UPDATE`,[intent.site_id]);
+      let configurationId=config.rows[0]?.id;
+      if(config.rows[0]&&config.rows[0].status!=='draft')
+        throw new ApiError(409,'configuration_not_draft','New hardware can only be added to a draft configuration.');
+      if(!configurationId){
+        configurationId=randomUUID();
+        await client.query(`INSERT INTO hardware_configurations(id,site_id,revision,status,created_by)
+          VALUES($1,$2,1,'draft',$3)`,[configurationId,intent.site_id,subject]);
+      }
+      await client.query(`INSERT INTO gateways
+        (id,hardware_configuration_id,site_id,name,hardware_model,role,management_network)
+        VALUES($1,$2,$3,$4,$5,$6,'{}'::jsonb)`,
+        [intent.resource_id,configurationId,intent.site_id,name,hardwareModel,role]);
+      await client.query(`INSERT INTO gateway_openremote_bindings(gateway_id,openremote_asset_id)
+        VALUES($1,$2)`,
+        [intent.resource_id,assetId]);
+      await client.query(`UPDATE inventory_provisioning_intents SET state='complete',openremote_asset_id=$2,updated_at=now()
+        WHERE id=$1`,[intent.id,assetId]);
+      await client.query('COMMIT');
+      return {id:intent.resource_id,siteId:intent.site_id,name,hardwareModel,role,openremoteAssetId:assetId};
+    }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
   }
 
   async getUserPreferences(subject) {
@@ -444,6 +529,7 @@ export class MemoryRepository {
     this.strategyDrafts = new Map();
     this.strategySimulations = new Map();
     this.auditEvents = [];
+    this.inventoryIntents = new Map();
   }
   async migrate() {}
   async close() {}
@@ -456,6 +542,37 @@ export class MemoryRepository {
     });
   }
   async getMemberships(subject) { return this.memberships.filter((m) => m.subject === subject && m.status !== 'suspended'); }
+  async requireOrganisationAdministrator(subject, realm, organisationId) {
+    const member=this.memberships.find(m=>m.subject===subject&&m.organisationId===organisationId&&m.role==='administrator'&&m.allSites&&m.status!=='suspended'&&(m.realm===undefined||m.realm===realm));
+    if(!member)throw new ApiError(403,'permission_denied','Organisation administrator access is required.');
+    return {id:organisationId,realm};
+  }
+  async claimInventoryIntent({organisationId,siteId=null,kind,key,payloadHash,subject,realm}) {
+    const keyId=`${organisationId}:${kind}:${key}`,existing=this.inventoryIntents.get(keyId);
+    if(existing){
+      if(existing.payload_hash!==payloadHash||existing.site_id!==siteId||existing.created_by!==subject)
+        throw new ApiError(409,'idempotency_conflict','The request key was used for a different inventory request.');
+      if(existing.state==='complete')return {intent:existing,complete:true};
+      if(existing.state==='pending')throw new ApiError(409,'provisioning_in_progress','This inventory request is already running.');
+      existing.state='pending';return {intent:existing,complete:false};
+    }
+    const intent={id:randomUUID(),organisation_id:organisationId,site_id:siteId,kind,payload_hash:payloadHash,resource_id:randomUUID(),state:'pending',created_by:subject,realm};
+    this.inventoryIntents.set(keyId,intent);return {intent,complete:false};
+  }
+  async recordInventoryAsset(intentId,assetId){for(const item of this.inventoryIntents.values())if(item.id===intentId)item.openremote_asset_id=assetId;}
+  async failInventoryIntent(intentId){for(const item of this.inventoryIntents.values())if(item.id===intentId)item.state='failed';}
+  async completeSiteIntent(intent,{name,timezone,marketCode},assetId){
+    const site={id:intent.resource_id,organisationId:intent.organisation_id,name,timezone,marketCode,status:'commissioning',openremoteRealm:intent.realm,openremoteSiteAssetId:assetId,membershipRole:'administrator'};
+    this.sites.push(site);intent.state='complete';intent.openremote_asset_id=assetId;return site;
+  }
+  async completeGatewayIntent(intent,{name,hardwareModel,role},assetId){
+    const topology=this.topologies.get(intent.site_id)||{configuration:{id:randomUUID(),revision:1,status:'draft'},gateways:[],devices:[]};
+    if(topology.configuration.status!=='draft')throw new ApiError(409,'configuration_not_draft','New hardware can only be added to a draft configuration.');
+    const gateway={id:intent.resource_id,siteId:intent.site_id,name,hardwareModel,role,ports:[]};
+    topology.gateways.push(gateway);this.topologies.set(intent.site_id,topology);
+    this.gatewayBindings.push({gatewayId:gateway.id,siteId:intent.site_id,assetId});
+    intent.state='complete';intent.openremote_asset_id=assetId;return gateway;
+  }
   async getUserPreferences(subject) { return this.preferences.get(subject) || { revision: 0, locale: "en", displayTimezone: "site", units: "metric", currency: "EUR", theme: "system", notifications: { channels: ["email"], minimumSeverity: "warning" } }; }
   async updateUserPreferences(subject, preferences, expectedRevision) {
     const current = await this.getUserPreferences(subject);

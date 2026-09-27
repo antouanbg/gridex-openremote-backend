@@ -2,6 +2,52 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Customer Site and approved gateway path — local implementation, 2026-09-27
+
+The owner approved new customer Site and device creation from the existing
+GrideX screens. The local API now prepares `POST /api/v1/sites` and
+`POST /api/v1/sites/:siteId/gateways` for the verified organisation
+administrator only. The latter accepts ROCK Pi E or the two confirmed OLIMEX
+ESP32-EVB variants; an ESP32 must name the Site's ROCK Pi parent. Both calls
+require a stable `Idempotency-Key`. A durable SQL intent is workflow state,
+not active inventory. The authenticated organisation realm and OpenRemote
+asset/user links are checked before a local read projection is completed.
+Retries recover an existing asset by its stable `gridexResourceId`, without
+blind deletion or another asset. New customer calls cannot use the legacy
+local-first `/hardware-configurations` or `/devices` POST route. Creation does
+not enable physical commissioning, MQTT transport, OTA or control writes.
+
+Backend unit/HTTP tests use fixtures. The new path is **not deployed or
+accepted with a real customer account**. In particular, verify that the
+customer portal token is accepted by OpenRemote for realm-specific asset
+creation and owner links, that an OpenRemote outage and a SQL failure reconcile,
+and that the customer sees only its own tree on mobile/desktop. The first
+customer invitation is still `sent` with no active membership; no live Site
+may be created for it until that invitation completes. The existing pilot
+and existing equipment update paths remain separate technical debt.
+
+## Клиентски Обект и потвърден шлюз — локална реализация, 27.09.2026
+
+Собственикът одобри създаване на клиентски Обект и устройство през
+съществуващите екрани на GrideX. Локалният API подготвя
+`POST /api/v1/sites` и `POST /api/v1/sites/:siteId/gateways` само за
+проверен администратор на организацията. Вторият маршрут приема ROCK Pi E
+или двата потвърдени OLIMEX ESP32-EVB варианта; ESP32 изисква родител ROCK Pi
+в същия Обект. И двете заявки изискват стабилен `Idempotency-Key`.
+Устойчивата SQL заявка е състояние на процеса, не активен инвентар.
+Преди локалната проекция се проверяват точният realm, OpenRemote asset и
+връзката към потребителя. Повторение намира съществуващия asset чрез
+`gridexResourceId`, без сляпо изтриване или дублиране. Нов клиент не може
+да използва старите local-first POST маршрути `/hardware-configurations` и
+`/devices`. Създаването не активира физическо пускане, MQTT, OTA или команди.
+
+Тестовете на backend са с имитации. Новият път **не е внедрен или приет с
+реален клиентски акаунт**. Остават проверка на клиентския portal token в
+OpenRemote за неговия realm, отказ/съгласуване при OpenRemote и SQL грешка,
+както и видимост само на собственото дърво на mobile/desktop. Първата
+клиентска покана още е `sent` без членство; няма право на нов жив Обект преди
+приемането ѝ. Старите пилотни и equipment update маршрути са отделен дълг.
+
 ## Decision and scope — 2026-09-20
 
 Subsequent owner-approved execution: the pilot Site/ROCK/ESP now exist in OR,
