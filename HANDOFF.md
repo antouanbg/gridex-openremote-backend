@@ -2,6 +2,35 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Exact first-customer auth route / Точен първи клиентски маршрут — 2026-09-27
+
+EN: The live public proxy previously allowed only `/auth/realms/gridex/`, so
+the delivered `novacom` Verify Email / Update Password link received a proxy
+404. The exact `/auth/realms/novacom/` route was deployed separately on the
+Mac with private backup and rollback checks. Local HTTPS now returns 200 for
+both realm discovery endpoints, 400 from Keycloak for a keyless novacom action
+URL, and 404 for `master`, public admin and unlisted realms. API `/api/v1/me`
+still returns 401 without a session and docs returns 200. Local master auth
+checks passed; normal public DNS from this Mac times out. The real one-time
+link was not opened or logged; since it was pasted in chat, issue a fresh
+link. External browser acceptance, password setup and tenant isolation remain
+untested. This narrowly scoped source change does not merge the separate
+organisation-onboarding feature branch into main. For each future realm,
+review and verify an exact public route before sending action email; no
+wildcard or public master/admin exposure.
+
+BG: Публичното proxy допускаше само `gridex` и писмото за `novacom` водеше до
+proxy 404. Точният `/auth/realms/novacom/` маршрут бе приложен отделно на Mac
+с частен backup и проверки за връщане. Локалният HTTPS вече връща 200 за
+двата realm-а, 400 от Keycloak за action URL **без ключ** и 404 за `master`,
+admin и непосочени realm-и. API без сесия остава 401, документацията е 200.
+Локалният master auth тест мина; нормалният публичен DNS от Mac изтича по
+timeout. Истинският еднократен линк не е използван или записван; понеже е
+споделен в чата, издайте нов. Външно приемане, парола и изолация предстоят.
+Тази ограничена промяна не слива останалия onboarding клон в main. За всеки
+следващ realm е нужен отделен проверен маршрут преди action email; без общ
+шаблон и без публичен master/admin.
+
 ## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
 
 Backend PR #35 merged; 62/62 API tests passed. Older open PRs #1, #3–#7, #9–#13, #17, #20, #21 were inspected but NOT approved as compatible: Windows/Hyper-V plans are superseded; legacy branches conflict with current files. Review each separately against current architecture; preserve useful changes and resolve conflicts with tests, never restore old files wholesale. Migration 012, setup credentials and multi-realm runtime acceptance remain separate; no service deployment occurred.

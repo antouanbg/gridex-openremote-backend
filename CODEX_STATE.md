@@ -1,5 +1,19 @@
 # CODEX_STATE.md
 
+## Customer action email routing / Клиентско писмо — 2026-09-27
+
+The first `novacom` action email exposed a missing public proxy route. Live
+runtime now has only the exact novacom exception, with local SNI/TLS and
+master/API/docs regression checks passing. Source fix is isolated here from
+the broader onboarding branch. External recipient acceptance and isolation
+are still open; the pasted one-time URL should be replaced.
+
+Първото писмо за `novacom` показа липсващ публичен proxy маршрут. Runtime
+вече допуска само точния novacom път; локалните TLS, master, API и docs
+проверки минаха. Изходният код е отделен от широкия onboarding клон.
+Външното приемане и изолацията предстоят; споделеният еднократен линк трябва
+да се замени.
+
 ## Verified existing owner and mail / Проверен собственик и поща — 2026-09-24
 
 Live read-only check: `antouan.bg@gmail.com`, subject
