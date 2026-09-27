@@ -42,7 +42,9 @@ test('HTTP setup persists draft with writes locked, revision and site/role check
   assert.equal((await fetch(url+'foreign/device-setup')).status,404);
   repository.memberships[0].role='integrator';
   assert.equal((await fetch(url+'site/device-setup')).status,200);
+  assert.equal((await fetch(url+'site/device-setup',{...options,headers:{...options.headers,'If-Match':'1'}})).status,200);
   repository.memberships[0].role='viewer';
   assert.equal((await fetch(url+'site/device-setup')).status,403);
+  assert.equal((await fetch(url+'site/device-setup',{...options,headers:{...options.headers,'If-Match':'2'}})).status,403);
  } finally {await new Promise(resolve=>server.close(resolve));}
 });
