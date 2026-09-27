@@ -2,6 +2,28 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Решение 2026-09-27 — одобрение и провизиране
+
+Новата изрична инструкция на собственика: всеки нов функционален избор извън
+вече одобреното задание първо се задава като конкретен въпрос и чака
+потвърждение. Изборът на устройства и роли е в GrideX frontend; OpenRemote
+е единственият основен инвентар, backend само проверява/оркестрира.
+Старото изискване за второ ръчно „Приеми“ се отменя **само** за първия
+администратор на нова организация: след потвърден имейл, парола и вход
+frontend извиква съществуващия backend Accept endpoint. Backend продължава
+да проверява subject/email/realm/срок и да отказва достъп при неуспех.
+Членските покани остават непроменени до отделно потвърждение. Няма нов
+backend код или production deploy в този запис; customer Site/device POST
+и tenant-aware OpenRemote достъп още липсват. Старите записи по-долу са
+исторически и не разрешават ръчното приемане да се върне.
+
+EN: Ask and obtain owner approval before any new functionality beyond the
+approved scope. Device/role selection belongs to GrideX; OpenRemote alone
+owns live inventory. The first administrator's second Accept button is
+removed by owner decision; frontend calls the existing verified backend
+transition after email/password/login. Member invitations are unchanged.
+Tenant-aware customer Site/device provisioning remains unfinished.
+
 ## Първи клиент — одит на преходите, 2026-09-27
 
 Read-only live проверка: отделни Keycloak/OpenRemote realm-и, активен клиент

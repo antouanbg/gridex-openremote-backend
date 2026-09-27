@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## Решение на собственика — 2026-09-27
+
+За всяка нова функционалност извън изрично одобреното задай конкретен въпрос
+и изчакай потвърждение; не измисляй модели/роли/автоматични стъпки.
+Устройствата се избират във frontend и се записват като инвентар само в
+OpenRemote през backend. Вторият ръчен бутон за приемане на поканата на
+първия администратор се премахва: след email/password/login frontend вика
+съществуващия проверен backend Accept endpoint. Другите покани не се
+променят. Customer Site/device provisioning и реалното приемане остават
+непотвърдени; няма нов backend deploy по този запис.
+
+EN: Ask for explicit owner confirmation before any new, unspecified
+function. Frontend selects approved devices; OpenRemote is authoritative.
+The first administrator's second manual Accept button is removed; the portal
+calls the existing checked endpoint after sign-in. Member invites remain
+unchanged. Tenant-aware provisioning and live acceptance are still pending.
+
 ## Първа клиентска покана — 2026-09-27
 
 Клиентът е потвърден и поканата е валидна, но остава `sent`: няма Accept
