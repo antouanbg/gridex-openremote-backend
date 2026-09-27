@@ -2,6 +2,23 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Първи клиент — одит на преходите, 2026-09-27
+
+Read-only live проверка: отделни Keycloak/OpenRemote realm-и, активен клиент
+с потвърден имейл, правилно свързана и валидна покана `sent`, една pending
+покана в backend list. Активна е само пилотната организация с 1 Обект;
+клиентът няма членство и пряката backend проверка отказва този Обект.
+Audit има резервиране и писма, но няма activation/accept и няма записана
+грешка. Не е доказано прекъсване в backend; чака се изрично Accept POST.
+Не приемай вместо клиента. След приемане провери OpenRemote admin grant,
+активна организация, членство, realm и отказ до пилотните данни. Нов unit
+тест за pending списък без членство мина. Checklist: AGENTS.md.
+
+EN: Verified identity and matching valid invitation remain `sent`. No
+activation/accept audit or error exists. Only the pilot organisation/Site is
+active and the customer cannot access it. Explicit customer acceptance and
+post-acceptance role/tenant checks remain.
+
 ## Unauthenticated customer name and public Manager isolation — 2026-09-27
 
 EN: The owner reports that the first customer received its new action email,

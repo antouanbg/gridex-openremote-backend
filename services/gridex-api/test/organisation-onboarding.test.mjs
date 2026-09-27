@@ -111,6 +111,25 @@ test('OpenRemote role failure keeps the organisation suspended and no portal acc
   assert.equal(f.organisations.get('example-energy').status, 'suspended');
 });
 
+test('pending organisation invitation is visible only to its verified customer before membership', async () => {
+  const calls = [];
+  const row = { id: 'invitation', organisationId: 'organisation', realm: 'example-energy', name: 'Example Energy' };
+  const pool = { query: async (sql, params) => {
+    calls.push(params);
+    assert.match(sql, /state='sent' AND expires_at>now\(\)/);
+    return { rows: params[0] === 'customer-subject' && params[1] === 'admin@example.com'
+      && params[2] === 'example-energy' ? [row] : [] };
+  } };
+  const onboarding = new OrganisationOnboarding(pool, {});
+  const principal = { subject: 'customer-subject', email: 'ADMIN@example.com', emailVerified: true,
+    realm: 'example-energy', roles: [], permissions: [] };
+  assert.deepEqual(await onboarding.list(principal), [row]);
+  assert.deepEqual(await onboarding.list({ ...principal, realm: 'gridex' }), []);
+  assert.deepEqual(await onboarding.list({ ...principal, emailVerified: false }), []);
+  assert.deepEqual(calls[0], ['customer-subject', 'admin@example.com', 'example-energy']);
+  assert.equal(calls.length, 2);
+});
+
 test('new realms reuse the Keycloak Mailgun provider without SMTP configuration', async () => {
   const calls = [];
   let identityRealm = { realm: 'example-energy', displayName: 'Example Energy', enabled: true };
