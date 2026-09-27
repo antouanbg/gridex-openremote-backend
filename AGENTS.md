@@ -1,25 +1,52 @@
 # GrideX OpenRemote backend — Working rules
 
+## Owner approval for every new function / Одобрение за всяка нова функция
+
+Before implementing a new API capability, permission, onboarding gate,
+device/driver option or automatic transition, compare the exact owner-approved
+scope with previous project decisions. If the behaviour is not explicitly
+approved, ask a concrete question and wait for confirmation. A general goal,
+assistant proposal or convenient backend mechanism is not approval. Record
+the decision and its scope in HANDOFF/CODEX_STATE, test it and update the
+corresponding public documentation. Routine engineering within an approved
+feature needs no repeated permission. GrideX frontend owns device selection;
+backend validates and provisions the approved inventory through OpenRemote,
+never through a parallel database registry or invented device profile.
+
+Преди нов API, право, стъпка в поканите, модел/драйвер или автоматичен преход
+сравни точния одобрен обхват с предишните решения. Ако няма изрично одобрение,
+задай конкретен въпрос и изчакай потвърждение. Обща цел, предложение на
+асистента или удобен backend механизъм не са разрешение. Запиши решението и
+обхвата му в HANDOFF/CODEX_STATE, тествай и обнови публичната документация.
+Обичайните технически стъпки в одобрена функция не изискват повторен въпрос.
+Изборът на устройство е в GrideX frontend; backend проверява и провизира само
+одобрения инвентар през OpenRemote, без паралелен регистър или измислен профил.
+
 ## Mandatory onboarding completion gate / Задължителна проверка на поканите — 2026-09-27
 
 For every first-customer invitation, independently verify each transition:
 OpenRemote realm exists, Keycloak user is enabled and email-verified, invitation
 subject/email/realm match and remain unexpired, pending-list API returns it to
-that user without a membership, Accept POST reaches the backend, OpenRemote
+that user without a membership, the portal sends the automatic Accept POST
+after verified email, password setup and first-admin login, OpenRemote
 administrator grant succeeds, and only then the organisation and membership
-are active. Use read-only production checks and audit events to locate the
-stopped transition. Never claim a customer is provisioned from registration or
-login alone; do not auto-accept, recreate identities, or grant rights to hide a
-failure. Test wrong realm/user, expired invite, retry/failure, and cross-tenant
+are active. The owner removed the second manual button on 2026-09-27. Use
+read-only production checks and audit events to locate the stopped transition.
+Never claim a customer is provisioned from registration or login alone; never
+recreate identities or grant rights to hide a failure. Do not change other
+invitation types without explicit owner approval. Test wrong realm/user,
+expired invite, retry/failure, and cross-tenant
 Site denial. Record verified versus unverified steps in HANDOFF/CODEX_STATE.
 
 За всяка първа клиентска покана проверявай поотделно: OpenRemote realm,
 активен Keycloak потребител с потвърден имейл, съвпадащи и неизтекли
 subject/имейл/realm на поканата, видим pending API списък без членство,
-реална Accept POST заявка, успешни OpenRemote администраторски права и чак
-тогава активна организация и членство. Използвай read-only проверки и audit,
-за да намериш къде е спрял процесът. Регистрация или вход не са провизиране;
-не приемай автоматично и не създавай дублиращи акаунти/права. Тествай грешен
+автоматична Accept POST заявка след потвърден имейл, парола и вход на първия
+администратор, успешни OpenRemote права и чак тогава активна организация и
+членство. Собственикът премахна втория ръчен бутон на 2026-09-27. Използвай
+read-only проверки и audit, за да намериш къде е спрял процесът. Регистрация
+или вход не са провизиране; не създавай дублиращи акаунти/права. Не променяй
+другите видове покани без изрично одобрение. Тествай грешен
 realm/потребител, изтекла покана, отказ/повторен опит и отказ към чужд Обект.
 Отбелязвай доказаните и непроверените стъпки в HANDOFF/CODEX_STATE.
 
