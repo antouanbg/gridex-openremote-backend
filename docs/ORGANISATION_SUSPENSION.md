@@ -2,7 +2,7 @@
 
 ## Suspending and restoring an approved organisation
 
-Available in the super-admin panel. Access controls were verified with synthetic organisations; the first real customer suspension and its email delivery remain unverified. This is separate from resending any onboarding invitation.
+Prepared for publication; the controls are not yet available in the live portal. Access controls were verified with synthetic organisations; the first real customer suspension and its email delivery remain unverified. This is separate from resending any onboarding invitation.
 
 Only the verified super administrator can use **Customers & contracts → Users & invitations → New organisation → Approved organisations**. The pilot organisation is protected and is not listed. A recent sign-in is required for changes.
 
@@ -16,7 +16,7 @@ Choose **Restore access** and confirm to restore the existing permissions after 
 
 ## Временно спиране и възстановяване на одобрена организация
 
-Функцията е налична в панела на супер администратора. Достъпът е проверен със синтетични организации; първото реално клиентско спиране и доставката на уведомлението още не са проверени. Това е отделно от повторно изпращане на покана.
+Подготвено за публикуване; бутоните още не са налични в живия портал. Достъпът е проверен със синтетични организации; първото реално клиентско спиране и доставката на уведомлението още не са проверени. Това е отделно от повторно изпращане на покана.
 
 Само провереният супер администратор използва **Клиенти и договори → Потребители и покани → Нова организация → Одобрени организации**. Пилотната организация е защитена и не присъства в списъка. За промяна е нужен скорошен вход.
 
