@@ -10,14 +10,22 @@ on every proxy request. The public Manager source template now denies the
 direct `/manager` entry and protects the allowed HTML, bootstrap, API and
 WebSocket routes; old installer is disabled. The existing customer realm needs
 its public OpenRemote client callback/webOrigin reconciled before live use.
-No live rollout or user-session acceptance has happened yet. Preserve
+Backend PR #46 remains unmerged and the production API migration/restart was
+rejected by automatic review pending specific rollout approval. All 40 live
+API source/migration files match the live baseline branch; planned Compose
+diff has only GRIDEX_PUBLIC_AUTH_BASE. Docs PR #5 is merged and live with a
+pending-status warning; frontend PR #57 is not live. No live Manager rollout
+or user-session acceptance has happened yet. Preserve
 OpenRemote inventory, client isolation, suspension controls and the single
 backend env. See HANDOFF for the rollout gate.
 
 Одобрен е незабавен еднократен вход от наличната администраторска страница,
 без имейл и ново меню. Manager маршрутите изискват проверена кратка сесия и
-активна организация; директният публичен адрес се отказва. Кодът още не е
-публикуван/внедрен; `novacom` callback трябва да бъде поправен и проверен.
+активна организация; директният публичен адрес ще се отказва след внедряване.
+Кодът е в PR #46, но не е внедрен; автоматичната проверка отказа продукционния
+API restart/миграция без конкретно rollout одобрение. Не заобикаляй отказа.
+`novacom` callback трябва да бъде поправен и проверен. Docs са публикувани
+с предупреждение „в подготовка“, frontend PR #57 още не е live.
 
 ## Решение на собственика — 2026-09-27
 
