@@ -45,10 +45,11 @@ const oldAuth = realmRoutes(before, oldBlock.end), newAuth = realmRoutes(templat
 if (oldBlock.content === newBlock.content && oldAuth.content === newAuth.content) {
   console.log('MANAGER_GATE_ALREADY_INSTALLED'); process.exit(0);
 }
-if (!oldAuth.content.includes('location /auth/realms/gridex/')
-    || !oldAuth.content.includes('location /auth/realms/novacom/')
-    || (oldAuth.content.match(/location /g) || []).length !== 2)
-  throw Error('Unexpected existing realm routes');
+const oldAuthIsCurrent = oldAuth.content === newAuth.content;
+const oldAuthIsLegacy = oldAuth.content.includes('location /auth/realms/gridex/')
+  && oldAuth.content.includes('location /auth/realms/novacom/')
+  && (oldAuth.content.match(/location /g) || []).length === 2;
+if (!oldAuthIsCurrent && !oldAuthIsLegacy) throw Error('Unexpected existing realm routes');
 if (!newAuth.content.includes('location ~ "^/auth/realms/[a-z][a-z0-9-]{2,30}/"')
     || !newAuth.content.includes('location ^~ /auth/realms/master/ { return 404; }'))
   throw Error('Future realm route is not safely guarded');

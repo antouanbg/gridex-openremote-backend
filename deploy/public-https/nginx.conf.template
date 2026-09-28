@@ -73,6 +73,9 @@ http {
             internal;
             proxy_pass_request_body off;
             proxy_set_header Content-Length "";
+            # Browser Origin is checked at the public WebSocket route. The
+            # internal same-host session check must not be treated as CORS.
+            proxy_set_header Origin "";
             proxy_set_header X-Original-URI $request_uri;
             proxy_pass http://$api_backend/internal/manager/check;
         }
@@ -109,6 +112,11 @@ http {
         # realm with the current session; master is denied separately.
         location ^~ /api/master/ { return 404; }
         location ~ "^/api/[a-z][a-z0-9-]{2,30}/asset/query$" {
+            auth_request /_manager_authorize;
+            limit_except POST { deny all; }
+            proxy_pass http://$manager_backend;
+        }
+        location ~ "^/api/[a-z][a-z0-9-]{2,30}/console/register$" {
             auth_request /_manager_authorize;
             limit_except POST { deny all; }
             proxy_pass http://$manager_backend;
