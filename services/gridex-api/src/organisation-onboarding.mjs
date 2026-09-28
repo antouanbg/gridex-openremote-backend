@@ -69,10 +69,10 @@ export class OpenRemoteRealmSetup {
     const identityRealm = await this.kc(`/${encodeURIComponent(realm)}`, token);
     if (identityRealm?.realm !== realm) throw new ApiError(503, 'realm_not_verified', 'Identity realm could not be verified.');
     await this.kc(`/${encodeURIComponent(realm)}`, token, 'PUT', {
-      ...identityRealm, displayName: 'GrideX', displayNameHtml: '',
+      ...identityRealm, displayName: 'GrideX', displayNameHtml: '', resetPasswordAllowed: true,
     });
     const publicBrand = await this.kc(`/${encodeURIComponent(realm)}`, token);
-    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml)
+    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml || !publicBrand.resetPasswordAllowed)
       throw new ApiError(503, 'public_realm_brand_not_verified', 'The public login branding was not verified.');
     return record;
   }
