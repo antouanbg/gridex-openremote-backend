@@ -79,8 +79,12 @@ export class ManagerLaunch {
       throw new ApiError(403, 'manager_path_denied', 'Manager path is not allowed.');
     if (uri.pathname === '/manager/' && uri.searchParams.get('realm') !== realm)
       throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
+    // The Manager bootstraps through two synthetic /api/master responses.
+    // Nginx routes those exact paths to this API, never to OpenRemote master.
+    const bootstrapPath = uri.pathname === '/api/master/info'
+      || uri.pathname === '/api/master/configuration/manager';
     const apiRealm = uri.pathname.match(/^\/api\/([a-z][a-z0-9-]{2,30})\//)?.[1];
-    if (apiRealm && (apiRealm === 'master' || apiRealm !== realm))
+    if (apiRealm && !bootstrapPath && (apiRealm === 'master' || apiRealm !== realm))
       throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
     return realm;
   }

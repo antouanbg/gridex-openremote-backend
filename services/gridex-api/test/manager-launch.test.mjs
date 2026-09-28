@@ -54,9 +54,12 @@ test('one-time ticket becomes an HttpOnly host-only session and rejects another 
   assert.ok(!cookie.includes('Domain='));
   await assert.rejects(access.consume(ticket), { status: 401 });
   assert.equal(await access.check(cookie, '/manager/?realm=novacom'), 'novacom');
+  assert.equal(await access.check(cookie, '/api/master/info'), 'novacom');
+  assert.equal(await access.check(cookie, '/api/master/configuration/manager'), 'novacom');
   await assert.rejects(access.check(cookie, '/manager/?realm=gridex'), { status: 403 });
   await assert.rejects(access.check(cookie, '/api/gridex/asset/query'), { status: 403 });
   await assert.rejects(access.check(cookie, '/api/master/asset/query'), { status: 403 });
+  await assert.rejects(access.check(cookie, '/api/master/configuration/other'), { status: 403 });
   assert.equal(await access.check(cookie, '/api/novacom/asset/query'), 'novacom');
   await assert.rejects(access.check('', '/manager/?realm=novacom'), { status: 401 });
 });
