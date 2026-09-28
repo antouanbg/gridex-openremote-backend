@@ -20,7 +20,7 @@ try {
   const result = spawnSync('docker', ['--context', 'colima-gridex', 'run', '--rm',
     '--entrypoint', 'nginx', '-v', `${file}:/etc/nginx/nginx.conf:ro`, '-v', `${certs}:/certs:ro`,
     live.Config.Image, '-t'], { encoding: 'utf8', timeout: 30000 });
-  if (result.status !== 0) throw Error('Disposable Nginx syntax test failed');
+  if (result.status !== 0) throw Error(`Disposable Nginx syntax test failed: ${result.stderr?.slice(-1200) || ''}`);
   console.log('MANAGER_NGINX_TEMPLATE_VALID');
 } finally {
   fs.rmSync(temporary, { recursive: true, force: true });

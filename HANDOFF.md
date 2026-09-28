@@ -14,6 +14,13 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 `master` и Keycloak admin остават затворени. Публичните Keycloak OIDC форми,
 нужни за входа в портала, не се закриват чрез това правило.
 
+Собственикът допълнително потвърди, че схемата трябва да обслужва всички
+бъдещи организации. Публичният Keycloak OIDC път приема само допустим
+realm код и изрично отказва `master`/admin; непровизиран realm връща 404 от
+Keycloak. Динамичните Manager API пътища остават зад проверка на точния
+realm от активната сесия, а `master` API е забранен. Provisioning-ът на нов
+първи администратор добавя callback в неговия OIDC клиент, без нов proxy edit.
+
 Старият `scripts/deploy-public-manager.mjs` вече отказва изпълнение, за да
 не върне незащитения маршрут. Шаблонът `deploy/public-https/nginx.conf.template`
 е изравнен с новата защита и съдържа проверка на realm-а. Първият клиент

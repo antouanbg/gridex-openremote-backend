@@ -56,8 +56,19 @@ test('one-time ticket becomes an HttpOnly host-only session and rejects another 
   assert.equal(await access.check(cookie, '/manager/?realm=novacom'), 'novacom');
   await assert.rejects(access.check(cookie, '/manager/?realm=gridex'), { status: 403 });
   await assert.rejects(access.check(cookie, '/api/gridex/asset/query'), { status: 403 });
+  await assert.rejects(access.check(cookie, '/api/master/asset/query'), { status: 403 });
   assert.equal(await access.check(cookie, '/api/novacom/asset/query'), 'novacom');
   await assert.rejects(access.check('', '/manager/?realm=novacom'), { status: 401 });
+});
+
+test('newly provisioned organisation realms use the same exact-realm gate', async () => {
+  const access = fixture();
+  const issued = await access.issue({ ...principal, realm: 'solar-west' });
+  const { cookie } = await access.consume(new URL(issued.url).searchParams.get('ticket'));
+  assert.equal(await access.check(cookie, '/manager/?realm=solar-west'), 'solar-west');
+  assert.equal(await access.check(cookie, '/api/solar-west/asset/query'), 'solar-west');
+  await assert.rejects(access.check(cookie, '/api/novacom/asset/query'), { status: 403 });
+  await assert.rejects(access.check(cookie, '/api/master/asset/query'), { status: 403 });
 });
 
 test('suspended or revoked administrator loses even an issued Manager session', async () => {

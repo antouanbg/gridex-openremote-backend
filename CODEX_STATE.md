@@ -2,6 +2,14 @@
 
 ## Portal-only OpenRemote Manager — 2026-09-28
 
+Owner additionally approved the same gate for future organisations, not just
+the pilot and first customer. Public Keycloak login forwards only slug-shaped
+realm paths, explicitly denies master/admin, and OpenRemote Manager API paths
+require the exact session realm. New organisation provisioning adds the OIDC
+callback without another proxy change. Production rollout is now explicitly
+approved; verify migration, customer callback, frontend publication and proxy
+negative/positive tests in order before marking the feature live.
+
 Owner-approved immediate one-time launch from the existing portal admin page;
 no email and no new menu item. Backend validates verified realm administrator
 or the configured pilot platform subject, stores only hashes of 60-second

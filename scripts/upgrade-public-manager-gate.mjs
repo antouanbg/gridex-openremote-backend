@@ -36,11 +36,28 @@ function block(content) {
   return { start, end: end + endMark.length, content: content.slice(start, end + endMark.length) };
 }
 const oldBlock = block(before), newBlock = block(template);
-const candidate = before.slice(0, oldBlock.start) + newBlock.content + before.slice(oldBlock.end);
+function realmRoutes(content, managerEnd) {
+  const end = content.indexOf('        location /auth/resources/ {', managerEnd);
+  if (end < 0) throw Error('Public auth resources route missing');
+  return { start: managerEnd, end, content: content.slice(managerEnd, end) };
+}
+const oldAuth = realmRoutes(before, oldBlock.end), newAuth = realmRoutes(template, newBlock.end);
+if (oldBlock.content === newBlock.content && oldAuth.content === newAuth.content) {
+  console.log('MANAGER_GATE_ALREADY_INSTALLED'); process.exit(0);
+}
+if (!oldAuth.content.includes('location /auth/realms/gridex/')
+    || !oldAuth.content.includes('location /auth/realms/novacom/')
+    || (oldAuth.content.match(/location /g) || []).length !== 2)
+  throw Error('Unexpected existing realm routes');
+if (!newAuth.content.includes('location ~ "^/auth/realms/[a-z][a-z0-9-]{2,30}/"')
+    || !newAuth.content.includes('location ^~ /auth/realms/master/ { return 404; }'))
+  throw Error('Future realm route is not safely guarded');
+const candidate = before.slice(0, oldBlock.start) + newBlock.content + newAuth.content + before.slice(oldAuth.end);
 if (candidate === before) { console.log('MANAGER_GATE_ALREADY_INSTALLED'); process.exit(0); }
-if (!candidate.includes('# BEGIN GRIDEX PUBLIC DOCS') || !candidate.includes('location /auth/realms/novacom/'))
-  throw Error('Candidate lost docs or customer auth routes');
-if (candidate.replace(newBlock.content, oldBlock.content) !== before) throw Error('Candidate changes other routes');
+if (!candidate.includes('# BEGIN GRIDEX PUBLIC DOCS')
+    || candidate.slice(0, oldBlock.start) !== before.slice(0, oldBlock.start)
+    || candidate.slice(candidate.indexOf('        location /auth/resources/ {')) !== before.slice(oldAuth.end))
+  throw Error('Candidate changed unrelated routes');
 if (mode === '--inspect') { console.log('MANAGER_GATE_UPGRADE_READY'); process.exit(0); }
 const backupRoot = path.join(os.homedir(), 'GrideX-runtime/private-backups');
 fs.mkdirSync(backupRoot, { recursive: true, mode: 0o700 });

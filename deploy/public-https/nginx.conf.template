@@ -105,12 +105,15 @@ http {
             proxy_set_header X-Original-URI $request_uri;
             proxy_pass http://$api_backend/internal/manager/config;
         }
-        location ~ ^/api/(gridex|novacom)/asset/query$ {
+        # Dynamic customer realm: the internal authorizer compares the exact
+        # realm with the current session; master is denied separately.
+        location ^~ /api/master/ { return 404; }
+        location ~ "^/api/[a-z][a-z0-9-]{2,30}/asset/query$" {
             auth_request /_manager_authorize;
             limit_except POST { deny all; }
             proxy_pass http://$manager_backend;
         }
-        location ~ ^/api/(gridex|novacom)/(asset(/|$)|model(/|$)|map(/tile/[^/]+/[^/]+/[^/]+|/getCustomMapInfo)?$|realm/accessible$|user/(user|userRoles/openremote|userRealmRoles)$) {
+        location ~ "^/api/[a-z][a-z0-9-]{2,30}/(asset(/|$)|model(/|$)|map(/tile/[^/]+/[^/]+/[^/]+|/getCustomMapInfo)?$|realm/accessible$|user/(user|userRoles/openremote|userRealmRoles)$)" {
             auth_request /_manager_authorize;
             limit_except GET { deny all; }
             proxy_pass http://$manager_backend;
@@ -131,12 +134,12 @@ http {
             proxy_pass http://$manager_backend;
         }
         # END GRIDEX PUBLIC MANAGER
-        location /auth/realms/gridex/ {
-            proxy_pass http://$auth_backend;
-        }
-        # Explicitly approved first customer realm; do not use a wildcard.
-        # Изрично първият клиентски realm; без общ шаблон.
-        location /auth/realms/novacom/ {
+        # Future provisioned realm login must work before the user has a
+        # portal session. Reject master/admin explicitly; unknown slugs 404
+        # at Keycloak. Only exact slug-shaped realm paths are forwarded.
+        location = /auth/realms/master { return 404; }
+        location ^~ /auth/realms/master/ { return 404; }
+        location ~ "^/auth/realms/[a-z][a-z0-9-]{2,30}/" {
             proxy_pass http://$auth_backend;
         }
         location /auth/resources/ {

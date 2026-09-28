@@ -80,7 +80,7 @@ export class ManagerLaunch {
     if (uri.pathname === '/manager/' && uri.searchParams.get('realm') !== realm)
       throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
     const apiRealm = uri.pathname.match(/^\/api\/([a-z][a-z0-9-]{2,30})\//)?.[1];
-    if (apiRealm && apiRealm !== realm && apiRealm !== 'master')
+    if (apiRealm && (apiRealm === 'master' || apiRealm !== realm))
       throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
     return realm;
   }

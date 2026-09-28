@@ -20,6 +20,7 @@ check('anonymous shared assets denied',()=>[401,403].includes(get('/shared/').st
 check('anonymous bootstrap denied',()=>[401,403].includes(get('/api/master/configuration/manager').status));
 check('missing launch ticket denied',()=>[401,403].includes(get('/manager/launch').status));
 check('public issuer',()=>JSON.parse(get('/auth/realms/gridex/.well-known/openid-configuration').body).issuer===origin+'/auth/realms/gridex');
+check('customer issuer',()=>JSON.parse(get('/auth/realms/novacom/.well-known/openid-configuration').body).issuer===origin+'/auth/realms/novacom');
 for(const p of ['/api/master/asset/query','/api/master/user/user','/auth/admin/','/auth/realms/master/.well-known/openid-configuration','/health','/metrics','/api/gridex/user/query','/api/gridex/realm'])check('deny '+p,()=>get(p).status===404);
 check('anonymous user data denied',()=>[401,403].includes(get('/api/gridex/user/user').status));
 check('WebSocket missing session denied',()=>[401,403].includes(get('/websocket/events').status));

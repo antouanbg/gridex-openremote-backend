@@ -11,12 +11,20 @@ pilot-only redirect, master/admin upstream routes, or an unguarded proxy
 template. Preserve exact customer OIDC routes and provision the OpenRemote
 client callback for each approved realm. Test anonymous, wrong-realm,
 suspended and expired/replayed ticket cases before deploying.
+The same policy must serve every future OpenRemote organisation realm, not a
+hard-coded `gridex|novacom` list. The proxy may forward only slug-shaped
+Keycloak realm paths while explicitly denying `master`/admin, and Manager API
+requests require the exact realm of the current authenticated Manager session.
+Adding a new organisation must provision its callback without a new proxy edit.
 
 Собственикът одобри вход в Manager само от влязлата административна страница
 на GrideX. Скрит или кратък URL не е защита сам по себе си: proxy-то проверява
 сесията и активния realm при всяка заявка. Не връщай анонимния `/manager/`,
 старото пренасочване към пилотния realm или незащитен шаблон. Проверявай
 анонимен/чужд/спрян достъп и повторно използван или изтекъл пропуск.
+Същата защита важи за всеки бъдещ организационен realm, не само за
+`gridex|novacom`. Пропускай само допустими slug адреси за Keycloak, отказвай
+`master`/admin и сверявай точния realm при всяка Manager API заявка.
 
 ## Owner approval for every new function / Одобрение за всяка нова функция
 
