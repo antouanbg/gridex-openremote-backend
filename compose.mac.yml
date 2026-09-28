@@ -60,6 +60,9 @@ services:
       OR_DB_PASSWORD: ${OR_DATABASE_PASSWORD:?required}
       OR_ADMIN_PASSWORD: ${OR_ADMIN_PASSWORD:?required}
       OR_HOSTNAME: localhost
+      # OpenRemote must accept the exact public Manager origin for POST APIs.
+      # The proxy still enforces the portal session and matching realm.
+      OR_WEBSERVER_ALLOWED_ORIGINS: ${GRIDEX_PUBLIC_MANAGER_ORIGIN:-https://auth.gridex.tech}
       OR_KEYCLOAK_ISSUER_GRIDEX: ${GRIDEX_PUBLIC_AUTH_BASE:?required}/realms/gridex
       OR_KEYCLOAK_DISABLE_ISSUER_VALIDATION: 'false'
       OR_SSL_PORT: '8443'

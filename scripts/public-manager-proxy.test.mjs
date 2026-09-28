@@ -13,6 +13,7 @@ test('versioned proxy protects Manager and both customer and platform API routes
   for (const path of ['location = /manager/ {', 'location /manager/ {', 'location /shared/ {',
     'location = /api/master/info {', 'location = /api/master/configuration/manager {',
     'location ~ "^/api/[a-z][a-z0-9-]{2,30}/asset/query$" {',
+    'location ~ "^/api/[a-z][a-z0-9-]{2,30}/asset/count$" {',
     'location ~ "^/api/[a-z][a-z0-9-]{2,30}/console/register$" {',
     'location = /websocket/events {']) {
     const block = config.split(path)[1]?.split('\n        }')[0];
@@ -23,5 +24,13 @@ test('versioned proxy protects Manager and both customer and platform API routes
   const internalCheck = config.split('location = /_manager_authorize {')[1]?.split('\n        }')[0];
   assert.match(internalCheck, /proxy_set_header Origin "";/);
   assert.match(config, /location ~ "\^\/api\/\[a-z\]\[a-z0-9-\]\{2,30\}\/console\/register\$" \{[\s\S]*?limit_except POST \{ deny all; \}/);
+  assert.match(config, /location ~ "\^\/api\/\[a-z\]\[a-z0-9-\]\{2,30\}\/asset\/count\$" \{[\s\S]*?limit_except POST \{ deny all; \}/);
   assert.doesNotMatch(config, /location \/api\/master\/ \{/);
+});
+
+test('Manager accepts only the configured public origin without re-running setup', () => {
+  const compose = readFileSync(new URL('../compose.mac.yml', import.meta.url), 'utf8');
+  assert.match(compose, /OR_WEBSERVER_ALLOWED_ORIGINS: \$\{GRIDEX_PUBLIC_MANAGER_ORIGIN:-https:\/\/auth\.gridex\.tech\}/);
+  assert.match(compose, /OR_SETUP_RUN_ON_RESTART: 'false'/);
+  assert.doesNotMatch(compose, /OR_WEBSERVER_ALLOWED_ORIGINS: ['"]?\*/);
 });
