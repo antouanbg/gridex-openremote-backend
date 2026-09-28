@@ -13,7 +13,21 @@ COPY IssuerTest.java .
 RUN javac --add-modules jdk.httpserver -cp 'classes:lib/*' -d classes IssuerTest.java \
  && OR_KEYCLOAK_ISSUER_GRIDEX=https://auth.example.test/auth/realms/gridex java --add-modules jdk.httpserver -cp 'classes:lib/*' org.openremote.container.security.IssuerTest \
  && jar uf lib/openremote-container-1.30.0.jar -C classes org/openremote/container/security/TokenVerifierImpl.class
+# Pin and verify upstream sources before applying the organisation access guard.
+ADD https://raw.githubusercontent.com/openremote/openremote/1.30.0/manager/src/main/java/org/openremote/manager/security/ManagerKeycloakIdentityProvider.java ManagerKeycloakIdentityProvider.java
+ADD https://raw.githubusercontent.com/openremote/openremote/1.30.0/manager/src/main/java/org/openremote/manager/event/ClientEventService.java ClientEventService.java
+ADD https://raw.githubusercontent.com/openremote/openremote/1.30.0/manager/src/main/java/org/openremote/manager/security/RealmResourceImpl.java RealmResourceImpl.java
+RUN echo '6d55a842621f4ee6d7e2754598e35668b4623f8bfe294e88cb8e7a2bb2a82413  ManagerKeycloakIdentityProvider.java' | sha256sum -c - \
+ && echo 'da7cc3b45fb823ebf4f8d955ac87efc2cd9f37ce82ba54bda74147f8ae3fef9a  ClientEventService.java' | sha256sum -c - \
+ && echo '58e90758bb3152101853ba1b9adaf2a04b042722eb96d3cf8dec47ded50dd304  RealmResourceImpl.java' | sha256sum -c -
+COPY PatchOrganisationAccess.java OrganisationAccessGuard.java OrganisationAccessGuardTest.java ./
+RUN java PatchOrganisationAccess.java \
+ && javac -cp 'classes:lib/*' -d classes OrganisationAccessGuard.java ManagerKeycloakIdentityProvider.java ClientEventService.java RealmResourceImpl.java OrganisationAccessGuardTest.java \
+ && java -cp 'classes:lib/*' org.openremote.manager.security.OrganisationAccessGuardTest \
+ && jar uf lib/openremote-manager-1.30.0.jar -C classes org/openremote/manager
 FROM upstream
 COPY --from=build /patch/lib/openremote-container-1.30.0.jar /opt/app/lib/openremote-container-1.30.0.jar
 # Retain the AGPL upstream header and the exact modified source in the image.
 COPY --from=build /patch/TokenVerifierImpl.java /opt/gridex-source/TokenVerifierImpl.java
+COPY --from=build /patch/lib/openremote-manager-1.30.0.jar /opt/app/lib/openremote-manager-1.30.0.jar
+COPY --from=build /patch/ManagerKeycloakIdentityProvider.java /patch/ClientEventService.java /patch/RealmResourceImpl.java /patch/OrganisationAccessGuard.java /opt/gridex-source/

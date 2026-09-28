@@ -8,6 +8,13 @@ const principal = { subject: '11111111-1111-4111-8111-111111111111', realm: 'nov
 function fixture(state = { active: true, admin: true }) {
   const records = new Map();
   const pool = { async query(sql, values) {
+    if (sql.startsWith('DELETE FROM manager_launch_sessions')) {
+      if (!sql.includes('WHERE')) records.clear();
+      else if (sql.includes('subject=$1')) {
+        for (const [key, row] of records) if (row.subject === values[0] && row.realm === values[1]) records.delete(key);
+      }
+      return { rows: [] };
+    }
     if (sql.includes('FROM organisation_memberships m') && !sql.includes('manager_launch_sessions'))
       return { rows: state.active && state.admin ? [{ '?column?': 1 }] : [] };
     if (sql.startsWith('INSERT INTO manager_launch_sessions')) {
@@ -59,5 +66,13 @@ test('suspended or revoked administrator loses even an issued Manager session', 
   const issued = await access.issue(principal);
   const { cookie } = await access.consume(new URL(issued.url).searchParams.get('ticket'));
   state.active = false;
+  await assert.rejects(access.check(cookie, '/manager/?realm=novacom'), { status: 403 });
+});
+
+test('portal sign-out revokes previously issued Manager sessions', async () => {
+  const access = fixture();
+  const issued = await access.issue(principal);
+  const { cookie } = await access.consume(new URL(issued.url).searchParams.get('ticket'));
+  await access.revoke(principal.subject, principal.realm);
   await assert.rejects(access.check(cookie, '/manager/?realm=novacom'), { status: 403 });
 });

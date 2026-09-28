@@ -58,9 +58,10 @@ http {
         listen 8443 ssl;
         server_name ${AUTH_HOST};
         set $auth_backend keycloak:8080;
+        limit_req zone=per_client burst=40 nodelay;
+        # BEGIN GRIDEX PUBLIC MANAGER -- portal launch and per-request authorisation
         set $manager_backend manager:8080;
         set $api_backend gridex-api:8080;
-        limit_req zone=per_client burst=40 nodelay;
         # The entry is exclusively through the authenticated GrideX portal.
         # No anonymous Manager HTML, assets, bootstrap or API escape hatch.
         location = /manager { return 404; }
@@ -95,8 +96,8 @@ http {
         location = /api/master/info {
             auth_request /_manager_authorize;
             limit_except GET { deny all; }
-            default_type application/json;
-            return 200 '{"version":"1.30.0","authServerUrl":"/auth"}';
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_pass http://$api_backend/internal/manager/info;
         }
         location = /api/master/configuration/manager {
             auth_request /_manager_authorize;
@@ -129,6 +130,7 @@ http {
             proxy_read_timeout 300s;
             proxy_pass http://$manager_backend;
         }
+        # END GRIDEX PUBLIC MANAGER
         location /auth/realms/gridex/ {
             proxy_pass http://$auth_backend;
         }

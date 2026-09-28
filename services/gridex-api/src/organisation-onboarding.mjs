@@ -56,6 +56,40 @@ export class OpenRemoteRealmSetup {
   async kc(path, token, method = 'GET', body) {
     return this.request(this.config.realmSetupAdminBaseUrl, path, token, method, body);
   }
+  async setOrganisationAccess(realm, enabled) {
+    if (!realmPattern.test(realm) || ['master', this.config.realm].includes(realm))
+      throw new ApiError(403, 'protected_realm', 'The platform realm cannot be changed.');
+    const token = await this.token();
+    const path = `/${encodeURIComponent(realm)}`;
+    const record = await this.or(`/realm${path}`, token);
+    if (record?.name !== realm) throw new ApiError(503, 'realm_not_verified', 'Realm identity mismatch.');
+    if (!enabled) {
+      // Realm-local text also covers direct Keycloak login attempts.
+      const messages = {
+        en: 'Your organisation is temporarily suspended. Contact the super administrator.',
+        bg: 'Организацията е временно спряна. Свържете се със супер администратора.',
+      };
+      for (const [locale, message] of Object.entries(messages)) {
+        const response = await this.fetch(`${this.config.realmSetupAdminBaseUrl}${path}/localization/${locale}/realmNotEnabledMessage`, {
+          method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' },
+          body: message, signal: AbortSignal.timeout(10000),
+        });
+        if (!response.ok) throw new ApiError(503, 'suspension_message_failed', 'Suspension login text could not be configured.');
+      }
+    }
+    // OpenRemote owns realm changes; preserve every existing setting and asset.
+    await this.or(`/realm${path}`, token, 'PUT', { ...record, enabled, notBefore: enabled ? record.notBefore : Math.max(Number(record.notBefore) || 0, Math.floor(Date.now()/1000)) });
+    if (!enabled) {
+      const identitySettings = await this.kc(path, token);
+      await this.kc(path, token, 'PUT', { internationalizationEnabled: true,
+        supportedLocales: [...new Set([...(identitySettings.supportedLocales || []), 'en', 'bg'])] });
+    }
+    const actual = await this.or(`/realm${path}`, token);
+    const identityRealm = await this.kc(path, token);
+    if (actual?.name !== realm || actual.enabled !== enabled || identityRealm?.realm !== realm || identityRealm.enabled !== enabled)
+      throw new ApiError(503, 'realm_access_not_verified', 'OpenRemote and Keycloak realm access do not agree.');
+    if (!enabled) await this.kc(`${path}/logout-all`, token, 'POST');
+  }
   async createRealm({ realm, name }) {
     const token = await this.token();
     await this.or('/realm', token, 'POST', { name: realm, displayName: name,
@@ -162,6 +196,7 @@ export class OpenRemoteRealmSetup {
     const clients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
     if (!Array.isArray(clients) || clients.length !== 1)
       throw new ApiError(503, 'openremote_client_missing', 'OpenRemote roles are unavailable.');
+    await this.ensureManagerClient(realm, token, clients[0]);
     const roleNames = ['read:admin','write:admin','read:users','write:user',
       'read:assets','write:assets','write:attributes'];
     const roles = await Promise.all(roleNames.map(name => this.kc(
@@ -171,6 +206,28 @@ export class OpenRemoteRealmSetup {
     const actual = await this.kc(`${prefix}/users/${encodeURIComponent(subject)}/role-mappings/clients/${encodeURIComponent(clients[0].id)}`, token);
     if (!Array.isArray(actual) || roleNames.some(name => !actual.some(role => role.name === name)))
       throw new ApiError(503, 'administrator_roles_not_verified', 'OpenRemote administrator roles were not verified.');
+  }
+  async ensureManagerClient(realm, existingToken, existingClient) {
+    const origin = this.config.managerPublicOrigin;
+    if (!origin) return;
+    const token = existingToken || await this.token();
+    const prefix = `/${encodeURIComponent(realm)}`;
+    const clients = existingClient ? [existingClient] : await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(clients) || clients.length !== 1 || !clients[0].id)
+      throw new ApiError(503, 'openremote_client_missing', 'OpenRemote browser client is unavailable.');
+    const path = `${prefix}/clients/${encodeURIComponent(clients[0].id)}`;
+    const before = await this.kc(path, token);
+    if (before?.clientId !== 'openremote' || !before.publicClient || !before.standardFlowEnabled)
+      throw new ApiError(503, 'openremote_client_invalid', 'OpenRemote browser client must be reviewed.');
+    const callback = `${origin}/manager/*`;
+    if (!before.redirectUris?.includes(callback) || !before.webOrigins?.includes(origin)) {
+      await this.kc(path, token, 'PUT', { ...before,
+        redirectUris: [...new Set([...(before.redirectUris || []), callback])],
+        webOrigins: [...new Set([...(before.webOrigins || []), origin])] });
+    }
+    const actual = await this.kc(path, token);
+    if (!actual.redirectUris?.includes(callback) || !actual.webOrigins?.includes(origin))
+      throw new ApiError(503, 'manager_callback_not_verified', 'OpenRemote Manager callback was not verified.');
   }
 }
 

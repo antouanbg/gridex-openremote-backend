@@ -2,6 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRemoteRealmSetup, OrganisationOnboarding, validateOrganisationInvitation } from '../src/organisation-onboarding.mjs';
 
+test('Manager callback provisioning preserves existing customer client settings', async () => {
+  const setup = new OpenRemoteRealmSetup({ managerPublicOrigin: 'https://auth.example.test' });
+  let client = { id: 'client-1', clientId: 'openremote', enabled: true, publicClient: true,
+    standardFlowEnabled: true, redirectUris: ['https://localhost:8443/manager/*'],
+    webOrigins: ['https://localhost:8443'], attributes: { existing: 'keep' } };
+  const writes = [];
+  setup.kc = async (path, _token, method = 'GET', body) => {
+    if (path.endsWith('/clients?clientId=openremote')) return [{ id: client.id }];
+    if (method === 'PUT') { writes.push(body); client = body; return null; }
+    return client;
+  };
+  setup.token = async () => 'test-token';
+  await setup.ensureManagerClient('novacom');
+  await setup.ensureManagerClient('novacom');
+  assert.equal(writes.length, 1);
+  assert.deepEqual(client.redirectUris, ['https://localhost:8443/manager/*', 'https://auth.example.test/manager/*']);
+  assert.deepEqual(client.webOrigins, ['https://localhost:8443', 'https://auth.example.test']);
+  assert.equal(client.attributes.existing, 'keep');
+});
+
 const owner = () => ({ subject: 'owner-subject', realm: 'gridex', emailVerified: true,
   permissions: ['platform:manage'], authTime: Date.now()/1000 });
 

@@ -1,5 +1,66 @@
 # Organisation and member invitations / Покани за организации и членове
 
+## Current authority and status / Актуално решение и статус — 2026-09-26
+
+2026-09-27 action-email gate: The first `novacom` email was delivered, but the
+public auth proxy initially returned 404 for its realm. The exact
+`/auth/realms/novacom/` route now passes local HTTPS checks; a broad realm
+wildcard was rejected and never deployed. Before sending any future customer
+action email, provision and verify its own public realm route while keeping
+`master` and admin blocked. External recipient completion, acceptance and
+tenant-isolation checks remain outstanding. The first one-time URL was shared
+in chat and must be replaced; no token is recorded here.
+
+2026-09-27: Първото писмо за `novacom` бе доставено, но публичното auth proxy
+първоначално връщаше 404 за неговия realm. Точният маршрут
+`/auth/realms/novacom/` вече минава локалните HTTPS проверки; общ шаблон
+бе спрян и никога не е внедряван. Преди писмо за бъдещ клиент провери
+отделния му публичен realm маршрут, като `master` и admin остават затворени.
+Външното приемане и проверката на изолацията предстоят. Първият еднократен
+линк бе споделен в чата и трябва да се замени; тук не пазим токени.
+
+The older implementation plan below is historical; its “not deployed” gates
+are superseded by this section. The existing owner account remains the human
+platform administrator **and** administrator of the pilot GrideX organisation;
+do not replace or re-register it. `platform:manage` is derived by the API only
+from its verified Keycloak subject in the pilot `gridex` realm, not from an
+email comparison, display label, generic `admin` role or possession of a setup
+credential. First-organisation invitation requires a recent sign-in (10 min).
+The permanent `gridex-realm-setup` master client is backend-only; its broad
+OpenRemote/Keycloak master role is a technical provisioning capability, never
+a person-facing login or browser token. Keep its secret in the sole private
+backend env; audit and limit its use to the verified platform action.
+
+Each customer organisation has a separate OpenRemote realm. A successful send
+initiates realm/client/identity provisioning and a Keycloak action email
+through the existing Mailgun provider. It does **not** activate the
+organisation or membership. The invited first admin verifies email, sets a
+password, signs in to that realm and accepts from Profile; only then may the
+backend activate the corresponding organisation and membership after checking
+OpenRemote rights. Organisation administrators may invite only within their
+own active realm and only to Sites they manage. Member roles are viewer,
+operator, energy manager and integrator; delegating `administrator` through
+this flow is **not implemented**. Site scope is explicit, never all Sites by
+default; zero-Site membership grants no Site access. Pending, failed or
+revoked invitations confer no rights. Never grant rights solely in local SQL
+or in Keycloak without the authoritative OpenRemote realm and bindings.
+
+Migration 012 and the setup client are active on the backend branch. Local
+SNI/TLS probes verified auth discovery 200 and unauthenticated invite API 401.
+The public frontend route returned HTTP 200. **No first customer email,
+password setup, acceptance or cross-tenant denial has yet been verified.**
+The zero-Site frontend fix is a local unpublished commit. Treat setup as live
+but end-to-end onboarding as unaccepted. Preserve the owner's existing pilot
+organisation, Sites and ROCK/ESP ownership.
+
+Български: горното е актуалното правило, а старите точки по-долу са история.
+Глобалният администратор е съществуващият човешки акаунт с проверен `subject`,
+не служебният setup client. Само backend използва служебния client. Първият
+администратор се кани от глобалния; след приемането кани хора само в своята
+организация с конкретни роли и Обекти. Поканата без приемане не дава права.
+Реалната първа клиентска покана и изолацията между организации още не са
+потвърдени от край до край.
+
 Status 2026-09-24: Separate-realm first-admin onboarding is implemented as an
 opt-in code path and fixture-tested, not deployed or accepted with a real user.
 Migration 012, verified existing owner subject activation, dedicated master

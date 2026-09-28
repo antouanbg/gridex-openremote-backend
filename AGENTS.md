@@ -1,5 +1,23 @@
 # GrideX OpenRemote backend — Working rules
 
+## Public Manager entry / Публичен вход в Manager — 2026-09-28
+
+The owner approved OpenRemote Manager launch only from the authenticated
+GrideX administration page. A short-lived URL alone is not authorization:
+the public proxy must verify the exchanged, host-only Manager session on
+every Manager HTML, bootstrap, API and WebSocket route and match the current
+active organisation realm. Never re-enable anonymous `/manager/`, the old
+pilot-only redirect, master/admin upstream routes, or an unguarded proxy
+template. Preserve exact customer OIDC routes and provision the OpenRemote
+client callback for each approved realm. Test anonymous, wrong-realm,
+suspended and expired/replayed ticket cases before deploying.
+
+Собственикът одобри вход в Manager само от влязлата административна страница
+на GrideX. Скрит или кратък URL не е защита сам по себе си: proxy-то проверява
+сесията и активния realm при всяка заявка. Не връщай анонимния `/manager/`,
+старото пренасочване към пилотния realm или незащитен шаблон. Проверявай
+анонимен/чужд/спрян достъп и повторно използван или изтекъл пропуск.
+
 ## Owner approval for every new function / Одобрение за всяка нова функция
 
 Before implementing a new API capability, permission, onboarding gate,
@@ -49,6 +67,30 @@ read-only проверки и audit, за да намериш къде е спр
 другите видове покани без изрично одобрение. Тествай грешен
 realm/потребител, изтекла покана, отказ/повторен опит и отказ към чужд Обект.
 Отбелязвай доказаните и непроверените стъпки в HANDOFF/CODEX_STATE.
+
+## Current invitation and rights invariant / Актуално правило — 2026-09-26
+
+Read `docs/ORGANISATION_INVITATION_PLAN.md` current-status section before
+changing onboarding. Preserve the existing pilot owner's account and
+organisation. Human platform administration is an explicitly allowlisted,
+verified Keycloak subject in the pilot realm; the backend-only master setup
+client is a technical credential, never a human login or frontend token.
+Creating the first administrator of a new organisation is a platform action;
+inviting members of an active organisation is limited to its administrator,
+realm and explicitly manageable Sites. Each customer has its own OpenRemote
+realm. An invitation grants no membership or Site access until the recipient
+verifies identity and accepts. Do not enable administrator-role delegation in
+the member-invitation flow or broaden scope by inference. Backend setup is
+deployed, but first real customer delivery/acceptance and tenant isolation
+remain unverified; do not claim end-to-end completion. Older “not deployed”
+paragraphs below are historical, not current status.
+
+Български: пази съществуващия акаунт и активите на собственика. Глобалното
+човешко право идва от проверен `subject`, не от имейл или служебния master
+client. Само backend ползва служебния client. Всяка организация има отделен
+OpenRemote realm; нейният администратор кани само в него и за изрично
+разрешените Обекти. Имейл без приемане не дава права. Делегиране на роля
+„Администратор на организация“ през членска покана още не е внедрено.
 
 ## Working prompt language — Bulgarian / Език на работните prompt-и — български
 

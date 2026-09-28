@@ -6,6 +6,7 @@ import { buildOpenRemoteAsset, validateDeviceInput } from "../src/asset-blueprin
 import { normalizeDevice, normalizeSiteSnapshot } from "../src/normalizers.mjs";
 import { MemoryRepository } from "../src/repository.mjs";
 import { createApp } from "../src/app.mjs";
+import { ApiError } from '../src/errors.mjs';
 import { validateHardwareConfiguration } from "../src/hardware-config.mjs";
 import { calculateBatteryCycleProjection, calculateSaleEconomics } from "../src/economics.mjs";
 
@@ -32,6 +33,28 @@ test("maps Keycloak roles to explicit backend permissions", () => {
   assert.deepEqual(result.roles.sort(), ["operator", "viewer"]);
   assert.equal(result.permissions.includes("command:write"), true);
   assert.throws(() => requirePermission(result, "asset:manage"), /permission/);
+});
+
+test('portal Manager launch requires API identity and internal check never accepts missing cookie', async () => {
+  const repository = new MemoryRepository({ memberships: [{ subject: 'user-1', organisationId: site.organisationId,
+    role: 'administrator', allSites: true }] });
+  const managerLaunch = {
+    issue: async current => ({ url: `https://auth.example.invalid/manager/launch?ticket=${current.subject}`, expiresInSeconds: 60 }),
+    check: async cookie => { if (!cookie) throw new ApiError(401, 'manager_session_required', 'Open from portal.'); return 'gridex'; },
+  };
+  const app = createApp({ config: { ...baseConfig, managerPublicOrigin: 'https://auth.example.invalid' },
+    authenticate: async req => { if (!req.headers.authorization) throw new ApiError(401, 'authentication_required', 'Sign in.'); return principal; },
+    repository, openRemote: { health: async () => true }, managerLaunch });
+  await withServer(app, async base => {
+    const denied = await fetch(`${base}/api/v1/me/manager-launch`, { method: 'POST', headers: { Origin: 'https://portal.example.invalid' } });
+    assert.equal(denied.status, 401);
+    const issued = await fetch(`${base}/api/v1/me/manager-launch`, { method: 'POST', headers: {
+      Authorization: 'Bearer fixture', Origin: 'https://portal.example.invalid' } });
+    assert.equal(issued.status, 200);
+    assert.equal((await issued.json()).expiresInSeconds, 60);
+    const noCookie = await fetch(`${base}/internal/manager/check`, { headers: { 'X-Original-URI': '/manager/?realm=gridex' } });
+    assert.equal(noCookie.status, 401);
+  });
 });
 
 test("builds distinct OpenRemote assets for every supported device type", () => {

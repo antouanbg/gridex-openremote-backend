@@ -51,6 +51,7 @@ export function loadConfig(env = process.env) {
     portalOrigin: env.GRIDEX_PORTAL_ORIGIN || '',
     managerPublicOrigin: env.GRIDEX_PUBLIC_AUTH_BASE ? new URL(env.GRIDEX_PUBLIC_AUTH_BASE).origin : '',
     platformAdminSubjects,
+    organisationAccessEnabled: env.GRIDEX_ORGANISATION_ACCESS_ENABLED === 'true',
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
