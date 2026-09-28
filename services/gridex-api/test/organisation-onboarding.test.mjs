@@ -2,6 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRemoteRealmSetup, OrganisationOnboarding, validateOrganisationInvitation } from '../src/organisation-onboarding.mjs';
 
+test('Manager callback provisioning preserves existing customer client settings', async () => {
+  const setup = new OpenRemoteRealmSetup({ managerPublicOrigin: 'https://auth.example.test' });
+  let client = { id: 'client-1', clientId: 'openremote', enabled: true, publicClient: true,
+    standardFlowEnabled: true, redirectUris: ['https://localhost:8443/manager/*'],
+    webOrigins: ['https://localhost:8443'], attributes: { existing: 'keep' } };
+  const writes = [];
+  setup.kc = async (path, _token, method = 'GET', body) => {
+    if (path.endsWith('/clients?clientId=openremote')) return [{ id: client.id }];
+    if (method === 'PUT') { writes.push(body); client = body; return null; }
+    return client;
+  };
+  setup.token = async () => 'test-token';
+  await setup.ensureManagerClient('novacom');
+  await setup.ensureManagerClient('novacom');
+  assert.equal(writes.length, 1);
+  assert.deepEqual(client.redirectUris, ['https://localhost:8443/manager/*', 'https://auth.example.test/manager/*']);
+  assert.deepEqual(client.webOrigins, ['https://localhost:8443', 'https://auth.example.test']);
+  assert.equal(client.attributes.existing, 'keep');
+});
+
 const owner = () => ({ subject: 'owner-subject', realm: 'gridex', emailVerified: true,
   permissions: ['platform:manage'], authTime: Date.now()/1000 });
 
@@ -111,25 +131,50 @@ test('OpenRemote role failure keeps the organisation suspended and no portal acc
   assert.equal(f.organisations.get('example-energy').status, 'suspended');
 });
 
+test('pending organisation invitation is visible only to its verified customer before membership', async () => {
+  const calls = [];
+  const row = { id: 'invitation', organisationId: 'organisation', realm: 'example-energy', name: 'Example Energy' };
+  const pool = { query: async (sql, params) => {
+    calls.push(params);
+    assert.match(sql, /state='sent' AND expires_at>now\(\)/);
+    return { rows: params[0] === 'customer-subject' && params[1] === 'admin@example.com'
+      && params[2] === 'example-energy' ? [row] : [] };
+  } };
+  const onboarding = new OrganisationOnboarding(pool, {});
+  const principal = { subject: 'customer-subject', email: 'ADMIN@example.com', emailVerified: true,
+    realm: 'example-energy', roles: [], permissions: [] };
+  assert.deepEqual(await onboarding.list(principal), [row]);
+  assert.deepEqual(await onboarding.list({ ...principal, realm: 'gridex' }), []);
+  assert.deepEqual(await onboarding.list({ ...principal, emailVerified: false }), []);
+  assert.deepEqual(calls[0], ['customer-subject', 'admin@example.com', 'example-energy']);
+  assert.equal(calls.length, 2);
+});
+
 test('new realms reuse the Keycloak Mailgun provider without SMTP configuration', async () => {
   const calls = [];
+  let identityRealm = { realm: 'example-energy', displayName: 'Example Energy', enabled: true };
   const config = { openRemoteBaseUrl: 'http://manager:8080',
     realmSetupAdminBaseUrl: 'http://keycloak:8080/auth/admin/realms',
     oidcAudience: 'gridex-portal', portalOrigin: 'https://gridex.example.test' };
   const setup = new OpenRemoteRealmSetup(config, async (url, options) => {
     calls.push([url, options]);
     if (options.method === 'POST') return new Response(null, { status: 201 });
-    if (options.method === 'PUT') return new Response(null, { status: 204 });
+    if (options.method === 'PUT') {
+      identityRealm = JSON.parse(options.body);
+      return new Response(null, { status: 204 });
+    }
     if (url.endsWith('/api/master/realm/example-energy'))
       return Response.json({ name: 'example-energy', enabled: true });
+    if (url.endsWith('/auth/admin/realms/example-energy')) return Response.json(identityRealm);
     throw new Error('Unexpected provider request');
   });
   setup.token = async () => 'fixture-token';
   await setup.createRealm({ realm: 'example-energy', name: 'Example Energy' });
   assert.equal(calls[0][0], 'http://manager:8080/api/master/realm');
+  assert.equal(identityRealm.displayName, 'GrideX');
   await setup.sendActions('example-energy', 'tenant-user');
-  assert.equal(calls.length, 3);
-  const [url, request] = calls[2];
+  assert.equal(calls.length, 6);
+  const [url, request] = calls[5];
   assert.ok(url.includes('/example-energy/users/tenant-user/execute-actions-email?'));
   assert.equal(new URL(url).searchParams.get('redirect_uri'), 'https://gridex.example.test/login/?realm=example-energy');
   assert.deepEqual(JSON.parse(request.body), ['VERIFY_EMAIL','UPDATE_PASSWORD']);

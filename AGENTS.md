@@ -1,5 +1,81 @@
 # GrideX OpenRemote backend — Working rules
 
+## Public Manager entry / Публичен вход в Manager — 2026-09-28
+
+The owner approved OpenRemote Manager launch only from the authenticated
+GrideX administration page. A short-lived URL alone is not authorization:
+the public proxy must verify the exchanged, host-only Manager session on
+every Manager HTML, bootstrap, API and WebSocket route and match the current
+active organisation realm. Never re-enable anonymous `/manager/`, the old
+pilot-only redirect, master/admin upstream routes, or an unguarded proxy
+template. Preserve exact customer OIDC routes and provision the OpenRemote
+client callback for each approved realm. Test anonymous, wrong-realm,
+suspended and expired/replayed ticket cases before deploying.
+The same policy must serve every future OpenRemote organisation realm, not a
+hard-coded `gridex|novacom` list. The proxy may forward only slug-shaped
+Keycloak realm paths while explicitly denying `master`/admin, and Manager API
+requests require the exact realm of the current authenticated Manager session.
+Adding a new organisation must provision its callback without a new proxy edit.
+
+Собственикът одобри вход в Manager само от влязлата административна страница
+на GrideX. Скрит или кратък URL не е защита сам по себе си: proxy-то проверява
+сесията и активния realm при всяка заявка. Не връщай анонимния `/manager/`,
+старото пренасочване към пилотния realm или незащитен шаблон. Проверявай
+анонимен/чужд/спрян достъп и повторно използван или изтекъл пропуск.
+Същата защита важи за всеки бъдещ организационен realm, не само за
+`gridex|novacom`. Пропускай само допустими slug адреси за Keycloak, отказвай
+`master`/admin и сверявай точния realm при всяка Manager API заявка.
+
+## Owner approval for every new function / Одобрение за всяка нова функция
+
+Before implementing a new API capability, permission, onboarding gate,
+device/driver option or automatic transition, compare the exact owner-approved
+scope with previous project decisions. If the behaviour is not explicitly
+approved, ask a concrete question and wait for confirmation. A general goal,
+assistant proposal or convenient backend mechanism is not approval. Record
+the decision and its scope in HANDOFF/CODEX_STATE, test it and update the
+corresponding public documentation. Routine engineering within an approved
+feature needs no repeated permission. GrideX frontend owns device selection;
+backend validates and provisions the approved inventory through OpenRemote,
+never through a parallel database registry or invented device profile.
+
+Преди нов API, право, стъпка в поканите, модел/драйвер или автоматичен преход
+сравни точния одобрен обхват с предишните решения. Ако няма изрично одобрение,
+задай конкретен въпрос и изчакай потвърждение. Обща цел, предложение на
+асистента или удобен backend механизъм не са разрешение. Запиши решението и
+обхвата му в HANDOFF/CODEX_STATE, тествай и обнови публичната документация.
+Обичайните технически стъпки в одобрена функция не изискват повторен въпрос.
+Изборът на устройство е в GrideX frontend; backend проверява и провизира само
+одобрения инвентар през OpenRemote, без паралелен регистър или измислен профил.
+
+## Mandatory onboarding completion gate / Задължителна проверка на поканите — 2026-09-27
+
+For every first-customer invitation, independently verify each transition:
+OpenRemote realm exists, Keycloak user is enabled and email-verified, invitation
+subject/email/realm match and remain unexpired, pending-list API returns it to
+that user without a membership, the portal sends the automatic Accept POST
+after verified email, password setup and first-admin login, OpenRemote
+administrator grant succeeds, and only then the organisation and membership
+are active. The owner removed the second manual button on 2026-09-27. Use
+read-only production checks and audit events to locate the stopped transition.
+Never claim a customer is provisioned from registration or login alone; never
+recreate identities or grant rights to hide a failure. Do not change other
+invitation types without explicit owner approval. Test wrong realm/user,
+expired invite, retry/failure, and cross-tenant
+Site denial. Record verified versus unverified steps in HANDOFF/CODEX_STATE.
+
+За всяка първа клиентска покана проверявай поотделно: OpenRemote realm,
+активен Keycloak потребител с потвърден имейл, съвпадащи и неизтекли
+subject/имейл/realm на поканата, видим pending API списък без членство,
+автоматична Accept POST заявка след потвърден имейл, парола и вход на първия
+администратор, успешни OpenRemote права и чак тогава активна организация и
+членство. Собственикът премахна втория ръчен бутон на 2026-09-27. Използвай
+read-only проверки и audit, за да намериш къде е спрял процесът. Регистрация
+или вход не са провизиране; не създавай дублиращи акаунти/права. Не променяй
+другите видове покани без изрично одобрение. Тествай грешен
+realm/потребител, изтекла покана, отказ/повторен опит и отказ към чужд Обект.
+Отбелязвай доказаните и непроверените стъпки в HANDOFF/CODEX_STATE.
+
 ## Current invitation and rights invariant / Актуално правило — 2026-09-26
 
 Read `docs/ORGANISATION_INVITATION_PLAN.md` current-status section before

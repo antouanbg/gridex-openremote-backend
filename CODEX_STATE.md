@@ -1,5 +1,103 @@
 # CODEX_STATE.md
 
+## Portal-only OpenRemote Manager — 2026-09-28
+
+Owner additionally approved the same gate for future organisations, not just
+the pilot and first customer. Public Keycloak login forwards only slug-shaped
+realm paths, explicitly denies master/admin, and OpenRemote Manager API paths
+require the exact session realm. New organisation provisioning adds the OIDC
+callback without another proxy change. The owner approved rollout generally,
+but automatic review rejected migration 014 and the `gridex-api` restart a
+second time. Do not work around this; obtain separate explicit approval for
+those exact operations. Then verify callback, frontend publication and proxy
+negative/positive tests before marking the feature live.
+
+Owner-approved immediate one-time launch from the existing portal admin page;
+no email and no new menu item. Backend validates verified realm administrator
+or the configured pilot platform subject, stores only hashes of 60-second
+tickets and 15-minute Manager sessions, and checks current active membership
+on every proxy request. The public Manager source template now denies the
+direct `/manager` entry and protects the allowed HTML, bootstrap, API and
+WebSocket routes; old installer is disabled. The existing customer realm needs
+its public OpenRemote client callback/webOrigin reconciled before live use.
+Backend PR #46 remains unmerged and the production API migration/restart was
+rejected by automatic review pending specific rollout approval. All 40 live
+API source/migration files match the live baseline branch; planned Compose
+diff has only GRIDEX_PUBLIC_AUTH_BASE. Docs PR #5 is merged and live with a
+pending-status warning; frontend PR #57 is not live. No live Manager rollout
+or user-session acceptance has happened yet. Preserve
+OpenRemote inventory, client isolation, suspension controls and the single
+backend env. See HANDOFF for the rollout gate.
+
+Одобрен е незабавен еднократен вход от наличната администраторска страница,
+без имейл и ново меню. Manager маршрутите изискват проверена кратка сесия и
+активна организация; директният публичен адрес ще се отказва след внедряване.
+Кодът е в PR #46, но не е внедрен; автоматичната проверка отказа продукционния
+API restart/миграция без конкретно rollout одобрение. Не заобикаляй отказа.
+`novacom` callback трябва да бъде поправен и проверен. Docs са публикувани
+с предупреждение „в подготовка“, frontend PR #57 още не е live.
+
+## Решение на собственика — 2026-09-27
+
+За всяка нова функционалност извън изрично одобреното задай конкретен въпрос
+и изчакай потвърждение; не измисляй модели/роли/автоматични стъпки.
+Устройствата се избират във frontend и се записват като инвентар само в
+OpenRemote през backend. Вторият ръчен бутон за приемане на поканата на
+първия администратор се премахва: след email/password/login frontend вика
+съществуващия проверен backend Accept endpoint. Другите покани не се
+променят. Customer Site/device provisioning и реалното приемане остават
+непотвърдени; няма нов backend deploy по този запис.
+
+EN: Ask for explicit owner confirmation before any new, unspecified
+function. Frontend selects approved devices; OpenRemote is authoritative.
+The first administrator's second manual Accept button is removed; the portal
+calls the existing checked endpoint after sign-in. Member invites remain
+unchanged. Tenant-aware provisioning and live acceptance are still pending.
+
+## Първа клиентска покана — 2026-09-27
+
+Клиентът е потвърден и поканата е валидна, но остава `sent`: няма Accept
+audit и няма активно клиентско членство. Backend list връща поканата за
+правилния акаунт. Регресията за списък без членство мина. След изричното
+приемане провери цялата верига и изолацията според AGENTS.md; регистрация
+или вход сами по себе си не са активация.
+
+EN: Verified customer and valid invite remain `sent`; no acceptance audit or
+active membership. Pending-list regression passes; real acceptance and
+isolation checks are required.
+
+## Public realm identity leak repair — 2026-09-27
+
+Live Manager entry is now fixed to the pilot `gridex` realm; an unauthenticated
+customer realm hint redirects to the platform entry. The exact customer
+action-email path remains available. The first customer Keycloak login heading
+is generic GrideX; OpenRemote organisation data and access remain unchanged.
+Backend source stages the same generic heading for future realms. Three proxy
+tests and five onboarding tests pass; local no-cookie HTTPS checks pass.
+Source PR/merge and real owner/customer browser acceptance remain. Frontend
+tab-scoped realm and session-state repair is in the companion frontend worktree.
+
+Публичният Manager вече отваря само пилотния `gridex` realm; клиентски hint
+преди вход се пренасочва. Точният клиентски маршрут за поканата остава.
+Keycloak заглавието е неутрално GrideX; организацията в OpenRemote и правата
+не са променяни. Подготвена е същата защита за бъдещи realm-и. Три proxy и
+пет onboarding теста плюс локални HTTPS проверки минаха. PR/merge и реалните
+браузърни входове предстоят. Frontend поправката е в отделен worktree.
+
+## Customer action email routing / Клиентско писмо — 2026-09-27
+
+The first `novacom` action email exposed a missing public proxy route. Live
+runtime now has only the exact novacom exception, with local SNI/TLS and
+master/API/docs regression checks passing. Source fix is isolated here from
+the broader onboarding branch. External recipient acceptance and isolation
+are still open; the pasted one-time URL should be replaced.
+
+Първото писмо за `novacom` показа липсващ публичен proxy маршрут. Runtime
+вече допуска само точния novacom път; локалните TLS, master, API и docs
+проверки минаха. Изходният код е отделен от широкия onboarding клон.
+Външното приемане и изолацията предстоят; споделеният еднократен линк трябва
+да се замени.
+
 ## Organisation suspension / Спиране на организация — 2026-09-27
 
 EN: Implemented suspension/restoration in the existing super-admin panel, strict verified pilot-subject permission, pilot protection, revision-locked durable operations, audit and one Mailgun attempt per suspension with recipient-specific delivery verification. API responses/SSE and patched OpenRemote HTTP/WebSocket sessions enforce denial; old JWTs stay revoked after restoration. Accounts, roles and inventory are preserved. Request source: delegated owner task `01a0cea9-3cd0-7430-b309-95795bf293a6`; history reader returned empty items, so the explicit request and repository decisions were used.

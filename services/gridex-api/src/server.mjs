@@ -11,6 +11,7 @@ import { mailgunConfig } from './mailgun.mjs';
 import {DeviceVault} from './device-vault.mjs';
 import {DeviceHeartbeats} from './device-heartbeats.mjs';
 import {HeartbeatEmailSubscriptions} from './heartbeat-subscriptions.mjs';
+import {ManagerLaunch} from './manager-launch.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -41,7 +42,10 @@ const organisationAccess = onboarding && config.organisationAccessEnabled ? new 
 const deviceVault=config.deviceVaultDirectory && config.deviceVaultKeyFile ? new DeviceVault(config.deviceVaultDirectory,config.deviceVaultKeyFile):null;
 const deviceHeartbeats = repository.pool ? new DeviceHeartbeats(repository.pool) : null;
 const heartbeatSubscriptions = repository.pool ? new HeartbeatEmailSubscriptions(repository.pool) : null;
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions }));
+const managerLaunch = repository.pool && config.managerPublicOrigin
+  ? new ManagerLaunch(repository.pool, config.managerPublicOrigin, config.realm, config.platformAdminSubjects) : null;
+if (managerLaunch) await managerLaunch.invalidateAll();
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 

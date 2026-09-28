@@ -1,153 +1,91 @@
-# GrideX OpenRemote backend
+# GrideX backend
 
-MQTT staging update (2026-09-15): local mTLS broker and per-site ACLs are deployed
-and tested with synthetic identities. See [MQTT operational guide](docs/MQTT_TLS_LOCAL.md).
-Real gateway/VPN/database ingestion remains pending.
+GrideX is an energy-management platform for sites, equipment and measured data. This repository contains the OpenRemote-based backend, GrideX API, integration workers and deployment definitions. The [web portal](https://github.com/antouanbg/gridex-energy-os) and [ROCK Pi/ESP32 edge software](https://github.com/antouanbg/gridex-edge-gateway) are maintained separately. The project is open source under the MIT License; see [project credits](CREDITS.md).
 
-MQTT staging (2026-09-15): локалният mTLS broker и ACL по обекти са внедрени
-и тествани със синтетични идентичности. Виж [MQTT инструкции](docs/MQTT_TLS_LOCAL.md).
-Реалната gateway/VPN връзка и ingestion към базата предстоят.
-
-Active setup decision (2026-09-14): Windows experiments are stopped. Follow the
-[Linux under macOS handoff](docs/MAC_LINUX_HANDOFF.md) for the Colima ARM64 test
-backend. Image availability is verified; service startup is not yet tested.
-Do not use the generic quick-start below for this isolated staging deployment.
-
-Активно решение (2026-09-14): Windows експериментите спират. Следвайте
-[Linux под macOS handoff](docs/MAC_LINUX_HANDOFF.md) за Colima ARM64 тестов backend.
-Наличието на images е проверено; стартът на услугите още не е тестван. Общият
-quick-start по-долу не е приложим за този изолиран staging deployment.
-
-## English
-
-Independent OpenRemote deployment and integration contract. The web interface and C++ Edge Gateway are maintained in separate repositories.
-
-The project is open source under the MIT License.
-
-## Project credits / Принос към проекта
-
-Created and led by **Dr. Eng. Antuan Hristov Angelov** — product concept, EMS
-and system architecture, software development, backend integration design, and
-product/UX/UI design. [Digital profile](https://linkmy.cards/en/antouan-anguelov/)
-· [LinkedIn](https://www.linkedin.com/in/antouan/) ·
-[Българска версия](CREDITS.md#български)
-
-### First integration: SunStorage Pro 261 / STE-261L
-
-The reference protocol defines a Modbus TCP endpoint on port `3200`, unit ID `1`. OpenRemote does not write directly to vendor registers. The command path is:
+## Architecture
 
 ```text
-GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
-             -> Modbus TCP Agent -> GrideX Edge normalized map
-             -> Safety Envelope -> SunStorage Pro 261 driver
+GrideX portal → HTTPS proxy → GrideX API → OpenRemote Manager / Keycloak
+                                  │                 │
+                                  └→ GrideX DB      └→ OpenRemote DB + TimescaleDB
+
+Site equipment → ESP32/ROCK Pi → MQTT with mTLS → workers → OpenRemote Assets/history
 ```
 
-The forecast and market strategy may request power, but only the Edge Gateway can apply a PCS command after validating the BMS limits.
+- **OpenRemote is the source of truth for operational inventory:** organisations' realms, Sites, gateways, devices, sensors, attributes and their relationships. Historical measurements are stored in its PostgreSQL/TimescaleDB. No resource is considered provisioned solely because it exists in a GrideX table or device configuration.
+- **Keycloak handles identity:** sign-in, verified email, passwords and realm-scoped users. Each customer organisation has its own OpenRemote realm; the existing `gridex` realm is the pilot organisation, not a shared customer realm.
+- **GrideX API is the protected application layer:** it checks tenant and Site permissions, exposes portal APIs, coordinates provisioning and keeps invitations, drafts, configuration revisions, bindings, delivery state and audit records in a separate GrideX PostgreSQL database. These records do not replace OpenRemote inventory.
+- **Edge software owns physical communication and safety:** ROCK Pi collects data from local nodes such as ESP32 and publishes health/telemetry; device commands remain locked until approved commissioning and safety checks. Transport can be selected per Site: private MQTT through the Site router's WireGuard tunnel or direct MQTT over mutually authenticated TLS. The inventory, permissions and message contracts stay the same.
 
-The Edge northbound endpoint is a Modbus TCP server on port `1502`, unit ID `1`, supporting FC03/04 reads and FC06/16 writes. OpenRemote refreshes the EMS heartbeat every 10 seconds; the Edge timeout is 15 seconds.
+## Containers and services
 
-ROCK Pi E polls local endpoints and enforces the safety envelope. Dedicated nodes translate one configured device family. Backend traffic reaches the site through the site router WireGuard tunnel; ROCK Pi E and ESP32 do not run WireGuard, and public MQTT 8883 is not exposed.
+The Compose files define a **core stack** and **optional integrations**. An overlay being present in this repository does not mean that it is enabled in every deployment.
 
-### Contents
+| Compose service | Purpose |
+| --- | --- |
+| `postgresql` | OpenRemote database, including TimescaleDB measurement history. |
+| `keycloak` | Identity, realm users and account-action emails; the Mailgun overlay adds the email provider. |
+| `manager` | OpenRemote Assets, attributes, rules, Agents and authenticated Manager UI. |
+| `proxy` | Local HTTPS entry point for OpenRemote and Keycloak. |
+| `gridex-db` | Separate PostgreSQL for GrideX workflows, permissions/bindings and audit; not a second inventory. |
+| `gridex-api` | Portal-facing API, authorization and provisioning orchestration. |
+| `broker` | Mosquitto MQTT broker with client certificates and scoped topic access. |
+| `heartbeat-worker` | Consumes gateway/node health messages and updates connection state. |
+| `history-worker` | Consumes approved measurements and writes attributes/datapoints through OpenRemote. |
+| `heartbeat-alert-worker` | Detects missing heartbeat and sends eligible, consented event email. |
+| `public-proxy` | Restricted public HTTPS routing for portal API, authentication and approved Manager paths; MQTT uses a separate TLS/TCP ingress. |
+| `portainer` | Optional container operations UI; it is not part of the product data model. |
 
-- `docker-compose.yml` — local OpenRemote stack based on the official container architecture.
-- `deployment/manager/app/manager_config.json` — GrideX branding.
-- `contracts/energy-asset.schema.json` — canonical model shared by UI, OpenRemote and Edge.
-- `config/edge-register-map.yaml` — northbound Modbus TCP map of the Edge Gateway.
-- `config/sunstorage-pro-261.yaml` — confirmed vendor registers used by the first driver.
-- `config/ste261l-asset-blueprint.yaml` — Asset tree, attributes, Modbus links and command ownership.
-- `config/mqtt-node-telemetry.yaml` — ROCK Pi MQTT bridge contract and backend-ingestion mapping.
-- `config/driver-reference-catalog.yaml` — confirmed mappings and external protocol references, with validation status.
-- `contracts/power-command.schema.json` — desired-power and TTL API contract.
-- `contracts/operator-command.schema.json` — protected start/stop, reactive-power and SOC-limit contract.
-- `docs/integration-flow.md` — Asset tree, command flow and commissioning conditions.
-- `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` — draft private recovery-ingestion and acknowledgement contract; no worker is implemented yet.
-- `docs/frontend-openremote-architecture.md` — GrideX Portal → GrideX API → OpenRemote boundary.
-- `docs/gridex-api-v1.md` — complete frontend/backend API, database, Asset and hardware contract in English and Bulgarian.
-- `docs/diagrams/` — communication-flow and normalised PostgreSQL ER diagrams.
-- `services/gridex-api` — protected frontend adapter/BFF; OpenRemote remains the backend.
+Core services are defined in [`compose.mac.yml`](compose.mac.yml); MQTT, workers, email, public access and other optional services have separate `compose.*.yml` files. Persistent volumes hold the databases and service state. Certificates, credentials and the single operator backend environment file live outside Git.
 
-### Start locally
+## Provisioning and data flow
 
-1. Copy `.env.example` to `.env` and replace the sample password.
-2. Run `docker compose up -d`.
-3. Open `https://localhost` and create a Modbus TCP Agent for the GrideX Edge IP address, port `1502`, unit ID `1`.
-4. Link attributes according to `config/edge-register-map.yaml`.
+1. A platform administrator invites the first administrator of a new organisation. Its own OpenRemote realm, identity and permissions must be verified before the organisation becomes active. The recipient completes email verification and password setup; organisation administrators can then invite their authorised users.
+2. An organisation administrator creates a Site and chooses supported GrideX devices and roles in the portal. The GrideX API validates rights and provisions the corresponding OpenRemote hierarchy. Configuration may remain a draft or pending until all bindings and device acknowledgements are verified; it must not appear as an active, local-only device.
+3. ROCK Pi and its connected devices report heartbeat and selected measurements over the Site's authorised transport. Workers map those messages to the correct OpenRemote Assets. Measurement periods and fields are configured per device; a heartbeat is not itself a measurement.
+4. The portal reads authorised live state and history. Cross-organisation access is denied, and hardware control remains subject to commissioning and edge safety gates.
 
-GrideX API is published behind a TLS reverse proxy. Command writes are locked by default; `GRIDEX_WRITES_ENABLED=true` is set only after successful commissioning.
-
-Production container versions must be pinned to exact tested tags. `latest` is retained only for the initial local prototype.
-
-### Responsibility boundary
-
-GrideX API owns browser authorization, tenancy, stable DTOs, configuration revisions and audit. OpenRemote owns live Assets, datapoints, rules and Agents. Edge owns device drivers, vendor addressing/sign/scaling, heartbeat, BMS envelope, software fuse and fail-safe behaviour.
+For exact contracts and operating procedures, see [provisioning authority](docs/OPENREMOTE_PROVISIONING_AUTHORITY.md), [organisation invitations](docs/ORGANISATION_INVITATION_PLAN.md), [device history](docs/TIMESCALE_DEVICE_HISTORY.md), [per-Site transport](docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md), [API contract](docs/gridex-api-v1.md) and the [current handoff](HANDOFF.md). These documents, rather than this overview, track rollout status and detailed setup.
 
 ---
 
 ## Български
 
-Отделен deployment и интеграционен договор за OpenRemote. Уеб интерфейсът и C++ Edge Gateway не са част от този код.
+GrideX е платформа за управление на енергията на Обекти, оборудване и измерени данни. Това хранилище съдържа backend-а върху OpenRemote, GrideX API, обработващите услуги и описанието на внедряването. [Уеб порталът](https://github.com/antouanbg/gridex-energy-os) и [софтуерът за ROCK Pi/ESP32](https://github.com/antouanbg/gridex-edge-gateway) са в отделни хранилища. Проектът е с отворен код под MIT License; виж [приноса към проекта](CREDITS.md).
 
-Проектът е open source и се разпространява под MIT License.
+### Архитектура
 
-## Първа интеграция: SunStorage Pro 261 / STE-261L
+- **OpenRemote е единственият основен регистър на работния инвентар:** realm-и на организациите, Обекти, шлюзове, устройства, сензори, атрибути и връзките им. Историческите измервания се пазят в неговата PostgreSQL/TimescaleDB. Ресурс не е провизиран само защото присъства в таблица на GrideX или в конфигурация на устройство.
+- **Keycloak управлява самоличността:** вход, потвърден имейл, пароли и потребители по realm. Всяка клиентска организация има собствен OpenRemote realm; съществуващият `gridex` realm е за пилотната организация, не общ realm за клиентите.
+- **GrideX API е защитеният приложен слой:** проверява права за организация и Обект, обслужва портала, координира провизирането и пази покани, чернови, ревизии на настройки, връзки, състояние на доставката и одит в отделна GrideX PostgreSQL база. Тези записи не заместват инвентара в OpenRemote.
+- **Edge софтуерът отговаря за физическата комуникация и безопасността:** ROCK Pi събира данни от локални нодове като ESP32 и изпраща статус/телеметрия. Командите към оборудването остават заключени до одобрен commissioning и проверки за безопасност. За всеки Обект може да се избере частен MQTT през WireGuard тунела на рутера му или директен MQTT с двустранно TLS удостоверяване. Инвентарът, правата и договорите за съобщенията са еднакви.
 
-Референтният протокол описва Modbus TCP endpoint на порт `3200`, unit ID `1`. OpenRemote не пише директно към vendor регистрите. Командният път е:
+### Контейнери и услуги
 
-```text
-GrideX UI/API -> OpenRemote Strategy Asset -> GrideX Control Asset
-             -> Modbus TCP Agent -> GrideX Edge normalized map
-             -> Safety Envelope -> SunStorage Pro 261 driver
-```
+Compose файловете описват **основен стек** и **допълнителни интеграции**. Наличието на overlay в хранилището не означава, че е включен във всяко внедряване.
 
-Така прогнозата и пазарната стратегия могат да поискат мощност, но само Edge Gateway може да приложи команда към PCS след валидиране на BMS лимитите.
+| Compose услуга | Роля |
+| --- | --- |
+| `postgresql` | База на OpenRemote, включително TimescaleDB за историята на измерванията. |
+| `keycloak` | Самоличност, потребители по realm и имейли за действия по акаунта; Mailgun overlay добавя доставчика за писмата. |
+| `manager` | OpenRemote Assets, атрибути, правила, Agents и защитен Manager интерфейс. |
+| `proxy` | Локален HTTPS вход към OpenRemote и Keycloak. |
+| `gridex-db` | Отделна PostgreSQL за процесите, правата/връзките и одита на GrideX; не втори регистър на устройствата. |
+| `gridex-api` | API за портала, проверки на права и координация на провизирането. |
+| `broker` | Mosquitto MQTT с клиентски сертификати и ограничен достъп по теми. |
+| `heartbeat-worker` | Приема съобщения за състоянието на шлюза/нода и обновява връзката. |
+| `history-worker` | Приема одобрените измервания и записва атрибути/история през OpenRemote. |
+| `heartbeat-alert-worker` | Следи за липсващ heartbeat и изпраща имейл при право и включено потребителско съгласие. |
+| `public-proxy` | Ограничено публично HTTPS маршрутизиране за API, вход и одобрени Manager пътища; MQTT има отделен TLS/TCP вход. |
+| `portainer` | Незадължителен интерфейс за управление на контейнерите; не е част от продуктовия модел на данните. |
 
-Edge northbound endpoint вече е реализиран като Modbus TCP server на порт `1502`, unit ID `1`, с read функции FC03/04 и write функции FC06/16. OpenRemote обновява EMS heartbeat през 10 секунди; Edge timeout е 15 секунди.
+Основните услуги са в [`compose.mac.yml`](compose.mac.yml); MQTT, обработващите услуги, имейлът, публичният достъп и другите допълнения са в отделни `compose.*.yml` файлове. Постоянните volumes пазят базите и състоянието на услугите. Сертификатите, тайните и единният операторски `.env` на backend-а са извън Git.
 
-ROCK Pi E обхожда локалните endpoints и прилага safety envelope. Отделните нодове
-превеждат по една конфигурирана фамилия устройства. Backend трафикът минава през
-WireGuard тунела на site router-а; ROCK Pi E и ESP32 нямат WireGuard, а публичен
-MQTT 8883 не се публикува.
+### Провизиране и поток на данните
 
-## Съдържание
+1. Глобалният администратор кани първия администратор на нова организация. Нейният собствен OpenRemote realm, самоличността и правата се проверяват преди активиране. Получателят потвърждава имейла си и задава парола; след това администраторът на организацията може да кани разрешените ѝ потребители.
+2. Администратор на организация създава Обект и избира поддържани GrideX устройства и роли през портала. GrideX API проверява правата и провизира съответната йерархия в OpenRemote. Конфигурацията може да остане чернова или чакаща, докато всички връзки и потвърждения от устройствата бъдат проверени; локално устройство не се показва като активно.
+3. ROCK Pi и свързаните с него устройства изпращат heartbeat и избрани измервания през разрешения транспорт на Обекта. Обработващите услуги ги свързват с правилните OpenRemote Assets. Периодът и полетата на измерване се настройват за всяко устройство; heartbeat не е измерване.
+4. Порталът показва разрешените текущи стойности и история. Достъпът до чужда организация се отказва, а управлението на оборудването е ограничено от commissioning и защитите в Edge.
 
-- `docker-compose.yml` - локален OpenRemote stack по официалната контейнерна архитектура.
-- `deployment/manager/app/manager_config.json` - GrideX branding.
-- `contracts/energy-asset.schema.json` - каноничен модел между UI, OpenRemote и Edge.
-- `config/edge-register-map.yaml` - northbound Modbus TCP карта на Edge Gateway.
-- `config/sunstorage-pro-261.yaml` - потвърдените vendor регистри, използвани от първия драйвер.
-- `config/ste261l-asset-blueprint.yaml` - asset tree, атрибути, Modbus връзки и ownership на командите.
-- `config/mqtt-node-telemetry.yaml` - договорът за MQTT моста на ROCK Pi и backend-ingestion mapping-а.
-- `config/driver-reference-catalog.yaml` - потвърдени и референтни карти с ясен статус.
-- `contracts/power-command.schema.json` - API договор за желаната мощност и TTL.
-- `contracts/operator-command.schema.json` - защитен договор за start/stop, реактивна мощност и SOC граници.
-- `docs/integration-flow.md` - asset tree, command flow и commissioning условия.
-- `docs/TELEMETRY_JOURNAL_RECOVERY_V1.md` - чернова на private recovery-ingestion и acknowledgement договора; worker още не е имплементиран.
-- `docs/frontend-openremote-architecture.md` - връзката GridEx Portal -> GridEx API -> OpenRemote.
-- `docs/gridex-api-v1.md` - пълният API, база, Asset и hardware договор на английски и български.
-- `docs/diagrams/` - схеми на комуникацията и нормализирания PostgreSQL модел.
-- `services/gridex-api` - защитен frontend adapter/BFF; OpenRemote остава backend.
-
-## Стартиране
-
-1. Копирайте `.env.example` като `.env` и сменете паролата.
-2. Стартирайте `docker compose up -d`.
-3. Отворете `https://localhost` и създайте Modbus TCP Agent към IP адреса на GrideX Edge, порт `1502`, unit ID `1`.
-4. Свържете атрибутите по `config/edge-register-map.yaml`.
-
-GridEx API се публикува зад TLS reverse proxy. По подразбиране командните записи са заключени; `GRIDEX_WRITES_ENABLED=true` се задава едва след успешно commissioning.
-
-За production контейнерните версии трябва да бъдат заключени до конкретен тестван tag. `latest` е оставен само за първоначалния локален прототип.
-
-## Граница на отговорност
-
-GrideX API държи browser authorization, tenancy, стабилните DTOs, ревизиите на конфигурациите и audit. OpenRemote държи live Assets, datapoints, rules и Agents. Edge държи device drivers, vendor адресиране/sign/scale, heartbeat, BMS envelope, software fuse и fail-safe.
-# Local Mac runtime / Локална Mac среда
-
-See [current acceptance and remaining tasks](docs/MAC_RUNTIME_ACCEPTANCE.md)
-for the deployed ARM64 staging stack, Portainer and OIDC/API evidence.
-Production acceptance and VPN/MQTT/restore remain pending.
-
-Виж [актуално приемане и оставащи задачи](docs/MAC_RUNTIME_ACCEPTANCE.md)
-за внедрения ARM64 staging стек, Portainer и OIDC/API доказателствата.
-Production приемане и VPN/MQTT/restore предстоят.
+За точните договори и инструкции виж [основния регистър и провизирането](docs/OPENREMOTE_PROVISIONING_AUTHORITY.md), [поканите](docs/ORGANISATION_INVITATION_PLAN.md), [историята на измерванията](docs/TIMESCALE_DEVICE_HISTORY.md), [транспорта по Обект](docs/PER_SITE_TRANSPORT_AND_ENROLLMENT.md), [API договора](docs/gridex-api-v1.md) и [актуалния handoff](HANDOFF.md). Там, а не в този обзор, се проследяват статусът на внедряването и подробните настройки.

@@ -97,7 +97,18 @@ export class OpenRemoteRealmSetup {
       loginWithEmail: true, registrationEmailAsUsername: true });
     // The deployed Keycloak EmailSenderProvider uses the shared Mailgun REST
     // configuration, including BCC. Realm-local SMTP credentials are unnecessary.
-    return this.verifyRealm(realm, token);
+    const record = await this.verifyRealm(realm, token);
+    // The OpenRemote realm keeps the customer name internally. The unauthenticated
+    // Keycloak login must not disclose it in its public heading.
+    const identityRealm = await this.kc(`/${encodeURIComponent(realm)}`, token);
+    if (identityRealm?.realm !== realm) throw new ApiError(503, 'realm_not_verified', 'Identity realm could not be verified.');
+    await this.kc(`/${encodeURIComponent(realm)}`, token, 'PUT', {
+      ...identityRealm, displayName: 'GrideX', displayNameHtml: '',
+    });
+    const publicBrand = await this.kc(`/${encodeURIComponent(realm)}`, token);
+    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml)
+      throw new ApiError(503, 'public_realm_brand_not_verified', 'The public login branding was not verified.');
+    return record;
   }
   async verifyRealm(realm, existingToken) {
     const token = existingToken || await this.token();
@@ -185,6 +196,7 @@ export class OpenRemoteRealmSetup {
     const clients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
     if (!Array.isArray(clients) || clients.length !== 1)
       throw new ApiError(503, 'openremote_client_missing', 'OpenRemote roles are unavailable.');
+    await this.ensureManagerClient(realm, token, clients[0]);
     const roleNames = ['read:admin','write:admin','read:users','write:user',
       'read:assets','write:assets','write:attributes'];
     const roles = await Promise.all(roleNames.map(name => this.kc(
@@ -194,6 +206,28 @@ export class OpenRemoteRealmSetup {
     const actual = await this.kc(`${prefix}/users/${encodeURIComponent(subject)}/role-mappings/clients/${encodeURIComponent(clients[0].id)}`, token);
     if (!Array.isArray(actual) || roleNames.some(name => !actual.some(role => role.name === name)))
       throw new ApiError(503, 'administrator_roles_not_verified', 'OpenRemote administrator roles were not verified.');
+  }
+  async ensureManagerClient(realm, existingToken, existingClient) {
+    const origin = this.config.managerPublicOrigin;
+    if (!origin) return;
+    const token = existingToken || await this.token();
+    const prefix = `/${encodeURIComponent(realm)}`;
+    const clients = existingClient ? [existingClient] : await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(clients) || clients.length !== 1 || !clients[0].id)
+      throw new ApiError(503, 'openremote_client_missing', 'OpenRemote browser client is unavailable.');
+    const path = `${prefix}/clients/${encodeURIComponent(clients[0].id)}`;
+    const before = await this.kc(path, token);
+    if (before?.clientId !== 'openremote' || !before.publicClient || !before.standardFlowEnabled)
+      throw new ApiError(503, 'openremote_client_invalid', 'OpenRemote browser client must be reviewed.');
+    const callback = `${origin}/manager/*`;
+    if (!before.redirectUris?.includes(callback) || !before.webOrigins?.includes(origin)) {
+      await this.kc(path, token, 'PUT', { ...before,
+        redirectUris: [...new Set([...(before.redirectUris || []), callback])],
+        webOrigins: [...new Set([...(before.webOrigins || []), origin])] });
+    }
+    const actual = await this.kc(path, token);
+    if (!actual.redirectUris?.includes(callback) || !actual.webOrigins?.includes(origin))
+      throw new ApiError(503, 'manager_callback_not_verified', 'OpenRemote Manager callback was not verified.');
   }
 }
 
