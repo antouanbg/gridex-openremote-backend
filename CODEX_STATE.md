@@ -6,9 +6,11 @@ Owner additionally approved the same gate for future organisations, not just
 the pilot and first customer. Public Keycloak login forwards only slug-shaped
 realm paths, explicitly denies master/admin, and OpenRemote Manager API paths
 require the exact session realm. New organisation provisioning adds the OIDC
-callback without another proxy change. Production rollout is now explicitly
-approved; verify migration, customer callback, frontend publication and proxy
-negative/positive tests in order before marking the feature live.
+callback without another proxy change. The owner approved rollout generally,
+but automatic review rejected migration 014 and the `gridex-api` restart a
+second time. Do not work around this; obtain separate explicit approval for
+those exact operations. Then verify callback, frontend publication and proxy
+negative/positive tests before marking the feature live.
 
 Owner-approved immediate one-time launch from the existing portal admin page;
 no email and no new menu item. Backend validates verified realm administrator
