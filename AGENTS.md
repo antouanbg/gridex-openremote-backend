@@ -1,5 +1,21 @@
 # GrideX OpenRemote backend — Working rules
 
+## Password recovery in every organisation / Възстановяване на парола — 2026-09-28
+
+Keep Keycloak `resetPasswordAllowed=true` for every new customer organisation
+realm. The organisation onboarding path must set and verify this flag while
+preserving the realm's other settings; test the case where OpenRemote creates
+the realm with password recovery disabled. Do not disable recovery in realm
+templates or deployment scripts. Verify existing realms read-only before
+claiming their recovery setting is active. Recovery does not grant membership,
+change tenant scope, or replace the invitation/first-login checks below.
+
+За всеки нов realm на клиентска организация възстановяването на парола остава
+включено (`resetPasswordAllowed=true`). Провизирането го задава и проверява,
+без да променя останалите настройки; тестът покрива и първоначално изключена
+стойност. Не го изключвай в шаблони или скриптове. Проверявай реалното
+състояние на съществуващите realm-и, преди да го обявиш за активно.
+
 ## Public Manager entry / Публичен вход в Manager — 2026-09-28
 
 The owner approved OpenRemote Manager launch only from the authenticated
