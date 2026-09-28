@@ -42,7 +42,17 @@ function fixture({ failAt } = {}) {
     if (sql.includes('INSERT INTO audit_events')) return { rows: [] };
     if (sql.includes('UPDATE organisation_onboarding_invitations')) {
       const row = records.get(params[0]);
-      if (sql.includes('SET state=$3')) {
+      if (sql.includes("last_error_code='resend_unconfirmed'")) {
+        if (!row || row.state !== 'delivery_failed' || row.last_error_code !== 'resend_in_progress') return { rows: [] };
+        row.last_error_code = 'resend_unconfirmed';
+      } else if (sql.includes("expires_at=now()+interval '24 hours'")) {
+        if (!row || row.state !== 'delivery_failed' || row.last_error_code !== 'resend_in_progress') return { rows: [] };
+        row.state = 'sent'; row.expires_at = new Date(Date.now()+86400000); row.last_error_code = null;
+        return { rows: [{ id: row.id, expiresAt: row.expires_at }] };
+      } else if (sql.includes("SET state='delivery_failed',last_error_code='resend_in_progress'")) {
+        if (!row || row.created_by !== params[1] || row.state !== 'sent') return { rows: [] };
+        row.state = 'delivery_failed'; row.last_error_code = 'resend_in_progress';
+      } else if (sql.includes('SET state=$3')) {
         if (row?.state !== params[1]) return { rows: [] };
         row.state = params[2];
         if (sql.includes('subject=$4')) row.subject = params[3];
@@ -60,6 +70,10 @@ function fixture({ failAt } = {}) {
       return { rows: row && row.subject === params[1] && row.email === params[2]
         && row.realm === params[3] && row.state === 'sent' ? [row] : [] };
     }
+    if (sql.includes('SELECT realm,email,subject FROM organisation_onboarding_invitations')) {
+      const row = records.get(params[0]);
+      return { rows: row?.created_by === params[1] && row.state === 'sent' ? [row] : [] };
+    }
     if (sql.includes('INSERT INTO organisations')) {
       organisations.set(params[2], { id: params[0], name: params[1], status: 'suspended' });
       return { rows: [] };
@@ -76,7 +90,7 @@ function fixture({ failAt } = {}) {
   };
   const pool = { connect: async () => ({ query, release() {} }), query };
   const setup = Object.fromEntries(['createRealm','configurePortalClient','prepareUser',
-    'sendActions','verifyRealm','verifyUser','grantAdministrator'].map(name => [name,
+    'sendActions','verifyRealm','verifyUser','verifyPreparedUser','grantAdministrator'].map(name => [name,
     async (...args) => { calls.push([name, ...args]); if (failAt === name) throw new Error('provider outage');
       if (name === 'prepareUser') return { subject: 'tenant-user' }; return true; }]));
   return { service: new OrganisationOnboarding(pool, setup), records, organisations, memberships, calls };
@@ -120,6 +134,31 @@ test('provider failure leaves no active organisation and never reports a sent in
   assert.equal([...f.records.values()][0].state, 'delivery_failed');
   assert.equal(f.organisations.size, 0);
   assert.equal(f.memberships.length, 0);
+});
+
+test('only platform admin can resend the same sent identity; new link extends expiry without a new realm or user', async () => {
+  const f = fixture();
+  const created = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  f.calls.length = 0;
+  await assert.rejects(f.service.resend({ ...owner(), realm: 'example-energy' }, created.id), { code: 'permission_denied' });
+  const result = await f.service.resend(owner(), created.id);
+  assert.equal(result.state, 'sent');
+  assert.ok(result.expiresAt > new Date());
+  assert.deepEqual(f.calls.map(([name]) => name), ['verifyRealm','verifyPreparedUser','sendActions']);
+  assert.equal(f.records.size, 1);
+  assert.equal(f.organisations.size, 0);
+  f.records.get(created.id).state = 'accepted';
+  await assert.rejects(f.service.resend(owner(), created.id), { code: 'invitation_unavailable' });
+});
+
+test('uncertain resend never loops or returns sent and must be reconciled', async () => {
+  const f = fixture();
+  const created = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  f.service.setup.sendActions = async () => { throw new Error('provider timeout'); };
+  await assert.rejects(f.service.resend(owner(), created.id), { code: 'organisation_resend_unconfirmed' });
+  assert.equal(f.records.get(created.id).state, 'delivery_failed');
+  assert.equal(f.records.get(created.id).last_error_code, 'resend_unconfirmed');
+  await assert.rejects(f.service.resend(owner(), created.id), { code: 'invitation_unavailable' });
 });
 
 test('OpenRemote role failure keeps the organisation suspended and no portal access', async () => {
@@ -172,6 +211,7 @@ test('new realms reuse the Keycloak Mailgun provider without SMTP configuration'
   await setup.createRealm({ realm: 'example-energy', name: 'Example Energy' });
   assert.equal(calls[0][0], 'http://manager:8080/api/master/realm');
   assert.equal(identityRealm.displayName, 'GrideX');
+  assert.equal(identityRealm.resetPasswordAllowed, true);
   await setup.sendActions('example-energy', 'tenant-user');
   assert.equal(calls.length, 6);
   const [url, request] = calls[5];

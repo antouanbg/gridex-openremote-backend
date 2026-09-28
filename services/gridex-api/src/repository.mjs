@@ -61,6 +61,18 @@ export class PostgresRepository {
       WHERE realm=$1 AND state IN ('sent','activating') AND expires_at>now() LIMIT 1`, [realm]);
     return rows.length > 0;
   }
+  async findLoginRealms(email) {
+    const { rows } = await this.pool.query(`SELECT DISTINCT realm FROM (
+      SELECT realm FROM organisation_onboarding_invitations
+      WHERE email=$1 AND subject IS NOT NULL
+        AND (state='accepted' OR (state='sent' AND expires_at>now()))
+      UNION
+      SELECT o.openremote_realm AS realm FROM organisation_invitations i
+      JOIN organisations o ON o.id=i.organisation_id
+      WHERE i.email=$1 AND (i.state='accepted' OR (i.state='sent' AND i.expires_at>now()))
+    ) known ORDER BY realm`, [email]);
+    return rows.map(row => row.realm);
+  }
 
   async assertOrganisationAccess(identity) {
     const { rows } = await this.pool.query(`SELECT status,access_valid_after FROM organisations WHERE openremote_realm=$1`, [identity.realm]);
@@ -452,9 +464,11 @@ export class MemoryRepository {
     this.strategyDrafts = new Map();
     this.strategySimulations = new Map();
     this.auditEvents = [];
+    this.loginRealms = seed.loginRealms || {};
   }
   async migrate() {}
   async close() {}
+  async findLoginRealms(email) { return this.loginRealms[email] || []; }
   async listAccessibleSites(subject) {
     const memberships = await this.getMemberships(subject);
     return this.sites.flatMap((site) => {

@@ -103,10 +103,10 @@ export class OpenRemoteRealmSetup {
     const identityRealm = await this.kc(`/${encodeURIComponent(realm)}`, token);
     if (identityRealm?.realm !== realm) throw new ApiError(503, 'realm_not_verified', 'Identity realm could not be verified.');
     await this.kc(`/${encodeURIComponent(realm)}`, token, 'PUT', {
-      ...identityRealm, displayName: 'GrideX', displayNameHtml: '',
+      ...identityRealm, displayName: 'GrideX', displayNameHtml: '', resetPasswordAllowed: true,
     });
     const publicBrand = await this.kc(`/${encodeURIComponent(realm)}`, token);
-    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml)
+    if (publicBrand?.displayName !== 'GrideX' || publicBrand.displayNameHtml || !publicBrand.resetPasswordAllowed)
       throw new ApiError(503, 'public_realm_brand_not_verified', 'The public login branding was not verified.');
     return record;
   }
@@ -175,6 +175,11 @@ export class OpenRemoteRealmSetup {
     const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
     if (user?.id !== subject || !user.enabled || !user.emailVerified || user.email?.toLowerCase() !== email)
       throw new ApiError(409, 'identity_not_verified', 'The administrator identity is not verified.');
+  }
+  async verifyPreparedUser(realm, subject, email) {
+    const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
+    if (user?.id !== subject || !user.enabled || user.email?.toLowerCase() !== email)
+      throw new ApiError(409, 'identity_not_verified', 'The invited identity no longer matches.');
   }
   async sendActions(realm, subject) {
     const query = new URLSearchParams({ client_id: this.config.oidcAudience,
@@ -322,6 +327,43 @@ export class OrganisationOnboarding {
       await this.audit(db, principal.subject, id, 'organisation_invitation.revoked');
       return { revoked: true };
     });
+  }
+  async resend(principal, id) {
+    this.requirePlatform(principal);
+    // Verify the existing realm and exact identity; never create a second user.
+    const current = await this.pool.query(`SELECT realm,email,subject FROM organisation_onboarding_invitations
+      WHERE id=$1 AND created_by=$2 AND state='sent'`, [id, principal.subject]);
+    const invitation = current.rows[0];
+    if (!invitation?.subject) throw new ApiError(404, 'invitation_unavailable', 'Only a sent invitation can be resent.');
+    await this.setup.verifyRealm(invitation.realm);
+    await this.setup.verifyPreparedUser(invitation.realm, invitation.subject, invitation.email);
+    // Existing failure state is a durable, fail-closed claim. If the provider's
+    // result is uncertain, leave it there for reconciliation; never auto-retry.
+    const claimed = await this.pool.query(`UPDATE organisation_onboarding_invitations
+      SET state='delivery_failed',last_error_code='resend_in_progress'
+      WHERE id=$1 AND created_by=$2 AND state='sent'
+      RETURNING id`, [id, principal.subject]);
+    if (!claimed.rows.length) throw new ApiError(409, 'onboarding_state_changed', 'Invitation state changed.');
+    try {
+      await this.setup.sendActions(invitation.realm, invitation.subject);
+      const result = await this.transaction(async db => {
+        const updated = await db.query(`UPDATE organisation_onboarding_invitations
+          SET state='sent',expires_at=now()+interval '24 hours',delivered_at=now(),last_error_code=NULL
+          WHERE id=$1 AND created_by=$2 AND state='delivery_failed' AND last_error_code='resend_in_progress'
+          RETURNING id,expires_at AS "expiresAt"`, [id, principal.subject]);
+        if (!updated.rows.length) throw new ApiError(409, 'onboarding_state_changed', 'Invitation state changed.');
+        await this.audit(db, principal.subject, id, 'organisation_invitation.resent');
+        return updated.rows[0];
+      });
+      return { id: result.id, state: 'sent', expiresAt: result.expiresAt };
+    } catch (error) {
+      await this.pool.query(`UPDATE organisation_onboarding_invitations
+        SET last_error_code='resend_unconfirmed'
+        WHERE id=$1 AND created_by=$2 AND state='delivery_failed' AND last_error_code='resend_in_progress'`,
+      [id, principal.subject]);
+      throw new ApiError(503, 'organisation_resend_unconfirmed',
+        'The provider result is unconfirmed. Inspect delivery before another attempt.');
+    }
   }
   async accept(principal, id) {
     if (!principal.emailVerified || !principal.email || !principal.realm)

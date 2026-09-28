@@ -11,6 +11,7 @@ import { normalizeDevice, normalizeSiteSnapshot } from "./normalizers.mjs";
 import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-config.mjs";
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
 import { ROCK_METRICS } from "./history-ingest.mjs";
+import { createLoginDiscoveryLimit, normaliseLoginEmail } from './login-discovery.mjs';
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -122,6 +123,7 @@ async function loadSnapshot(site, repository, openRemote) {
 }
 
 export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }) {
+  const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -130,6 +132,21 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       assertAllowedOrigin(config, origin);
       if (req.method === "OPTIONS") { cors(res, config, origin); res.writeHead(204); return res.end(); }
       const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+      if (url.pathname === '/api/v1/auth/login-realm') {
+        if (req.method !== 'POST') throw new ApiError(405, 'method_not_allowed', 'Use POST for login routing.');
+        const body = await readJson(req, Math.min(config.maximumBodyBytes, 1024));
+        if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => key !== 'email'))
+          throw new ApiError(400, 'invalid_login_request', 'Only an email address is accepted.');
+        const email = normaliseLoginEmail(body.email);
+        limitLoginDiscovery(email);
+        const known = await repository.findLoginRealms(email);
+        const realms = known.length ? known : [config.realm];
+        if (realms.some(realm => !/^[a-z][a-z0-9-]{2,30}$/.test(realm)))
+          throw new ApiError(503, 'login_routing_unavailable', 'Login routing is unavailable.');
+        res.setHeader('Cache-Control', 'no-store');
+        return json(res, 200, { realms }, context);
+      }
 
       if (url.pathname.startsWith('/internal/manager/')) {
         if (!managerLaunch) throw new ApiError(503, 'manager_unavailable', 'Manager access is not configured.');
@@ -203,6 +220,11 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (revokeOrganisation && req.method === 'POST') {
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
         return await json(res, 200, await onboarding.revoke(principal, revokeOrganisation[1]), context);
+      }
+      const resendOrganisation = url.pathname.match(/^\/api\/v1\/platform\/organisation-invitations\/([0-9a-f-]{36})\/resend$/i);
+      if (resendOrganisation && req.method === 'POST') {
+        if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
+        return await json(res, 200, await onboarding.resend(principal, resendOrganisation[1]), context);
       }
       if (url.pathname === '/api/v1/me/organisation-onboarding' && req.method === 'GET') {
         if (!onboarding) return await json(res, 200, { invitations: [] }, context);
