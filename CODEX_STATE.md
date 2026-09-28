@@ -6,11 +6,11 @@ Owner additionally approved the same gate for future organisations, not just
 the pilot and first customer. Public Keycloak login forwards only slug-shaped
 realm paths, explicitly denies master/admin, and OpenRemote Manager API paths
 require the exact session realm. New organisation provisioning adds the OIDC
-callback without another proxy change. The owner approved rollout generally,
-but automatic review rejected migration 014 and the `gridex-api` restart a
-second time. Do not work around this; obtain separate explicit approval for
-those exact operations. Then verify callback, frontend publication and proxy
-negative/positive tests before marking the feature live.
+callback without another proxy change. The owner then explicitly approved
+migration 014 and restart of `gridex-api`; both were completed with DB/image
+backup, health check and unchanged business-record counts. The customer
+callback was updated with backup, frontend Pages/quality succeeded, and the
+guarded proxy was reloaded with backup and syntax check.
 
 Owner-approved immediate one-time launch from the existing portal admin page;
 no email and no new menu item. Backend validates verified realm administrator
@@ -18,24 +18,22 @@ or the configured pilot platform subject, stores only hashes of 60-second
 tickets and 15-minute Manager sessions, and checks current active membership
 on every proxy request. The public Manager source template now denies the
 direct `/manager` entry and protects the allowed HTML, bootstrap, API and
-WebSocket routes; old installer is disabled. The existing customer realm needs
-its public OpenRemote client callback/webOrigin reconciled before live use.
-Backend PR #46 remains unmerged and the production API migration/restart was
-rejected by automatic review pending specific rollout approval. All 40 live
-API source/migration files match the live baseline branch; planned Compose
-diff has only GRIDEX_PUBLIC_AUTH_BASE. Docs PR #5 is merged and live with a
-pending-status warning; frontend PR #57 is not live. No live Manager rollout
-or user-session acceptance has happened yet. Preserve
+WebSocket routes; old installer is disabled. The existing customer callback
+and web origin are verified. Backend PR #46, frontend PR #57 and docs PR #6
+were merged to their respective target branches; public docs are live.
+Local ingress confirms anonymous Manager 401, service/unknown realms 404,
+and both existing OIDC issuers available. External owner/customer browser
+acceptance is still pending because direct public-DNS checks from Mac time
+out. Preserve
 OpenRemote inventory, client isolation, suspension controls and the single
 backend env. See HANDOFF for the rollout gate.
 
 Одобрен е незабавен еднократен вход от наличната администраторска страница,
 без имейл и ново меню. Manager маршрутите изискват проверена кратка сесия и
-активна организация; директният публичен адрес ще се отказва след внедряване.
-Кодът е в PR #46, но не е внедрен; автоматичната проверка отказа продукционния
-API restart/миграция без конкретно rollout одобрение. Не заобикаляй отказа.
-`novacom` callback трябва да бъде поправен и проверен. Docs са публикувани
-с предупреждение „в подготовка“, frontend PR #57 още не е live.
+активна организация; директният публичен адрес вече отказва без сесия.
+Миграция 014, API, `novacom` callback, frontend и proxy са внедрени с архиви
+и проверки. Docs са публикувани. Остава реална проверка с пилотния и
+клиентския потребител от външна мрежа; локален тест не я замества.
 
 ## Решение на собственика — 2026-09-27
 
