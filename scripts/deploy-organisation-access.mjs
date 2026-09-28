@@ -29,7 +29,7 @@ for(const [key,value] of Object.entries(wanted.services['gridex-api'].environmen
 const wantedManager=JSON.parse(compose(managerSource,['config','--format','json'])).services.manager;
 const managerEnv=Object.fromEntries(manager.Config.Env.map(v=>[v.slice(0,v.indexOf('=')),v.slice(v.indexOf('=')+1)]));
 for(const [key,value] of Object.entries(wantedManager.environment))if(String(value)!==managerEnv[key])throw Error(`Unplanned Manager environment change: ${key}`);
-if(wantedManager.image!=='gridex-openremote-manager:1.30.0-organisation-access-v2')throw Error('Patched Manager image missing');
+if(wantedManager.image!=='gridex-openremote-manager:1.30.0-organisation-access-v3')throw Error('Patched Manager image missing');
 if(!wanted.services['gridex-api'].environment.GRIDEX_MAILGUN_API_KEY)throw Error('Mail transport missing');
 const verifyOwner = `
 import {loadConfig} from './src/config.mjs';
