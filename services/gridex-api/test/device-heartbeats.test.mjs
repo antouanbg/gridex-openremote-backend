@@ -43,11 +43,11 @@ test('persistent write is inventory scoped and monotonically ordered, no payload
   assert.match(captured.sql,/s.site_id=g.site_id/);
   assert.equal(captured.args[0],'rock-id');
 });
-test('HTTP requires verified administrator and Site scope; empty is not demo',async()=>{
-  const repository=new MemoryRepository({sites:[{id:'site',organisationId:'org'}],memberships:[{subject:'user',organisationId:'org',role:'administrator',allSites:true}]});
+test('HTTP heartbeat read follows explicit Site and OpenRemote access; empty is not demo',async()=>{
+  const repository=new MemoryRepository({sites:[{id:'site',organisationId:'org',openremoteSiteAssetId:'or-site',openremoteRealm:'test'}],memberships:[{subject:'user',organisationId:'org',role:'administrator',allSites:true}]});
   let reads=0;
   const server=createServer(createApp({repository,authenticate:async()=>({subject:'user',emailVerified:true}),
-    config:{allowedOrigins:new Set()},openRemote:{},deviceHeartbeats:{list:async(site)=>{assert.equal(site,'site');reads++;return [];}}}));
+    config:{allowedOrigins:new Set()},openRemote:{getUserLinkedAssets:async()=>[{id:'or-site',realm:'test',name:'Site',attributes:{gridexResourceKind:{value:'site'},gridexResourceId:{value:'site'}}}]},deviceHeartbeats:{list:async(site)=>{assert.equal(site,'site');reads++;return [];}}}));
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const url=`http://127.0.0.1:${server.address().port}/api/v1/sites/`;
   try {
@@ -56,7 +56,7 @@ test('HTTP requires verified administrator and Site scope; empty is not demo',as
     assert.deepEqual(await response.json(),{items:[]});
     assert.equal((await fetch(url+'foreign/device-heartbeats')).status,404);
     repository.memberships[0].role='viewer';
-    assert.equal((await fetch(url+'site/device-heartbeats')).status,403);
-    assert.equal(reads,1);
+    assert.equal((await fetch(url+'site/device-heartbeats')).status,200);
+    assert.equal(reads,2);
   } finally {await new Promise(resolve=>server.close(resolve));}
 });

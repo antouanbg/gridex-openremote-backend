@@ -1,5 +1,9 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — customer inventory integration
+
+Integrated PR #43 into current main in an isolated branch, resolved migration numbering to `015`, retained auth/Manager changes, and passed 86 backend tests (1 database test skipped). Live `gridex` and `novacom` are active but new intent table is absent. Production migration/API restart was rejected by automated risk review; do not bypass. Source publication and specific owner approval for production rollout remain, followed by real customer OpenRemote asset/role verification. See HANDOFF.
+
 ## 2026-09-28 main reconciliation
 
 PR #55 is merged as e34f9c1. API 79 pass/1 skip, script 19 pass,
@@ -89,6 +93,41 @@ Origin към вътрешната CORS проверка и console/register 404
 proxy-то вече допуска asset/count само със сесия и точен realm. Собственикът
 потвърди от външен браузър, че Manager и обектите се виждат. Остава отделна
 проба с клиентски realm.
+
+## 2026-09-27 — клиентски Site/gateway provisioning
+
+Изрично одобрено в Phase3: нов клиентски Обект и само ROCK Pi E/OLIMEX
+ESP32-EVB от GrideX UI за активна организация, administrator-only create.
+Кодът локално има tenant-aware OR-first POST с идемпотентна intent заявка,
+read-back/owner link и SQL проекция само след проверка. Старите customer
+local-first POST са ограничени. Тестове с имитации минават; реален клиентски
+token, browser, миграция и deploy още не са проверени. Не твърди live.
+Поканата за `antouan@novacom.bg` остава `sent`/без членство; първо вход през
+`novacom`, после read-only проверка на `accepted`/membership и tenant denial.
+
+EN: Customer Site/gateway creation is local only. Verify the first-admin
+acceptance, actual OpenRemote customer token, cross-tenant denial and live
+browser flow before release; preserve locks and pilot inventory.
+
+## Одобрен клиентски процес за устройства — 2026-09-27
+
+Само потвърден GrideX ROCK Pi E/OLIMEX ESP32-EVB се предлага за избор.
+Обект създава само администраторът на организацията. Одобрен потребител
+вижда разрешения му Обект; интеграторът може да подготвя чернова, както и
+администраторът. Commissioning/пускане засега остава само за администратора.
+Супер администраторът вижда всички потребители и права, но realm-ите са
+отделни. Това е изрично решение на собственика в Phase3.
+
+Локален код: GET hardware/heartbeat е за Site-scoped member след OR проверка,
+device-setup GET/PUT е за verified integrator/administrator след OR topology
+проверка; credential route не е разширен. `npm test`: 63/63 преминаха.
+Не е внедрено. Нов Site POST и tenant-aware OR create липсват; текущият
+device POST е пилотен и local-first. Не го използвай за нов клиент. Следва
+OR-first create/link/reconcile, cross-tenant тест, UI и live приемане.
+
+EN: Approved ROCK/ESP only; organisation admin creates Sites and commissions,
+Site-scoped integrator drafts. Local backend tests pass. New customer creation
+is still blocked on tenant-aware OpenRemote provisioning.
 
 ## Решение на собственика — 2026-09-27
 
