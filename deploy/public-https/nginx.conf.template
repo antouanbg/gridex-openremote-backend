@@ -59,39 +59,63 @@ http {
         server_name ${AUTH_HOST};
         set $auth_backend keycloak:8080;
         set $manager_backend manager:8080;
+        set $api_backend gridex-api:8080;
         limit_req zone=per_client burst=40 nodelay;
-        # Scoped external Manager: authenticated gridex realm only.
-        # Ограничен външен Manager: само автентикиран realm gridex.
-        location = /manager { return 302 /manager/?realm=gridex; }
+        # The entry is exclusively through the authenticated GrideX portal.
+        # No anonymous Manager HTML, assets, bootstrap or API escape hatch.
+        location = /manager { return 404; }
+        location = /manager/launch {
+            limit_except GET { deny all; }
+            proxy_pass http://$api_backend/internal/manager/consume?ticket=$arg_ticket;
+        }
+        location = /_manager_authorize {
+            internal;
+            proxy_pass_request_body off;
+            proxy_set_header Content-Length "";
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_pass http://$api_backend/internal/manager/check;
+        }
+        location = /manager/ {
+            auth_request /_manager_authorize;
+            limit_except GET { deny all; }
+            proxy_pass http://$manager_backend;
+        }
         location /manager/ {
+            auth_request /_manager_authorize;
             limit_except GET { deny all; }
             proxy_pass http://$manager_backend;
         }
         location /shared/ {
+            auth_request /_manager_authorize;
             limit_except GET { deny all; }
             proxy_pass http://$manager_backend;
         }
         # These two bootstrap responses are synthetic and never proxy master.
         # Тези два bootstrap отговора са синтетични и никога не proxy-ват master.
         location = /api/master/info {
+            auth_request /_manager_authorize;
             limit_except GET { deny all; }
             default_type application/json;
             return 200 '{"version":"1.30.0","authServerUrl":"/auth"}';
         }
         location = /api/master/configuration/manager {
+            auth_request /_manager_authorize;
             limit_except GET { deny all; }
-            default_type application/json;
-            return 200 '{"manager":{"realm":"gridex","clientId":"openremote","managerUrl":"https://${AUTH_HOST}","keycloakUrl":"https://${AUTH_HOST}/auth","consoleAutoEnable":false}}';
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_pass http://$api_backend/internal/manager/config;
         }
-        location = /api/gridex/asset/query {
+        location ~ ^/api/(gridex|novacom)/asset/query$ {
+            auth_request /_manager_authorize;
             limit_except POST { deny all; }
             proxy_pass http://$manager_backend;
         }
-        location ~ ^/api/gridex/(asset(/|$)|model(/|$)|map(/tile/[^/]+/[^/]+/[^/]+|/getCustomMapInfo)?$|realm/accessible$|user/(user|userRoles/openremote|userRealmRoles)$) {
+        location ~ ^/api/(gridex|novacom)/(asset(/|$)|model(/|$)|map(/tile/[^/]+/[^/]+/[^/]+|/getCustomMapInfo)?$|realm/accessible$|user/(user|userRoles/openremote|userRealmRoles)$) {
+            auth_request /_manager_authorize;
             limit_except GET { deny all; }
             proxy_pass http://$manager_backend;
         }
         location = /websocket/events {
+            auth_request /_manager_authorize;
             if ($http_origin != 'https://${AUTH_HOST}') { return 403; }
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;

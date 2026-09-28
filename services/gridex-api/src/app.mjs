@@ -120,7 +120,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }) {
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
     const origin = req.headers.origin;
@@ -130,6 +130,29 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (req.method === "OPTIONS") { cors(res, config, origin); res.writeHead(204); return res.end(); }
       const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
+      if (url.pathname.startsWith('/internal/manager/')) {
+        if (!managerLaunch) throw new ApiError(503, 'manager_unavailable', 'Manager access is not configured.');
+        if (url.pathname === '/internal/manager/consume' && req.method === 'GET') {
+          const result = await managerLaunch.consume(url.searchParams.get('ticket'));
+          res.setHeader('Set-Cookie', result.cookie);
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Referrer-Policy', 'no-referrer');
+          res.writeHead(303, { Location: `${config.managerPublicOrigin}/manager/?realm=${encodeURIComponent(result.realm)}` });
+          return res.end();
+        }
+        if (req.method === 'GET' && (url.pathname === '/internal/manager/check' || url.pathname === '/internal/manager/config')) {
+          const realm = await managerLaunch.check(req.headers.cookie, req.headers['x-original-uri']);
+          res.setHeader('Cache-Control', 'no-store');
+          if (url.pathname.endsWith('/check')) {
+            res.setHeader('X-Gridex-Realm', realm);
+            res.writeHead(204); return res.end();
+          }
+          return json(res, 200, { manager: { realm, clientId: 'openremote', managerUrl: config.managerPublicOrigin,
+            keycloakUrl: `${config.managerPublicOrigin}/auth`, consoleAutoEnable: false } }, context);
+        }
+        throw new ApiError(404, 'not_found', 'Manager route not found.');
+      }
+
       if (req.method === "GET" && url.pathname === "/health") {
         const online = await openRemote.health();
         return json(res, online ? 200 : 503, { status: online ? "ready" : "degraded", openRemote: online ? "online" : "offline", writesEnabled: config.writesEnabled }, context);
@@ -138,6 +161,12 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       const identity = await authenticate(req);
       const memberships = await repository.getMemberships(identity.subject, identity.realm);
       let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects, config.realm);
+
+      if (url.pathname === '/api/v1/me/manager-launch' && req.method === 'POST') {
+        if (!managerLaunch) throw new ApiError(503, 'manager_unavailable', 'Manager access is not configured.');
+        res.setHeader('Cache-Control', 'no-store');
+        return json(res, 200, await managerLaunch.issue(principal), context);
+      }
 
       if (url.pathname === '/api/v1/platform/organisation-invitations' && req.method === 'POST') {
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');

@@ -1,23 +1,22 @@
-import {test} from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {managerLocations,addManager} from './public-manager-proxy.mjs';
-test('reject malformed origins',()=>{for(const x of ['http://auth.example.test','https://auth.example.test/path',"https://auth.example.test/';"])assert.throws(()=>managerLocations(x));});
-test('bootstrap is synthetic, scoped and without upstream master',()=>{
- const s=managerLocations('https://auth.example.test');
- assert.match(s,/"realm":"gridex"/); assert.match(s,/"consoleAutoEnable":false/);
- for(const p of ['info','configuration/manager']) {
-  const block=s.split('location = /api/master/'+p+' {')[1].split('\n        }')[0];
-  assert.match(block,/return 200/); assert.doesNotMatch(block,/proxy_pass/);
- }
- assert.doesNotMatch(s,/location \/api\/gridex\/ \{/);
- assert.match(s,/location = \/manager\/ \{/);
- assert.match(s,/if \(\$arg_realm != gridex\) \{ return 302 https:\/\/auth\.example\.test\/manager\/\?realm=gridex; \}/);
- assert.match(s,/http_origin/); assert.match(s,/proxy_set_header Forwarded ''/);
+import { readFileSync } from 'node:fs';
+import { managerLocations, addManager } from './public-manager-proxy.mjs';
+
+test('legacy public Manager installer cannot reopen anonymous access', () => {
+  assert.throws(() => managerLocations('https://auth.example.test'), /template/);
+  assert.throws(() => addManager('', 'https://auth.example.test'), /disabled/);
 });
-test('preserve unrelated proxy and refuse duplicate or mismatched layout',()=>{
- const base='server_name auth.example.test;\n        location /auth/realms/gridex/ {\n proxy_pass http://$auth_backend;\n}';
- const output=addManager(base,'https://auth.example.test');
- assert.ok(output.endsWith('        location /auth/realms/gridex/ {\n proxy_pass http://$auth_backend;\n}'));
- assert.throws(()=>addManager(output,'https://auth.example.test'));
- assert.throws(()=>addManager(base,'https://other.example.test'));
+
+test('versioned proxy protects Manager and both customer and platform API routes', () => {
+  const config = readFileSync(new URL('../deploy/public-https/nginx.conf.template', import.meta.url), 'utf8');
+  for (const path of ['location = /manager/ {', 'location /manager/ {', 'location /shared/ {',
+    'location = /api/master/info {', 'location = /api/master/configuration/manager {',
+    'location ~ ^/api/(gridex|novacom)/asset/query$ {', 'location = /websocket/events {']) {
+    const block = config.split(path)[1]?.split('\n        }')[0];
+    assert.ok(block, path);
+    assert.match(block, /auth_request \/_manager_authorize;/, path);
+  }
+  assert.match(config, /location = \/manager \{ return 404; \}/);
+  assert.doesNotMatch(config, /location \/api\/master\/ \{/);
 });

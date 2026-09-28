@@ -9,6 +9,7 @@ import { OpenRemoteRealmSetup, OrganisationOnboarding } from './organisation-onb
 import {DeviceVault} from './device-vault.mjs';
 import {DeviceHeartbeats} from './device-heartbeats.mjs';
 import {HeartbeatEmailSubscriptions} from './heartbeat-subscriptions.mjs';
+import {ManagerLaunch} from './manager-launch.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -37,7 +38,9 @@ const onboarding = repository.pool && config.realmSetupEnabled
 const deviceVault=config.deviceVaultDirectory && config.deviceVaultKeyFile ? new DeviceVault(config.deviceVaultDirectory,config.deviceVaultKeyFile):null;
 const deviceHeartbeats = repository.pool ? new DeviceHeartbeats(repository.pool) : null;
 const heartbeatSubscriptions = repository.pool ? new HeartbeatEmailSubscriptions(repository.pool) : null;
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions }));
+const managerLaunch = repository.pool && config.managerPublicOrigin
+  ? new ManagerLaunch(repository.pool, config.managerPublicOrigin, config.realm) : null;
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 
