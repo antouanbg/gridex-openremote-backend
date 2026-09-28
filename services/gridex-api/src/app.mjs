@@ -12,6 +12,7 @@ import { SUPPORTED_HARDWARE, validateHardwareConfiguration } from "./hardware-co
 import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config.mjs";
 import { ROCK_METRICS } from "./history-ingest.mjs";
 import { createLoginDiscoveryLimit, normaliseLoginEmail } from './login-discovery.mjs';
+import {idempotencyKey,provisionGateway,provisionSite} from './inventory-provisioning.mjs';
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -294,9 +295,16 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "GET" && url.pathname === "/api/v1/sites") {
         requirePermission(principal, "site:read");
-        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject,principal.realm),openRemote,principal.subject);
+        const sites = await authoritativeSites(await repository.listAccessibleSites(principal.subject,principal.realm),openRemote,principal.subject,{realm:principal.realm,token:principal.accessToken});
         res.setHeader('Cache-Control','no-store');
         return await json(res, 200, { sites: sites.map(publicSite) }, context);
+      }
+
+      if (req.method === 'POST' && url.pathname === '/api/v1/sites') {
+        const site=await provisionSite({repository,remote:openRemote,principal,key:idempotencyKey(req),
+          input:await readJson(req,config.maximumBodyBytes)});
+        await repository.audit({principal,siteId:site.id,action:'site.provisioned',resourceType:'site',resourceId:site.id,result:'success',requestId});
+        return json(res,201,publicSite(site),context);
       }
 
       const siteRoute = url.pathname.match(/^\/api\/v1\/sites\/([^/]+)(\/.*)?$/);
@@ -305,6 +313,14 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       const suffix = siteRoute[2] || "";
       const site = await repository.requireSite(principal.subject, siteId, principal.realm);
       principal = withMembershipRoles(identity, [site.membershipRole]);
+
+      if(req.method==='POST'&&suffix==='/gateways'){
+        const gateway=await provisionGateway({repository,remote:openRemote,principal,site,key:idempotencyKey(req),
+          input:await readJson(req,config.maximumBodyBytes)});
+        await repository.audit({principal,siteId,action:'gateway.provisioned',resourceType:'gateway',resourceId:gateway.id,result:'success',requestId,
+          details:{hardwareModel:gateway.hardwareModel}});
+        return json(res,201,{id:gateway.id,siteId,name:gateway.name,hardwareModel:gateway.hardwareModel,role:gateway.role},context);
+      }
 
       const accessRoute=suffix.match(/^\/gateways\/([0-9a-f-]{36})\/access$/i);
       if(accessRoute && ['GET','PUT'].includes(req.method)) {
@@ -322,14 +338,17 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (req.method === "GET" && suffix === "/hardware") {
-        requireDeviceAdmin(site,principal);
-        const topology = await authoritativeTopology(site,repository,openRemote,principal.subject);
+        requirePermission(principal, 'site:read');
+        const topology = await authoritativeTopology(site,repository,openRemote,principal.subject,{realm:principal.realm,token:principal.accessToken});
         res.setHeader('Cache-Control','no-store');
         return await json(res, 200, { ...topology, devices: topology.devices.map(publicDeviceConfiguration) }, context);
       }
 
       if (req.method === 'GET' && suffix === '/device-heartbeats') {
-        requireDeviceAdmin(site, principal);
+        requirePermission(principal, 'site:read');
+        await authoritativeSites([site], openRemote, principal.subject,{realm:principal.realm,token:principal.accessToken}).then(items => {
+          if (items.length !== 1) throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');
+        });
         res.setHeader('Cache-Control', 'no-store');
         if (!deviceHeartbeats) throw new ApiError(503, 'heartbeat_unavailable', 'Heartbeat ingestion is not configured.');
         return await json(res, 200, { items: heartbeatStatuses(await deviceHeartbeats.list(site.id),
@@ -358,6 +377,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "POST" && suffix === "/hardware-configurations") {
         requireDeviceAdmin(site,principal);
+        if(site.openremoteRealm!==config.realm)throw new ApiError(409,'use_verified_gateway_provisioning','Customer hardware must be provisioned through OpenRemote-backed gateway selection.');
         const input = validateHardwareConfiguration(await readJson(req, config.maximumBodyBytes));
         const result = await repository.saveHardwareConfiguration(site.id, input, principal.subject);
         await repository.audit({ principal, siteId, action: "hardware.configuration.created", resourceType: "hardware_configuration", resourceId: result.id, result: "success", requestId, details: { revision: result.revision } });
@@ -365,12 +385,14 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (suffix === '/device-setup' && ['GET', 'PUT'].includes(req.method)) {
-        requireDeviceAdmin(site, principal);
+        requirePermission(principal, 'hardware:manage');
+        if (!principal.emailVerified) throw new ApiError(403, 'permission_denied', 'Verified email is required.');
+        const topology = await authoritativeTopology(site, repository, openRemote, principal.subject,{realm:principal.realm,token:principal.accessToken});
         res.setHeader('Cache-Control', 'no-store');
         if (req.method === 'GET') return await json(res, 200, {...await repository.getSiteConfiguration(site.id, 'device-setup'), imported: (await repository.getSiteConfiguration(site.id, 'device-import')).configuration}, context);
         const body = await readJson(req, config.maximumBodyBytes);
         if (body.confirmed !== true) throw new ApiError(400, 'confirmation_required', 'Confirm saving the draft.');
-        const setup = validateDeviceSetup(body.configuration, await repository.getTopology(site.id));
+        const setup = validateDeviceSetup(body.configuration, topology);
         const saved = await repository.saveSiteConfiguration(site.id, 'device-setup', setup, expectedRevision(req), principal.subject);
         await repository.audit({principal, siteId, action:'device.setup.draft.saved', resourceType:'site_configuration', resourceId:'device-setup', result:'success', requestId, details:{revision:saved.revision}});
         return await json(res, 200, saved, context);
@@ -484,6 +506,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (req.method === "POST" && ["/devices", "/assets"].includes(suffix)) {
         requirePermission(principal, "asset:manage");
+        if(site.openremoteRealm!==config.realm)throw new ApiError(409,'use_verified_gateway_provisioning','Customer devices must be provisioned through OpenRemote-backed gateway selection.');
         if (!config.writesEnabled) throw new ApiError(423, "writes_locked", "Asset provisioning is locked until commissioning.");
         const input = validateDeviceInput(await readJson(req, config.maximumBodyBytes));
         const device = await repository.createDevice(site.id, input);

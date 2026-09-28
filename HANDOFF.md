@@ -2,6 +2,14 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-29 — клиентски Обект и роли: интегриран код, живото внедряване чака изрично одобрение
+
+BG: По изричното искане „внедри опцията на новата организация да избира устройства и да посочва роли за както е в gidex“ събрах PR #43 с актуалния `main` в отделен worktree. Изборът остава само ROCK Pi E/OLIMEX ESP32-EVB; до две функционални роли се записват като чернова от GrideX. Нов Обект/хардуер създава само активният организационен администратор. Backend създава в точния OpenRemote realm, проверява asset/родител/owner link и едва после потвърждава локална проекция. Миграцията на intent таблицата е преномерирана `015` след наличните `013_organisation_access` и `014_manager_launch`; `009_gateway_openremote_bindings` също е включена. Съществуващият пилотен инвентар не се трие или пре-създава.
+
+Проверки: 86 backend теста минаха, 1 PostgreSQL интеграционен тест е пропуснат; frontend Pages build, TypeScript и 3 Chromium сценария (desktop/mobile/refresh) минаха; Docusaurus BG/EN build/typecheck мина. Production read-only: 2 активни организации (`gridex`, `novacom`), 2 членства, таблица `gateway_openremote_bindings` съществува, `inventory_provisioning_intents` още не. Live API, frontend и docs **не са обновени** с тази промяна; реален клиентски asset/role тест липсва. Опитът за live API миграция/рестарт беше спрян от автоматичния преглед като риск без отделно изрично одобрение за production rollout; не опитвай обходен път. Следва публикуване на проверения source PR и изрично одобрение за миграция `015`, рестарт само на `gridex-api` и последващ frontend/docs deploy. После реален клиентски тест за Обект → ROCK → ESP → чернова с роли и cross-realm отказ.
+
+EN: Integrated the approved customer Site/ROCK/ESP flow with current main. Inventory writes are OpenRemote-first; functional roles remain an unactivated draft. Tests passed as above. The live migration/API restart was explicitly blocked by automated risk review, so production remains unchanged pending owner approval for that specific rollout and real customer acceptance. No pilot inventory was modified.
+
 ## Main reconciliation — 2026-09-28 / Съгласуване с main
 
 Owner-approved integration PR #55 was merged into `main` as `e34f9c1`,
@@ -208,6 +216,73 @@ Origin връща 200. Добавен е единствено `POST /api/<realm>
 Източник: текущият разговор `01a0cea9-3cd0-7430-b309-95795bf293a6`;
 предишното ограничаване на публичния Manager е в Phase2 чат
 `01a0a121-1ec7-7600-8107-b9044cab2f4e` и в по-старите записи тук.
+
+## Нов клиентски Обект и GrideX устройство — подготвено, не внедрено — 2026-09-27
+
+Публикация: PR [#43](https://github.com/antouanbg/gridex-openremote-backend/pull/43),
+commit `cbac726`. Frontend PR [#55](https://github.com/antouanbg/gridex-energy-os/pull/55)
+и Docusaurus PR [#4](https://github.com/antouanbg/gridex-docs/pull/4) са
+подготвени. Това **не е** production deploy или приемателен тест.
+
+Последно решение на собственика в Phase3: продължаваме със създаване на **нов**
+Обект и ROCK Pi E/OLIMEX ESP32-EVB за всяка активирана клиентска организация.
+Само нейният администратор създава; интеграторът може да настройва чернова,
+не да създава или пуска. Без нов елемент в менюто, без физическо активиране.
+
+Локален код: нови POST `/api/v1/sites` и `/api/v1/sites/:id/gateways` с точен
+realm, проверено membership и email, `Idempotency-Key`, SQL intent за процеса,
+OpenRemote-first asset/parent/owner проверка и локална проекция едва след успех.
+Клиентските legacy local-first POST `/hardware-configurations` и `/devices`
+са затворени. `OpenRemoteClient` вече приема realm за новите клиентски
+операции; пилотният service-token read остава непроменен. Локални 70/70
+backend теста минаха (вкл. HTTP, отказ/повторение и чужд realm);
+няма реален клиентски тест или deploy.
+
+Пречка: поканата за `antouan@novacom.bg` е проверена read-only като `sent`,
+валидна и обвързана, но организацията още няма активно членство. Първото
+влизане през клиентския realm трябва да задейства автоматичното приемане.
+Не прави ръчно членство, нов акаунт или тестов Обект, преди да се провери
+този преход. След него: проверка на клиентския portal token срещу OpenRemote,
+реален create/read-back/owner link за нов Обект и ROCK/ESP, отказ към чужд
+realm, мобилен/desktop интерфейс и безопасен backend→frontend deploy. Ако
+OR/SQL частичен отказ не се съгласува, не обявявай готовност. Старите
+equipment update и активна hardware revision остават отделен дълг.
+Поканен интегратор също трябва да има изричен OpenRemote asset link към
+разрешения Обект; SQL grant сам по себе си не дава видимост в новия
+fail-closed read path. Не обявявай тази част за работеща без реален тест.
+
+EN: Local tenant-aware Site and approved gateway provisioning is prepared,
+not deployed or accepted with a customer account. The invited `novacom`
+administrator still has a sent invitation and no membership. Complete that
+verified transition, then test OpenRemote token/asset/link and browser access
+before publishing. No physical commissioning is enabled.
+
+## Одобрени права и избор на устройства — 2026-09-27
+
+Собственикът потвърди в „EMS OpenRemote architecture Phase3“: само GrideX
+ROCK Pi E/OLIMEX ESP32-EVB за хардуерен избор, максимум две одобрени роли;
+Обект създава само администраторът на организацията. Одобрен потребител
+вижда само разрешения му Обект; интеграторът и администраторът могат да
+подготвят конфигурация, но commissioning/пускане засега е само за
+администратора. Супер администраторът вижда всички потребители/права,
+без да слива realm-и. Изборът е в GrideX frontend, OpenRemote е единственият
+авторитетен инвентар.
+
+Текущата промяна допуска Site-scoped прочит на OR-проверения hardware
+инвентар/heartbeat, интеграторска чернова след OR проверка на gateway
+topology, а credential route остава administrator-only. **Незавършено:**
+Локален `npm test`: 63/63 преминаха. Промяната не е внедрена и не е
+проверена с клиентски realm/browser.
+няма POST `/api/v1/sites`; `OpenRemoteClient` е с фиксиран `config.realm`,
+а POST `/sites/:id/devices` първо записва локален ред. Не използвай този
+маршрут за нов клиент. Нужни са tenant-aware OR create, owner/asset links,
+идемпотентно съгласуване, отказ при частичен провал, cross-tenant тестове
+и browser приемане преди live UI.
+
+EN: Organisation admin alone creates Sites and commissions. Site-scoped
+integrators may draft; authorised members read. Platform admin sees users
+and rights across tenants, not pooled assets. Customer Site/device creation
+remains blocked on tenant-aware OpenRemote provisioning and acceptance.
 
 ## Решение 2026-09-27 — одобрение и провизиране
 

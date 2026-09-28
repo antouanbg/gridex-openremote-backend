@@ -19,7 +19,7 @@ const principal = {
   subject: "user-1", email: "operator@example.invalid", name: "Operator", preferredUsername: "operator",
   roles: ["administrator"], permissions: ["site:read", "asset:read", "asset:manage", "hardware:manage", "command:write", "configuration:manage", "strategy:read", "strategy:draft", "strategy:activate"], accessToken: "not-returned-to-browser",
 };
-const baseConfig = { writesEnabled: true, allowedOrigins: new Set(["https://portal.example.invalid"]), maximumBodyBytes: 131072, snapshotRefreshMs: 10 };
+const baseConfig = { realm: "test", writesEnabled: true, allowedOrigins: new Set(["https://portal.example.invalid"]), maximumBodyBytes: 131072, snapshotRefreshMs: 10 };
 
 async function withServer(app, callback) {
   const server = createServer(app);

@@ -20,10 +20,17 @@ test('reject excess roles, foreign devices, duplicate targets and direct ESP bac
  ]) assert.throws(()=>validateDeviceSetup({devices:[item]},topology),{status:400});
 });
 
-test('HTTP setup persists draft with writes locked, revision and site/admin checks',async()=>{
- const repository=new MemoryRepository({sites:[{id:'site',organisationId:'org'}],memberships:[{subject:'user',organisationId:'org',role:'administrator',allSites:true}]});
- repository.topologies.set('site',topology);
- const server=createServer(createApp({repository,authenticate:async()=>({subject:'user',emailVerified:true}),config:{allowedOrigins:new Set(),writesEnabled:false,maximumBodyBytes:4096},openRemote:{}}));
+test('HTTP setup persists draft with writes locked, revision and site/role checks',async()=>{
+ const repository=new MemoryRepository({sites:[{id:'site',organisationId:'org',openremoteSiteAssetId:'or-site',openremoteRealm:'test'}],memberships:[{subject:'user',organisationId:'org',role:'administrator',allSites:true}],gatewayBindings:[{siteId:'site',gatewayId:'rock',assetId:'or-rock'},{siteId:'site',gatewayId:'esp',assetId:'or-esp'}]});
+ repository.topologies.set('site',{configuration:null,gateways:[{id:'rock',role:'controller',name:'ROCK Pi',hardwareModel:'rock-pi-e',ports:[]},{id:'esp',role:'device-node',name:'ESP32',hardwareModel:'olimex-esp32-evb-ea-ind',ports:[]}],devices:[]});
+ const attribute=value=>({value});
+ const assets=[
+  {id:'or-site',name:'Site',realm:'test',attributes:{gridexResourceKind:attribute('site'),gridexResourceId:attribute('site')}},
+  {id:'or-rock',name:'ROCK Pi',realm:'test',parentId:'or-site',attributes:{gridexResourceKind:attribute('gateway'),gridexResourceId:attribute('rock'),gridexSiteId:attribute('site'),gatewayRole:attribute('controller'),hardwareModel:attribute('rock-pi-e')}},
+  {id:'or-esp',name:'ESP32',realm:'test',parentId:'or-rock',attributes:{gridexResourceKind:attribute('gateway'),gridexResourceId:attribute('esp'),gridexSiteId:attribute('site'),gatewayRole:attribute('device-node'),hardwareModel:attribute('olimex-esp32-evb-ea-ind')}},
+ ];
+ const openRemote={getUserLinkedAssets:async ids=>assets.filter(asset=>ids.includes(asset.id))};
+ const server=createServer(createApp({repository,authenticate:async()=>({subject:'user',emailVerified:true}),config:{allowedOrigins:new Set(),writesEnabled:false,maximumBodyBytes:4096},openRemote}));
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port+'/api/v1/sites/';
  try {
@@ -33,7 +40,11 @@ test('HTTP setup persists draft with writes locked, revision and site/admin chec
   const response=await fetch(url+'site/device-setup');assert.equal(response.headers.get('cache-control'),'no-store');
   assert.equal((await response.json()).configuration.lifecycle,'draft');
   assert.equal((await fetch(url+'foreign/device-setup')).status,404);
+  repository.memberships[0].role='integrator';
+  assert.equal((await fetch(url+'site/device-setup')).status,200);
+  assert.equal((await fetch(url+'site/device-setup',{...options,headers:{...options.headers,'If-Match':'1'}})).status,200);
   repository.memberships[0].role='viewer';
   assert.equal((await fetch(url+'site/device-setup')).status,403);
+  assert.equal((await fetch(url+'site/device-setup',{...options,headers:{...options.headers,'If-Match':'2'}})).status,403);
  } finally {await new Promise(resolve=>server.close(resolve));}
 });
