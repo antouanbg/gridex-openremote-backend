@@ -40,17 +40,26 @@ public final class IssuerTest {
     try {
       String local = "https://localhost:8443/auth";
       String publicIssuer = "https://auth.example.test/auth/realms/gridex";
+      String novacomIssuer = "https://auth.example.test/auth/realms/novacom";
+      String futureIssuer = "https://auth.example.test/auth/realms/future-customer";
       TokenVerifierImpl verifier = new TokenVerifierImpl("http://127.0.0.1:" + server.getAddress().getPort(), local, false);
       long valid = System.currentTimeMillis() + 300000;
       verifier.getJwtProcessor("gridex").process(token(key, publicIssuer, "openremote", valid), null);
+      verifier.getJwtProcessor("novacom").process(token(key, novacomIssuer, "openremote", valid), null);
+      verifier.getJwtProcessor("future-customer").process(token(key, futureIssuer, "openremote", valid), null);
       verifier.getJwtProcessor("master").process(token(key, local + "/realms/master", "openremote", valid), null);
       rejected(verifier, "gridex", token(key, local + "/realms/gridex", "openremote", valid));
+      rejected(verifier, "novacom", token(key, local + "/realms/novacom", "openremote", valid));
+      rejected(verifier, "novacom", token(key, publicIssuer, "openremote", valid));
+      rejected(verifier, "gridex", token(key, novacomIssuer, "openremote", valid));
       rejected(verifier, "master", token(key, publicIssuer, "openremote", valid));
       rejected(verifier, "other", token(key, publicIssuer, "openremote", valid));
+      rejected(verifier, "future-customer", token(key, novacomIssuer, "openremote", valid));
       rejected(verifier, "gridex", token(key, publicIssuer, "untrusted-client", valid));
+      rejected(verifier, "novacom", token(key, novacomIssuer, "untrusted-client", valid));
       rejected(verifier, "gridex", token(key, publicIssuer, "openremote", System.currentTimeMillis() - 300000));
       rejected(verifier, "gridex", token(otherKey, publicIssuer, "openremote", valid));
-      System.out.println("Issuer regression: public gridex/local master accepted; wrong issuer, realm, audience, expiry, signature rejected.");
+      System.out.println("Issuer regression: public gridex/novacom/future and local master accepted; wrong issuer, realm, audience, expiry, signature rejected.");
     } finally { server.stop(0); }
   }
 }

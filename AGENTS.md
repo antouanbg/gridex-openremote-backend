@@ -1,18 +1,62 @@
 # GrideX OpenRemote backend — Working rules
 
+## Every customer realm has a verified public issuer / Публичен issuer за всеки realm — 2026-09-28
+
+The Manager must validate signed Keycloak tokens for every approved customer
+realm against the operator-controlled public auth base plus that exact realm.
+The `master` issuer stays local and separate. Never hard-code only the pilot
+realm, derive the expected issuer from token claims, disable issuer validation,
+or accept a token from a different realm. Rebuild the pinned JWT regression
+and isolated real multi-realm tests before a Manager rollout. Keep the public
+proxy session/realm guard unchanged and require real customer browser acceptance.
+
+Manager проверява подписаните Keycloak токени на всяка клиентска организация
+срещу единния публичен auth адрес и точния realm; `master` остава локален и
+отделен. Без списък само за пилотния realm, доверяване на адрес от токена или
+изключване на issuer проверката. Преди внедряване минават JWT и изолираният
+реален многоорганизационен тест; външната клиентска проба остава задължителна.
+
 ## Password recovery in every organisation / Възстановяване на парола — 2026-09-28
 
 Keep Keycloak `resetPasswordAllowed=true` for every new customer organisation
 realm. The organisation onboarding path must set and verify this flag while
 preserving the realm's other settings; test the case where OpenRemote creates
 the realm with password recovery disabled. Do not disable recovery in realm
-templates or deployment scripts. Recovery does not grant membership, change
-tenant scope, or replace the invitation/first-login checks below.
+templates or deployment scripts. Verify existing realms read-only before
+claiming their recovery setting is active. Recovery does not grant membership,
+change tenant scope, or replace the invitation/first-login checks below.
 
 За всеки нов realm на клиентска организация възстановяването на парола остава
 включено (`resetPasswordAllowed=true`). Провизирането го задава и проверява,
 без да променя останалите настройки; тестът покрива и първоначално изключена
-стойност. Не го изключвай в шаблони или скриптове.
+стойност. Не го изключвай в шаблони или скриптове. Проверявай реалното
+състояние на съществуващите realm-и, преди да го обявиш за активно.
+
+## Public Manager entry / Публичен вход в Manager — 2026-09-28
+
+The owner approved OpenRemote Manager launch only from the authenticated
+GrideX administration page. A short-lived URL alone is not authorization:
+the public proxy must verify the exchanged, host-only Manager session on
+every Manager HTML, bootstrap, API and WebSocket route and match the current
+active organisation realm. Never re-enable anonymous `/manager/`, the old
+pilot-only redirect, master/admin upstream routes, or an unguarded proxy
+template. Preserve exact customer OIDC routes and provision the OpenRemote
+client callback for each approved realm. Test anonymous, wrong-realm,
+suspended and expired/replayed ticket cases before deploying.
+The same policy must serve every future OpenRemote organisation realm, not a
+hard-coded `gridex|novacom` list. The proxy may forward only slug-shaped
+Keycloak realm paths while explicitly denying `master`/admin, and Manager API
+requests require the exact realm of the current authenticated Manager session.
+Adding a new organisation must provision its callback without a new proxy edit.
+
+Собственикът одобри вход в Manager само от влязлата административна страница
+на GrideX. Скрит или кратък URL не е защита сам по себе си: proxy-то проверява
+сесията и активния realm при всяка заявка. Не връщай анонимния `/manager/`,
+старото пренасочване към пилотния realm или незащитен шаблон. Проверявай
+анонимен/чужд/спрян достъп и повторно използван или изтекъл пропуск.
+Същата защита важи за всеки бъдещ организационен realm, не само за
+`gridex|novacom`. Пропускай само допустими slug адреси за Keycloak, отказвай
+`master`/admin и сверявай точния realm при всяка Manager API заявка.
 
 ## Owner approval for every new function / Одобрение за всяка нова функция
 
@@ -63,6 +107,30 @@ read-only проверки и audit, за да намериш къде е спр
 другите видове покани без изрично одобрение. Тествай грешен
 realm/потребител, изтекла покана, отказ/повторен опит и отказ към чужд Обект.
 Отбелязвай доказаните и непроверените стъпки в HANDOFF/CODEX_STATE.
+
+## Current invitation and rights invariant / Актуално правило — 2026-09-26
+
+Read `docs/ORGANISATION_INVITATION_PLAN.md` current-status section before
+changing onboarding. Preserve the existing pilot owner's account and
+organisation. Human platform administration is an explicitly allowlisted,
+verified Keycloak subject in the pilot realm; the backend-only master setup
+client is a technical credential, never a human login or frontend token.
+Creating the first administrator of a new organisation is a platform action;
+inviting members of an active organisation is limited to its administrator,
+realm and explicitly manageable Sites. Each customer has its own OpenRemote
+realm. An invitation grants no membership or Site access until the recipient
+verifies identity and accepts. Do not enable administrator-role delegation in
+the member-invitation flow or broaden scope by inference. Backend setup is
+deployed, but first real customer delivery/acceptance and tenant isolation
+remain unverified; do not claim end-to-end completion. Older “not deployed”
+paragraphs below are historical, not current status.
+
+Български: пази съществуващия акаунт и активите на собственика. Глобалното
+човешко право идва от проверен `subject`, не от имейл или служебния master
+client. Само backend ползва служебния client. Всяка организация има отделен
+OpenRemote realm; нейният администратор кани само в него и за изрично
+разрешените Обекти. Имейл без приемане не дава права. Делегиране на роля
+„Администратор на организация“ през членска покана още не е внедрено.
 
 ## Working prompt language — Bulgarian / Език на работните prompt-и — български
 
