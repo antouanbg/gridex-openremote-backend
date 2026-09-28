@@ -23,8 +23,12 @@ and web origin are verified. Backend PR #46, frontend PR #57 and docs PR #6
 were merged to their respective target branches; public docs are live.
 Local ingress confirms anonymous Manager 401, service/unknown realms 404,
 and both existing OIDC issuers available. External owner/customer browser
-acceptance is still pending because direct public-DNS checks from Mac time
-out. Preserve
+acceptance remains pending. The first real owner attempt reached Manager HTML
+and JS, but its two synthetic `/api/master` bootstrap calls returned 403 and
+left a blank page. PR #48 fixed only those two guarded exact paths and was
+deployed API-only with backup; all other master routes remain denied, and
+local negative checks pass again. A post-fix owner browser attempt is still
+required. Preserve
 OpenRemote inventory, client isolation, suspension controls and the single
 backend env. See HANDOFF for the rollout gate.
 
@@ -32,8 +36,10 @@ backend env. See HANDOFF for the rollout gate.
 без имейл и ново меню. Manager маршрутите изискват проверена кратка сесия и
 активна организация; директният публичен адрес вече отказва без сесия.
 Миграция 014, API, `novacom` callback, frontend и proxy са внедрени с архиви
-и проверки. Docs са публикувани. Остава реална проверка с пилотния и
-клиентския потребител от външна мрежа; локален тест не я замества.
+и проверки. Docs са публикувани. Първата реална проба откри 403 за двата
+синтетични Manager bootstrap пътя и празна страница; PR #48 коригира само
+тях след проверена сесия и API е внедрен с архив. Остава повторна реална
+проверка с пилотния и клиентския потребител; локален тест не я замества.
 
 ## Решение на собственика — 2026-09-27
 
