@@ -60,6 +60,39 @@ PR #48 коригира само тези два exact bootstrap пътя сле
 съдържа поправката. **Положителното повторно приемане от външния браузър
 остава непотвърдено**; потребителят трябва да влезе отново след API рестарта.
 
+Втора външна проба (2026-09-28): bootstrap `/api/master/info` и
+`/api/master/configuration/manager` вече са 200, но браузърът показва
+„Event bus connection error“. Proxy логът показа `/websocket/events` 403,
+заявки за Manager шрифтове 403 и `POST /api/gridex/console/register` 404.
+Директна контролна проба към API доказа причината: вътрешният Manager
+`auth_request` с браузърен `Origin: https://auth.gridex.tech` връща 403 от
+CORS, а същата проверка без Origin връща очакван 401 без сесия. PR #50
+премахва Origin **само** от вътрешната проверка; публичният WebSocket
+продължава да сравнява точния Origin. Добавен е единствено scoped POST
+`/api/<realm>/console/register`, пак зад Manager сесия и точен realm.
+Променен е само маркираният Manager proxy блок с архив
+`public-manager-gate-EBITUl`, `nginx -t` и reload; API/Keycloak/Manager не са
+рестартирани. След това WebSocket с правилен Origin без сесия връща 401,
+с чужд Origin — 403; font и console/register без сесия — 401. Пълният
+локален отрицателен HTTPS набор мина.
+
+Трета външна проба (2026-09-28): WebSocket вече получи HTTP 101, но
+OpenRemote връщаше 403 за `POST /api/gridex/asset/query` и
+`/console/register`; `POST /api/gridex/asset/count` липсваше в защитения
+proxy allowlist. Директен тест в Manager изолира собствената му CORS проверка:
+с `Origin: https://auth.gridex.tech` беше 403, без Origin — 200. Зададен е
+**точно** този публичен Origin чрез `OR_WEBSERVER_ALLOWED_ORIGINS` в
+`compose.mac.yml` и в активния единен runtime Compose. Пресъздаден е само
+Manager със същия image, `manager-data` volume и
+`OR_SETUP_RUN_ON_RESTART=false`; след старта е healthy и директният POST с
+Origin връща 200. Добавен е единствено `POST /api/<realm>/asset/count` зад
+същата Manager сесия и exact realm; публичният proxy е презареден с архив
+`public-manager-gate-KU0lo9`. Анонимен Manager HTML и asset/count дават 401,
+а master asset/count — 404. В реалния външен браузър собственикът потвърди:
+**„Manager и обектите се виждат“**. Това е положителна проба за gridex;
+отделна клиентска realm проба за novacom/следващи организации остава за
+приемане. Не се променят роли, клиентски данни, Keycloak, MQTT или база.
+
 Източник: текущият разговор `01a0cea9-3cd0-7430-b309-95795bf293a6`;
 предишното ограничаване на публичния Manager е в Phase2 чат
 `01a0a121-1ec7-7600-8107-b9044cab2f4e` и в по-старите записи тук.

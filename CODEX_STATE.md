@@ -27,8 +27,20 @@ acceptance remains pending. The first real owner attempt reached Manager HTML
 and JS, but its two synthetic `/api/master` bootstrap calls returned 403 and
 left a blank page. PR #48 fixed only those two guarded exact paths and was
 deployed API-only with backup; all other master routes remain denied, and
-local negative checks pass again. A post-fix owner browser attempt is still
-required. Preserve
+local negative checks pass again. A second external attempt reached bootstrap
+(200) but reported Event bus connection error: WebSocket and fonts 403,
+console/register 404. The internal session subrequest incorrectly forwarded
+browser Origin into the API CORS gate. PR #50 removes Origin only from that
+internal check and permits exact realm-scoped console/register POST. Live
+proxy-only reload has a backup and passed syntax plus negative checks.
+The next real session established WebSocket 101 but OpenRemote rejected
+asset/query and console/register POST because its own CORS list lacked the
+public Manager origin; protected asset/count POST was also absent. The exact
+origin is now configured in Manager Compose, and that one container was
+recreated using the same image, persistent storage and disabled setup-on-restart.
+The proxy now includes scoped asset/count POST. The owner confirmed from an
+external browser that Manager and assets are visible. Customer-realm acceptance
+remains pending. Preserve
 OpenRemote inventory, client isolation, suspension controls and the single
 backend env. See HANDOFF for the rollout gate.
 
@@ -40,6 +52,15 @@ backend env. See HANDOFF for the rollout gate.
 синтетични Manager bootstrap пътя и празна страница; PR #48 коригира само
 тях след проверена сесия и API е внедрен с архив. Остава повторна реална
 проверка с пилотния и клиентския потребител; локален тест не я замества.
+Втората проба откри Event bus грешка: WebSocket/шрифтове 403 от препратен
+Origin към вътрешната CORS проверка и console/register 404. PR #50 е
+внедрен само в proxy със запазен отказ за анонимен/чужд Origin.
+Следващата проба изолира OpenRemote CORS отказ за публичния Origin и
+липсващия защитен POST asset/count. Точният Origin е зададен в Compose,
+пресъздаден е само Manager със същия image/volume и забранен setup-on-restart;
+proxy-то вече допуска asset/count само със сесия и точен realm. Собственикът
+потвърди от външен браузър, че Manager и обектите се виждат. Остава отделна
+проба с клиентски realm.
 
 ## Решение на собственика — 2026-09-27
 
