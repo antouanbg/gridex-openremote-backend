@@ -42,13 +42,15 @@ const liveEnv = Object.fromEntries(api.Config.Env.map(value => {
   const index = value.indexOf('='); return [value.slice(0, index), value.slice(index + 1)];
 }));
 const drift = Object.entries(service.environment).filter(([key, value]) => String(value) !== liveEnv[key]).map(([key]) => key);
-if (drift.length !== 1 || drift[0] !== 'GRIDEX_PUBLIC_AUTH_BASE')
+if (drift.length > 1 || (drift.length === 1 && drift[0] !== 'GRIDEX_PUBLIC_AUTH_BASE'))
   throw Error(`Unplanned API environment drift: ${drift.join(', ') || 'none'}`);
 if (!String(service.environment.GRIDEX_PUBLIC_AUTH_BASE).startsWith('https://'))
   throw Error('Public auth origin is not HTTPS');
 const counts = () => docker(['exec', 'gridex-mac-gridex-db-1', 'psql', '-U', 'gridex', '-d', 'gridex', '-Atc',
   'SELECT (SELECT count(*) FROM organisations),(SELECT count(*) FROM organisation_memberships),(SELECT count(*) FROM sites);']).trim();
 const beforeCounts = counts();
+const migrationExists = docker(['exec', 'gridex-mac-gridex-db-1', 'psql', '-U', 'gridex', '-d', 'gridex', '-Atc',
+  "SELECT to_regclass('public.manager_launch_sessions') IS NOT NULL;"]).trim() === 't';
 const dump = fs.openSync(path.join(backup, 'gridex.dump'), 'wx', 0o600);
 try {
   const result = spawnSync('docker', ['--context', 'colima-gridex', 'exec', 'gridex-mac-gridex-db-1',
@@ -62,8 +64,10 @@ docker(['tag', api.Image, rollbackImage]);
 const rollbackFile = path.join(backup, 'rollback.compose.json');
 fs.writeFileSync(rollbackFile, JSON.stringify({ services: { 'gridex-api': { image: rollbackImage } } }), { mode: 0o600 });
 compose(['build', 'gridex-api']);
-const sql = fs.readFileSync(path.join(root, 'services/gridex-api/migrations/014_manager_launch.sql'), 'utf8');
-docker(['exec', '-i', 'gridex-mac-gridex-db-1', 'psql', '-U', 'gridex', '-d', 'gridex', '-v', 'ON_ERROR_STOP=1'], { input: sql });
+if (!migrationExists) {
+  const sql = fs.readFileSync(path.join(root, 'services/gridex-api/migrations/014_manager_launch.sql'), 'utf8');
+  docker(['exec', '-i', 'gridex-mac-gridex-db-1', 'psql', '-U', 'gridex', '-d', 'gridex', '-v', 'ON_ERROR_STOP=1'], { input: sql });
+}
 let changed = false;
 try {
   changed = true;
