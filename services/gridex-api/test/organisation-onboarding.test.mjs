@@ -132,7 +132,8 @@ test('pending organisation invitation is visible only to its verified customer b
 
 test('new realms reuse the Keycloak Mailgun provider without SMTP configuration', async () => {
   const calls = [];
-  let identityRealm = { realm: 'example-energy', displayName: 'Example Energy', enabled: true };
+  let identityRealm = { realm: 'example-energy', displayName: 'Example Energy', enabled: true,
+    resetPasswordAllowed: false, verifyEmail: true, registrationAllowed: false };
   const config = { openRemoteBaseUrl: 'http://manager:8080',
     realmSetupAdminBaseUrl: 'http://keycloak:8080/auth/admin/realms',
     oidcAudience: 'gridex-portal', portalOrigin: 'https://gridex.example.test' };
@@ -152,6 +153,9 @@ test('new realms reuse the Keycloak Mailgun provider without SMTP configuration'
   await setup.createRealm({ realm: 'example-energy', name: 'Example Energy' });
   assert.equal(calls[0][0], 'http://manager:8080/api/master/realm');
   assert.equal(identityRealm.displayName, 'GrideX');
+  assert.equal(identityRealm.resetPasswordAllowed, true);
+  assert.equal(identityRealm.verifyEmail, true);
+  assert.equal(identityRealm.registrationAllowed, false);
   await setup.sendActions('example-energy', 'tenant-user');
   assert.equal(calls.length, 6);
   const [url, request] = calls[5];
