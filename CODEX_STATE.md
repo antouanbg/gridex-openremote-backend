@@ -1,5 +1,25 @@
 # CODEX_STATE.md
 
+## Multi-realm Manager issuer repair — 2026-09-28
+
+The customer `novacom` Manager attempt exposed repeated `Invalid token issuer`
+and 401 Asset API responses: the Manager image configured a public issuer only
+for `gridex`. Manager v3 uses the sole configured public auth base and exact
+customer realm, retaining local master and all JWT validation. Pinned-image
+JWT/organisation-guard tests and isolated real OpenRemote/Keycloak multi-realm
+acceptance passed. Manager-only rollout is healthy with private rollback;
+pilot service Asset query and forced-local trusted-TLS public denials passed.
+Normal-DNS from this Mac still times out due hairpin. External novacom browser
+success, asset request, logout and fresh login await the owner; do not treat a
+rendered shell or cached Asset display as proof.
+
+Клиентският `novacom` вход показа повтарящ се отказ за issuer и HTTP 401 към
+Asset API: публичен issuer беше зададен само за `gridex`. Manager v3 вече
+проверява общия публичен auth адрес и точния realm, със запазени локален master,
+подпис и останалите JWT защити. JWT и изолираният многоорганизационен тест
+минаха; рестартиран е само Manager с частен rollback. Външната клиентска проба
+за реална успешна Asset заявка и повторен вход още се чака.
+
 ## Portal-only OpenRemote Manager — 2026-09-28
 
 Owner additionally approved the same gate for future organisations, not just

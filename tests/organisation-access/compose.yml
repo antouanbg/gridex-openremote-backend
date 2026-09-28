@@ -24,7 +24,7 @@ services:
       KC_HOSTNAME: http://127.0.0.1:58080/auth
       KC_HOSTNAME_ADMIN: http://127.0.0.1:58080/auth
   manager:
-    image: gridex-openremote-manager:1.30.0-organisation-access-v2
+    image: gridex-openremote-manager:1.30.0-organisation-access-v3
     networks: [fixture]
     ports: ['127.0.0.1:58081:8080']
     depends_on:
@@ -34,8 +34,7 @@ services:
       OR_ADMIN_PASSWORD: fixture-only-not-for-live
       OR_HOSTNAME: localhost
       OR_KEYCLOAK_ISSUER_MASTER: http://127.0.0.1:58080/auth/realms/master
-      OR_KEYCLOAK_ISSUER_CUSTOMER: http://127.0.0.1:58080/auth/realms/customer
-      OR_KEYCLOAK_ISSUER_OTHER: http://127.0.0.1:58080/auth/realms/other
+      OR_KEYCLOAK_PUBLIC_ISSUER_BASE: http://127.0.0.1:58080/auth
       OR_KEYCLOAK_DISABLE_ISSUER_VALIDATION: 'false'
       OR_SSL_PORT: '-1'
       OR_DEV_MODE: 'false'

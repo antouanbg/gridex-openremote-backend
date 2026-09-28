@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Клиентски Manager issuer — 2026-09-28
+
+Клиентската проба с `novacom` откри повтарящ се `Invalid token issuer` в
+OpenRemote и HTTP 401 за `/api/novacom/asset/*`; по-късно показан UI не беше
+доказателство за успешен клиентски API достъп. Keycloak публикува
+`https://auth.gridex.tech/auth/realms/novacom`, но старият Manager образ имаше
+публичен issuer override само за `gridex` и проверяваше `novacom` срещу
+локалния fallback. Поправката в Manager v3 строи очаквания issuer от единния
+операторски публичен base и точния realm; `master` остава локален. Проверка
+на issuer, подпис, срок, audience и отделния realm не е изключена.
+
+Изграждането на v3 мина signed-JWT тестове за `gridex`, `novacom`, бъдещ realm,
+грешен issuer/realm/audience/подпис/срок и защитите за спряна организация.
+Изолиран реален Keycloak/OpenRemote тест мина достъп, отказ между realm-и,
+спиране, затваряне на WebSocket и възстановяване; синтетичните контейнери и
+volumes са премахнати. Внедрен е **само** Manager v3, със запазен стар образ и
+rollback в частния `manager-multi-realm-issuer-qbmWUw` архив. Контейнерът е
+`healthy`, публичният issuer base е активен, флагът за изключване на issuer
+проверката е `false` (т.е. проверката е включена), gridex service Asset query
+мина. Локалният master issuer, admin URL и свежа форма минаха. Normal-DNS
+публичните проби от Mac изтекоха по hairpin маршрута; forced-local trusted-TLS
+провери публичните `gridex`/`novacom` issuer-и, 401 за анонимен Manager и
+novacom Asset POST и 404 за master/admin/health/metrics. Остава външен вход
+с `antouan@novacom.bg` и доказана успешна novacom Asset заявка, както и
+logout/relogin проба; не обявявай пълно browser приемане преди нея.
+
+EN: The first customer Manager attempt repeatedly failed OpenRemote issuer
+validation because only the pilot realm had a public issuer override. Manager
+v3 now verifies the configured public auth base plus each exact customer realm,
+while master remains local. Signed-JWT and isolated real multi-realm tests
+passed. Only Manager was restarted, with private image rollback; it is healthy,
+the pilot service Asset query works, and local trusted-TLS ingress denials hold.
+External novacom browser acceptance and a successful Asset API request remain
+unverified.
+
 ## Възстановяване на парола за всяка нова организация — 2026-09-28
 
 Собственикът потвърди, че „Забравена парола“ трябва да остане включена за

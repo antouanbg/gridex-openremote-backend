@@ -1,5 +1,21 @@
 # GrideX OpenRemote backend — Working rules
 
+## Every customer realm has a verified public issuer / Публичен issuer за всеки realm — 2026-09-28
+
+The Manager must validate signed Keycloak tokens for every approved customer
+realm against the operator-controlled public auth base plus that exact realm.
+The `master` issuer stays local and separate. Never hard-code only the pilot
+realm, derive the expected issuer from token claims, disable issuer validation,
+or accept a token from a different realm. Rebuild the pinned JWT regression
+and isolated real multi-realm tests before a Manager rollout. Keep the public
+proxy session/realm guard unchanged and require real customer browser acceptance.
+
+Manager проверява подписаните Keycloak токени на всяка клиентска организация
+срещу единния публичен auth адрес и точния realm; `master` остава локален и
+отделен. Без списък само за пилотния realm, доверяване на адрес от токена или
+изключване на issuer проверката. Преди внедряване минават JWT и изолираният
+реален многоорганизационен тест; външната клиентска проба остава задължителна.
+
 ## Password recovery in every organisation / Възстановяване на парола — 2026-09-28
 
 Keep Keycloak `resetPasswordAllowed=true` for every new customer organisation
