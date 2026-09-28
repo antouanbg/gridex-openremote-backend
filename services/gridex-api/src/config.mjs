@@ -49,7 +49,9 @@ export function loadConfig(env = process.env) {
     realmSetupTokenUrl: env.GRIDEX_REALM_SETUP_TOKEN_URL || 'http://keycloak:8080/auth/realms/master/protocol/openid-connect/token',
     realmSetupAdminBaseUrl: env.GRIDEX_REALM_SETUP_ADMIN_URL || 'http://keycloak:8080/auth/admin/realms',
     portalOrigin: env.GRIDEX_PORTAL_ORIGIN || '',
+    managerPublicOrigin: env.GRIDEX_PUBLIC_AUTH_BASE ? new URL(env.GRIDEX_PUBLIC_AUTH_BASE).origin : '',
     platformAdminSubjects,
+    organisationAccessEnabled: env.GRIDEX_ORGANISATION_ACCESS_ENABLED === 'true',
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
@@ -85,6 +87,8 @@ export function validateProductionConfig(config) {
       || !config.allowedOrigins.has(config.portalOrigin))) {
     throw new Error('Realm setup requires dedicated master credentials and an allowed portal origin');
   }
+  if (config.managerPublicOrigin && (!/^https:\/\/[a-z0-9.-]+$/.test(config.managerPublicOrigin)
+      || !config.database)) throw new Error('Manager launch requires an HTTPS origin and PostgreSQL');
   if (!config.database && !config.allowMemoryDatabase) {
     throw new Error("GrideX PostgreSQL settings are required unless GRIDEX_ALLOW_MEMORY_DB=true");
   }

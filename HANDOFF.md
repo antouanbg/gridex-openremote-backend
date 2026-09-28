@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Клиентски Manager issuer — 2026-09-28
+
+Клиентската проба с `novacom` откри повтарящ се `Invalid token issuer` в
+OpenRemote и HTTP 401 за `/api/novacom/asset/*`; по-късно показан UI не беше
+доказателство за успешен клиентски API достъп. Keycloak публикува
+`https://auth.gridex.tech/auth/realms/novacom`, но старият Manager образ имаше
+публичен issuer override само за `gridex` и проверяваше `novacom` срещу
+локалния fallback. Поправката в Manager v3 строи очаквания issuer от единния
+операторски публичен base и точния realm; `master` остава локален. Проверка
+на issuer, подпис, срок, audience и отделния realm не е изключена.
+
+Изграждането на v3 мина signed-JWT тестове за `gridex`, `novacom`, бъдещ realm,
+грешен issuer/realm/audience/подпис/срок и защитите за спряна организация.
+Изолиран реален Keycloak/OpenRemote тест мина достъп, отказ между realm-и,
+спиране, затваряне на WebSocket и възстановяване; синтетичните контейнери и
+volumes са премахнати. Внедрен е **само** Manager v3, със запазен стар образ и
+rollback в частния `manager-multi-realm-issuer-qbmWUw` архив. Контейнерът е
+`healthy`, публичният issuer base е активен, флагът за изключване на issuer
+проверката е `false` (т.е. проверката е включена), gridex service Asset query
+мина. Локалният master issuer, admin URL и свежа форма минаха. Normal-DNS
+публичните проби от Mac изтекоха по hairpin маршрута; forced-local trusted-TLS
+провери публичните `gridex`/`novacom` issuer-и, 401 за анонимен Manager и
+novacom Asset POST и 404 за master/admin/health/metrics. Остава външен вход
+с `antouan@novacom.bg` и доказана успешна novacom Asset заявка, както и
+logout/relogin проба; не обявявай пълно browser приемане преди нея.
+
+EN: The first customer Manager attempt repeatedly failed OpenRemote issuer
+validation because only the pilot realm had a public issuer override. Manager
+v3 now verifies the configured public auth base plus each exact customer realm,
+while master remains local. Signed-JWT and isolated real multi-realm tests
+passed. Only Manager was restarted, with private image rollback; it is healthy,
+the pilot service Asset query works, and local trusted-TLS ingress denials hold.
+External novacom browser acceptance and a successful Asset API request remain
+unverified.
+
 ## Възстановяване на парола за всяка нова организация — 2026-09-28
 
 Собственикът потвърди, че „Забравена парола“ трябва да остане включена за
@@ -11,6 +46,133 @@ Keycloak realm; регресионният тест изрично започв�
 че другите настройки са запазени. Read-only проверка на живата Keycloak база:
 `gridex|true`, `novacom|true`. Това доказва включената настройка, не доставка
 на конкретен имейл за възстановяване.
+
+## Изтекла покана за първи администратор — 2026-09-28
+
+Собственикът поиска повторно изпращане **само** при `sent` и проверка на
+неработещата „Забравена парола“ за `antouan@novacom.bg`. Прочетени са
+решенията в проекта за отделен realm, автоматично приемане при първи вход и
+без дублиране на акаунт. Read-only runtime проверка: `novacom` поканата е
+`sent`, срокът ѝ е изтекъл, има запазен Keycloak subject и няма активна
+организация. Реалмът `novacom` беше с `resetPasswordAllowed=false`; точната
+настройка е поправена и проверена като `true`, без смяна на парола/акаунт и
+без изпращане на писмо. Бъдещите нови realm-и вече го включват при създаване.
+
+Новият API endpoint `POST /api/v1/platform/organisation-invitations/:id/resend`
+изисква проверен `platform:manage` и скорошен вход. Приема само собствена
+покана в `sent`, проверява съществуващите realm/subject/email, изпраща нов
+Keycloak action email за **същата** самоличност, подновява срока с 24 часа и
+записва audit. Не създава нов user, realm или организация. При неясен
+резултат оставя `delivery_failed` и не допуска автоматичен втори опит.
+Одобреният email-first login от по-ранния проектен разговор е интегриран
+заедно с endpoint за точното realm насочване; backend се внедрява преди
+frontend. Локален API пакет: 79 pass, 1 existing skip. PR #52 е слят в
+`feat/organisation-freeze` (`f21ebfe`). API-only внедряването е направено с
+частен DB/образ архив `manager-launch-9AzVn8`, проверка за конфигурационен
+drift, запазени бройки на бизнес записите и `healthy` статус. Локалният
+публичен HTTPS маршрут за `login-realm` отговори; анонимният resend получи
+401. При изтеклата `novacom` покана lookup очаквано връща fallback `gridex`
+до ново изпращане. След действието на супер администратора audit записа
+`organisation_invitation.resent=success`, поканата отново е `sent` с бъдещ
+срок, броят ѝ е 1, активна `novacom` организация още няма, а lookup вече
+връща `[novacom]`. Това потвърждава приемане на заявката за писмо от
+Keycloak, **не** доставка в пощата. Входът и автоматичното приемане още не са
+проверени; изчакай получателя да отвори само новия линк и да потвърди.
+
+## Защитен вход в OpenRemote Manager през GrideX — 2026-09-28
+
+Собственикът одобри бутон в съществуващата административна страница на
+портала. Натискането отваря Manager незабавно, без имейл: backend проверява
+текущия проверен администратор и активната му организация, издава 60-секунден
+еднократен пропуск, а proxy-то го обменя за 15-минутна HttpOnly/Secure
+сесия. Всеки Manager HTML/API/WebSocket маршрут минава през `auth_request`;
+липсващ/чужд realm и спряна организация се отказват. При изход порталът
+отнема Manager сесиите; при backend рестарт кратките пропуски се чистят.
+`master` и Keycloak admin остават затворени. Публичните Keycloak OIDC форми,
+нужни за входа в портала, не се закриват чрез това правило.
+
+Собственикът допълнително потвърди, че схемата трябва да обслужва всички
+бъдещи организации. Публичният Keycloak OIDC път приема само допустим
+realm код и изрично отказва `master`/admin; непровизиран realm връща 404 от
+Keycloak. Динамичните Manager API пътища остават зад проверка на точния
+realm от активната сесия, а `master` API е забранен. Provisioning-ът на нов
+първи администратор добавя callback в неговия OIDC клиент, без нов proxy edit.
+
+Старият `scripts/deploy-public-manager.mjs` вече отказва изпълнение, за да
+не върне незащитения маршрут. Шаблонът `deploy/public-https/nginx.conf.template`
+е изравнен с новата защита и съдържа проверка на realm-а. Първият клиент
+`novacom` има OpenRemote OIDC клиент; липсващите публични callback/webOrigin
+вече са коригирани еднократно с архив и проверени, без промяна на роли/акаунти.
+
+Статус: след изричното одобрение за миграция 014 и рестарт само на
+`gridex-api`, API е внедрен с предварителен пълен DB архив и запазен стар
+образ; здравето, таблицата и неизменените бройки на организации/членства/
+Обекти са проверени. `novacom` callback/webOrigin са поправени с архив.
+Frontend PR #57 е слят: Pages и quality са успешни, публичният release е
+`ba48dcef`. Защитеният Manager proxy е презареден с архив на стария файл;
+`nginx -t` мина. Backend PR #46 е слят в `feat/organisation-freeze` като
+`427dcc3`; docs PR #6 е слят и публикуван на doc.gridex.tech.
+
+След внедряване локалният HTTPS ingress даде 401 за анонимен Manager в
+`gridex`/`novacom`, 404 за `master` API/OIDC и непровизиран realm, а двата
+текущи публични OIDC issuer-а и login form отговарят. Пълният backend набор:
+75 успешни, 1 съществуващ пропуснат; frontend: 23 unit и 45 browser теста;
+proxy: 4 статични + синтактичен тест в точния Nginx образ. Външният DNS
+маршрут не може да се провери от Mac поради timeout/hairpin. **Остава
+приемане от потребителите**: супер админ и клиентски админ да натиснат бутона
+от външна мрежа, да потвърдят своя realm и отказа на директния Manager URL.
+Без този тест не твърди пълна end-to-end проверка.
+
+Допълнение след първата реална проба на супер администратора (2026-09-28):
+порталният `POST /api/v1/me/manager-launch` върна 200, еднократният пропуск
+се обмени с 303, HTML и JS се заредиха с 200, но Manager остана празен.
+Живият proxy лог показа 403 точно за синтетичните
+`/api/master/info` и `/api/master/configuration/manager`: общият realm
+филтър в API погрешно ги третираше като истински master Asset достъп.
+PR #48 коригира само тези два exact bootstrap пътя след проверена Manager
+сесия; всички останали `/api/master/*` остават забранени. Поправеният API е
+внедрен отделно с DB/образ архив, без повторна миграция 014 и без рестарт
+на Keycloak/Manager/proxy. 75 API теста минаха, 1 съществуващ е пропуснат;
+локалният HTTPS отрицателен набор мина повторно, а работещият контейнер
+съдържа поправката. **Положителното повторно приемане от външния браузър
+остава непотвърдено**; потребителят трябва да влезе отново след API рестарта.
+
+Втора външна проба (2026-09-28): bootstrap `/api/master/info` и
+`/api/master/configuration/manager` вече са 200, но браузърът показва
+„Event bus connection error“. Proxy логът показа `/websocket/events` 403,
+заявки за Manager шрифтове 403 и `POST /api/gridex/console/register` 404.
+Директна контролна проба към API доказа причината: вътрешният Manager
+`auth_request` с браузърен `Origin: https://auth.gridex.tech` връща 403 от
+CORS, а същата проверка без Origin връща очакван 401 без сесия. PR #50
+премахва Origin **само** от вътрешната проверка; публичният WebSocket
+продължава да сравнява точния Origin. Добавен е единствено scoped POST
+`/api/<realm>/console/register`, пак зад Manager сесия и точен realm.
+Променен е само маркираният Manager proxy блок с архив
+`public-manager-gate-EBITUl`, `nginx -t` и reload; API/Keycloak/Manager не са
+рестартирани. След това WebSocket с правилен Origin без сесия връща 401,
+с чужд Origin — 403; font и console/register без сесия — 401. Пълният
+локален отрицателен HTTPS набор мина.
+
+Трета външна проба (2026-09-28): WebSocket вече получи HTTP 101, но
+OpenRemote връщаше 403 за `POST /api/gridex/asset/query` и
+`/console/register`; `POST /api/gridex/asset/count` липсваше в защитения
+proxy allowlist. Директен тест в Manager изолира собствената му CORS проверка:
+с `Origin: https://auth.gridex.tech` беше 403, без Origin — 200. Зададен е
+**точно** този публичен Origin чрез `OR_WEBSERVER_ALLOWED_ORIGINS` в
+`compose.mac.yml` и в активния единен runtime Compose. Пресъздаден е само
+Manager със същия image, `manager-data` volume и
+`OR_SETUP_RUN_ON_RESTART=false`; след старта е healthy и директният POST с
+Origin връща 200. Добавен е единствено `POST /api/<realm>/asset/count` зад
+същата Manager сесия и exact realm; публичният proxy е презареден с архив
+`public-manager-gate-KU0lo9`. Анонимен Manager HTML и asset/count дават 401,
+а master asset/count — 404. В реалния външен браузър собственикът потвърди:
+**„Manager и обектите се виждат“**. Това е положителна проба за gridex;
+отделна клиентска realm проба за novacom/следващи организации остава за
+приемане. Не се променят роли, клиентски данни, Keycloak, MQTT или база.
+
+Източник: текущият разговор `01a0cea9-3cd0-7430-b309-95795bf293a6`;
+предишното ограничаване на публичния Manager е в Phase2 чат
+`01a0a121-1ec7-7600-8107-b9044cab2f4e` и в по-старите записи тук.
 
 ## Решение 2026-09-27 — одобрение и провизиране
 
@@ -114,6 +276,185 @@ timeout. Истинският еднократен линк не е използ
 Тази ограничена промяна не слива останалия onboarding клон в main. За всеки
 следващ realm е нужен отделен проверен маршрут преди action email; без общ
 шаблон и без публичен master/admin.
+
+## Organisation suspension / Спиране на организация — 2026-09-27
+
+EN: Implemented suspension/restoration in the existing super-admin panel, strict verified pilot-subject permission, pilot protection, revision-locked durable operations, audit and one Mailgun attempt per suspension with recipient-specific delivery verification. API responses/SSE and patched OpenRemote HTTP/WebSocket sessions enforce denial; old JWTs stay revoked after restoration. Accounts, roles and inventory are preserved. Request source: delegated owner task `01a0cea9-3cd0-7430-b309-95795bf293a6`; history reader returned empty items, so the explicit request and repository decisions were used.
+
+BG: Реализирани са спиране/възстановяване в съществуващия супер-админ панел, право само за проверения pilot subject, защита на пилотната организация, устойчиви операции/ревизии, audit и един Mailgun опит за всяко спиране с проверка на доставката до получателя. API/SSE и поправеният OpenRemote HTTP/WebSocket налагат отказ; старите JWT остават невалидни след възстановяване. Акаунтите, ролите и инвентарът се пазят. Източник е делегираното искане от посочената задача; history инструментът върна празни записи и са използвани изричното искане и repository решенията.
+
+Evidence / Доказателства:
+- Backend: 68 passing tests, including isolated PostgreSQL transactions, concurrency, multi-realm identity, idempotency, mail ambiguity and active SSE denial. Manager image `1.30.0-organisation-access-v2` compiled with the original issuer test plus access-guard tests.
+- Isolated real OpenRemote/Keycloak: populated synthetic Asset inventory preserved, other realm unchanged, cross-realm denial, existing WebSocket closed, BG/EN disabled login, restore, old-token denial and fresh-token access. Test containers/volumes were removed afterward; no real customer data or email was used.
+- Frontend: 23 unit/render tests, 52 Chromium tests after integrating main's realm-isolation PR #51, including BG/EN two-tab suspension, null battery/SOC/SOH, empty/denied/unavailable states. Lint has only two existing image warnings.
+- Docs: typecheck and both locale builds; BG/EN 390/1440px layout reviewed without overflow.
+
+Runtime / Внедряване: Manager v2 and API with migration 013 are healthy; source hashes match this branch. Private backup `organisation-access-vzUVs1`; organisation/membership/Site counts unchanged. Read-only verified platform identity, feature flag and unauthenticated 401 passed; access-operation count is zero. Local master discovery/admin/login and forced-local trusted-TLS public issuer/Manager/ingress denials passed. Normal-DNS public auth probes time out from this Mac; external real-owner acceptance remains unverified. Няма спряна реална организация, изтрити акаунти, повторна покана или изпратен имейл. Реалната първа доставка остава непроверена; Mailgun acceptance не се представя като delivered.
+
+Publication / Публикуване: backend PR https://github.com/antouanbg/gridex-openremote-backend/pull/40 targets `feat/live-organisation-invitations`, since deployed setup-client/docs-proxy dependencies are not in main. Frontend PR https://github.com/antouanbg/gridex-energy-os/pull/52 and docs PR https://github.com/antouanbg/gridex-docs/pull/1 target main; neither is merged or publicly deployed by this task. Automatic approval review rejected the docs merge, citing trusted AGENTS review/no-automatic-merge rules. No workaround was used. Автоматичната проверка отказа docs merge по правилото за review и забрана за автоматично сливане; frontend/docs остават за изрично одобрение.
+
+Exact next action / Точно следващо действие: obtain owner approval to merge and publish frontend #52 and docs #1 after their checks; update the publication-status note, deploy docs with `scripts/deploy-local.sh`, verify live Pages and BG/EN CSS/JS MIME, then record the actual first owner-triggered suspension/delivery. Keep backend #40's separate base dependency for review. Do not resend the onboarding email here. Изчакай одобрение за frontend #52 и docs #1; след проверките публикувай, смени статуса в ръководството, провери Pages/MIME и запиши първото реално спиране/доставка. Backend #40 пази отделната dependency основа. Не изпращай повторна покана от тази задача.
+
+
+## First customer action-email proxy repair / Първи клиентски линк — 2026-09-27
+
+EN: The first `novacom` Keycloak Verify Email / Update Password email arrived,
+but the action link did not open. The live public proxy allowed only
+`/auth/realms/gridex/`: local trusted-TLS checks returned 200 for `gridex`,
+404 for `novacom` and 404 for `master`. The existing `novacom` realm returned
+200 directly inside the Keycloak network. Added **only** the exact
+`/auth/realms/novacom/` public route, without a realm wildcard. A broader
+wildcard proposal was rejected by automatic security review and was never
+applied. The first activation was rolled back when an immediate post-reload
+check raced nginx; the second with bounded retry succeeded. Private backup:
+`GrideX-runtime/private-backups/customer-realm-proxy-6K5KUH`.
+
+After activation, local HTTPS results: `gridex=200`, `novacom=200`,
+`novacom/action-token` without a key `=400` from Keycloak, unlisted realm
+`=404`, `master=404`, public admin `=404`, API `/api/v1/me=401`, docs `=200`.
+Local master issuer/admin console/fresh login-form checks passed. Normal-DNS
+public checks from this Mac timed out, as before; external browser completion,
+password setup, invitation acceptance and cross-realm denial are **not yet
+verified**. The actual one-time URL was not opened or logged by the agent.
+Because it was pasted into chat, issue a fresh action link before acceptance.
+Future realms require their own reviewed proxy route before sending an action
+email; do not add a wildcard or expose `master` to solve this.
+
+BG: Първото писмо за `novacom` бе доставено, но линкът не се отваряше.
+Действащото публично proxy допускаше само `gridex`: локално `gridex=200`,
+`novacom=404`, `master=404`, а вътрешният Keycloak отговаряше `novacom=200`.
+Добавен е **само** точният маршрут `/auth/realms/novacom/`, без общ шаблон.
+По-широкият вариант бе спрян от автоматичния преглед и никога не е внедряван.
+Първият опит се върна сам заради проверка твърде скоро след nginx reload;
+вторият с ограничено изчакване мина. След това локалният HTTPS дава
+`novacom=200`, action-token **без ключ** `400` от Keycloak, непосочен realm
+и `master=404`, admin `404`, API `401`, docs `200`. Локалните master проверки
+минаха. Външният DNS маршрут от Mac продължава да изтича по timeout; реално
+отваряне на нов линк, парола, приемане и междуорганизационен отказ предстоят.
+Публикуваният в чата еднократен линк не е използван; издайте нов. За бъдещ
+realm е нужна отделно проверена proxy настройка **преди** писмото.
+
+## Публична документация — 2026-09-26
+
+По одобрения адрес `doc.gridex.tech` е издаден отделен доверен сертификат чрез
+ръчно DNS-01. Изтича на 2026-12-25 и **няма автоматично подновяване**.
+`scripts/deploy-public-docs.py` добавя изолиран virtual host към действащия
+HTTPS proxy и запазва API/auth/Manager. Статичният Docusaurus контейнер е само
+в частната ingress мрежа, без публикуван порт. Локална SNI/TLS проверка:
+документация BG/EN HTTP 200, API `/api/v1/me` HTTP 401 без сесия, auth
+discovery HTTP 200, `nginx -t` успешен. Публичният път от тази машина изтече
+по timeout, затова външно браузърно потвърждение остава. Частен backup на
+proxy конфигурацията е в `GrideX-runtime/private-backups/public-docs-*`.
+
+При бъдещо внедряване запазвайте docs block и отделния сертификат; не
+презаписвайте живата конфигурация със стар шаблон. Обновяване на сертификата
+преди изтичане изисква нов DNS challenge и повторна проверка на трите стари
+host-а. Не се отваря публичен OpenRemote admin или MQTT порт.
+Кодът за proxy е публикуван в `feat/live-organisation-invitations` (`c01d766`),
+но не е слят в backend `main`; бъдещ deploy от main не бива да презаписва
+живия docs block. Сливането на целия branch включва и промени по поканите и
+изисква отделна проверка, а не сляпо прехвърляне заради документацията.
+
+## Стратегия за организации и права — 2026-09-26
+
+Решение от текущия owner разговор: съществуващият човешки акаунт на собственика
+запазва пилотната организация, Обектите и устройствата си и отделно получава
+глобално право за покана на първия администратор на нов клиент. Не се влиза
+като служебния setup client: той е постоянна, backend-only техническа
+идентичност със силни master права и тайна само в частния общ env. API дава
+`platform:manage` единствено на изрично настроения проверен Keycloak subject
+в пилотния realm и иска скорошен вход за нова организация; нито имейлът, нито
+роля с име `admin`, нито UI сами дават това право.
+
+Всяка клиентска организация има собствен OpenRemote realm. Глобалният
+администратор изпраща покана за нейния първи администратор; след проверка на
+имейл, задаване на парола, вход в съответния realm и приемане в Профил,
+организацията/членството могат да се активират. Администраторът на
+организация кани членове само в своя realm и за управляваните от него Обекти;
+ролите са viewer/operator/energy_manager/integrator. Администраторска роля
+не се делегира от този поток. Без изрично разрешени Обекти няма достъп до
+Обекти. Самата изпратена покана не дава права. OpenRemote е авторитетният
+източник за инвентар и realm; локалната БД пази workflow и проверени връзки.
+
+Текущ статус: backend setup и миграция 012 са активни, API/TLS smoke
+проверките са минали. Първото реално писмо, парола, приемане и проверка на
+междуорганизационна изолация **предстоят**. Преди такава проверка не обявявай
+потока за приет. Справка: `docs/ORGANISATION_INVITATION_PLAN.md`; frontend
+публична помощ `/help/` и `docs/ORGANISATIONS_AND_ACCESS.md` са подготвени
+локално, не са публикувани от тази задача. Frontend zero-Site поправката
+остава локална заради отказания отделен push. Източници: решенията в текущия
+GrideX Phase3 разговор (покани, съществуващ owner, setup client); Phase2
+разговорът потвърждава пилотния инвентар/външен Manager; текущите
+`auth.mjs` и `organisation-onboarding.mjs` са кодовата граница.
+
+Следва: собственикът изпраща първата покана от `/customers/users/`, без да
+подава клиентски данни в чата; потвърждават се delivery, приемане, роли и
+отказ на достъп до чужд realm/Обект. После се публикува проверената
+документация и се съгласува отделно непубликуваната frontend поправка.
+
+## Покани за първа клиентска организация — live backend, 2026-09-26
+
+Собственикът изрично разреши постоянната master `admin` роля на специалния
+backend-only `gridex-realm-setup` client, като глобалното действие през API е
+разрешено **само** за потвърдения Keycloak subject на съществуващия
+`antouan.bg@gmail.com` в пилотния realm `gridex`. Browser-ът не получава
+client secret; действието изисква вход през последните 10 минути. Ролята на
+service client технически е instance-wide: компрометиране на backend тайната
+би дало широки права, затова я пазим единствено в частния backend `.env`.
+
+Приложена е миграция 012 и е рестартиран само API. Rollout завърши успешно с
+частен backup в `GrideX-runtime/private-backups/organisation-invitations-*`.
+API `health=ready`, OpenRemote online, client count=1, frontend
+`https://gridex.tech/customers/users/` връща HTTP 200. Локалният HTTPS proxy
+с правилни SNI/TLS връща 401 без вход за API поканите и 200 за auth discovery.
+Глобалната конфигурация съдържа само subject
+`1a8189f6-8af2-44b9-b96c-d54571661a3c`; в таблицата за покани има 0
+записа. Реално изпращане и приемане от нов клиент **още не са тествани**.
+Следва собственикът да обнови сесията след API рестарта, да отвори
+`/customers/users/`, да попълни първия клиент и да потвърди изпращането.
+След това проверете статус `sent`, action email, новия realm, парола, вход с
+`?realm=<код>` и приемане от Профил. Не твърдете, че това е end-to-end готово
+преди тези проверки. Отделната frontend поправка за членове без Обекти е
+локален commit `70e7c22` и не е публикувана, защото отделният push бе спрян
+от автоматичната проверка. Не заобикаляйте този отказ.
+
+## Първа клиентска покана — предишен етап, 2026-09-26
+
+Собственикът попълва име, realm код и имейл в наличното подменю
+`/customers/users/` и натиска „Изпрати“. Потокът използва Keycloak action
+имейл през действащия Mailgun provider: получателят потвърждава имейл,
+задава парола, влиза в собствения realm и приема поканата. Не се въвеждат
+данни за клиента в чат и не се пререгистрира `antouan.bg@gmail.com`.
+Подготвени са еднократен скрипт за backup/миграция 012/API rollout и
+ограничена проверка на промените в Compose. За организация без Обекти
+поканата на член вече допуска празен `siteIds` — без никакъв достъп до Обекти;
+правата се дават изрично после. Тази промяна не добавя делегиране на
+`administrator` роля; това остава отделна задача.
+
+Живото включване е отказано от автоматичната проверка на правомощията,
+защото изисква **постоянен** Keycloak master service client с `create-realm`
+и OpenRemote master `read:admin`/`write:admin`, съхранен в единния частен
+backend `.env`. Нужно е изрично одобрение точно за този обхват, преди
+създаване на client, миграция, рестарт или изпращане на първа покана.
+Нито едно от тези live действия не е изпълнено. При разрешение: изпълни
+подготвения rollout, провери API и външния UI, после собственикът въвежда
+получателя и тества изпращане/приемане. Не обявявай формата за активна преди
+тези проверки.
+
+Допълнение 2026-09-26: собственикът одобри точно горните постоянни роли и
+публикуването на backend branch `feat/live-organisation-invitations`
+(`f0a8b35`). Read-only preflight беше чист; пълните API тестове минаха 62/62.
+Опитът за активация направи частен backup и построи образ, но OpenRemote
+отказа `GET /api/master/realm` с 403 за service client с `create-realm` и
+`read:admin`/`write:admin`. Клиентът беше премахнат; миграция 012 не е приложена,
+API не е рестартиран, health остава ready. Според OpenRemote RealmResource
+управлението на realm-и изисква master **Super admin**, т.е. realm роля `admin`,
+която е по-широка от досега одобреното. Не добавяй тази роля мълчаливо.
+Следва: изричен избор/одобрение за постоянна super-admin автоматизация или
+друг процес с човешко потвърждение за всеки нов realm; едва след това поправи
+setup проверката, тествай и активирай. Frontend поправката за покани без
+Обекти е локален commit `70e7c22`; публикуването ѝ бе отказано като отделен
+неодобрен payload, не го заобикаляй.
 
 ## PR reconciliation checkpoint / Проверка на PR — 2026-09-24
 

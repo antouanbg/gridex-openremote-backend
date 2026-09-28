@@ -1,0 +1,43 @@
+# Isolated synthetic acceptance environment. No live env file or customer volumes.
+name: gridex-freeze-acceptance
+networks:
+  fixture: {}
+volumes:
+  database: {}
+  storage: {}
+services:
+  postgresql:
+    image: openremote/postgresql:17.9.0.1-slim@sha256:c96d3da9b842d7f383bd06ef0ccdf67f4052d74c03f268f547f879a89109241b
+    networks: [fixture]
+    environment:
+      POSTGRES_PASSWORD: fixture-only-not-for-live
+    volumes: [database:/var/lib/postgresql/data, storage:/storage]
+  keycloak:
+    image: gridex-keycloak-mailgun:26.7.3-v1
+    networks: [fixture]
+    ports: ['127.0.0.1:58080:8080']
+    depends_on:
+      postgresql: {condition: service_healthy}
+    environment:
+      KC_DB_PASSWORD: fixture-only-not-for-live
+      KC_BOOTSTRAP_ADMIN_PASSWORD: fixture-only-not-for-live
+      KC_HOSTNAME: http://127.0.0.1:58080/auth
+      KC_HOSTNAME_ADMIN: http://127.0.0.1:58080/auth
+  manager:
+    image: gridex-openremote-manager:1.30.0-organisation-access-v3
+    networks: [fixture]
+    ports: ['127.0.0.1:58081:8080']
+    depends_on:
+      keycloak: {condition: service_healthy}
+    environment:
+      OR_DB_PASSWORD: fixture-only-not-for-live
+      OR_ADMIN_PASSWORD: fixture-only-not-for-live
+      OR_HOSTNAME: localhost
+      OR_KEYCLOAK_ISSUER_MASTER: http://127.0.0.1:58080/auth/realms/master
+      OR_KEYCLOAK_PUBLIC_ISSUER_BASE: http://127.0.0.1:58080/auth
+      OR_KEYCLOAK_DISABLE_ISSUER_VALIDATION: 'false'
+      OR_SSL_PORT: '-1'
+      OR_DEV_MODE: 'false'
+      OR_SETUP_TYPE: minimal
+      JAVA_OPTS: '-Xms256m -Xmx1g'
+    volumes: [storage:/storage]

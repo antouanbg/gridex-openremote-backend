@@ -1,5 +1,87 @@
 # CODEX_STATE.md
 
+## Multi-realm Manager issuer repair — 2026-09-28
+
+The customer `novacom` Manager attempt exposed repeated `Invalid token issuer`
+and 401 Asset API responses: the Manager image configured a public issuer only
+for `gridex`. Manager v3 uses the sole configured public auth base and exact
+customer realm, retaining local master and all JWT validation. Pinned-image
+JWT/organisation-guard tests and isolated real OpenRemote/Keycloak multi-realm
+acceptance passed. Manager-only rollout is healthy with private rollback;
+pilot service Asset query and forced-local trusted-TLS public denials passed.
+Normal-DNS from this Mac still times out due hairpin. External novacom browser
+success, asset request, logout and fresh login await the owner; do not treat a
+rendered shell or cached Asset display as proof.
+
+Клиентският `novacom` вход показа повтарящ се отказ за issuer и HTTP 401 към
+Asset API: публичен issuer беше зададен само за `gridex`. Manager v3 вече
+проверява общия публичен auth адрес и точния realm, със запазени локален master,
+подпис и останалите JWT защити. JWT и изолираният многоорганизационен тест
+минаха; рестартиран е само Manager с частен rollback. Външната клиентска проба
+за реална успешна Asset заявка и повторен вход още се чака.
+
+## Portal-only OpenRemote Manager — 2026-09-28
+
+Owner additionally approved the same gate for future organisations, not just
+the pilot and first customer. Public Keycloak login forwards only slug-shaped
+realm paths, explicitly denies master/admin, and OpenRemote Manager API paths
+require the exact session realm. New organisation provisioning adds the OIDC
+callback without another proxy change. The owner then explicitly approved
+migration 014 and restart of `gridex-api`; both were completed with DB/image
+backup, health check and unchanged business-record counts. The customer
+callback was updated with backup, frontend Pages/quality succeeded, and the
+guarded proxy was reloaded with backup and syntax check.
+
+Owner-approved immediate one-time launch from the existing portal admin page;
+no email and no new menu item. Backend validates verified realm administrator
+or the configured pilot platform subject, stores only hashes of 60-second
+tickets and 15-minute Manager sessions, and checks current active membership
+on every proxy request. The public Manager source template now denies the
+direct `/manager` entry and protects the allowed HTML, bootstrap, API and
+WebSocket routes; old installer is disabled. The existing customer callback
+and web origin are verified. Backend PR #46, frontend PR #57 and docs PR #6
+were merged to their respective target branches; public docs are live.
+Local ingress confirms anonymous Manager 401, service/unknown realms 404,
+and both existing OIDC issuers available. External owner/customer browser
+acceptance remains pending. The first real owner attempt reached Manager HTML
+and JS, but its two synthetic `/api/master` bootstrap calls returned 403 and
+left a blank page. PR #48 fixed only those two guarded exact paths and was
+deployed API-only with backup; all other master routes remain denied, and
+local negative checks pass again. A second external attempt reached bootstrap
+(200) but reported Event bus connection error: WebSocket and fonts 403,
+console/register 404. The internal session subrequest incorrectly forwarded
+browser Origin into the API CORS gate. PR #50 removes Origin only from that
+internal check and permits exact realm-scoped console/register POST. Live
+proxy-only reload has a backup and passed syntax plus negative checks.
+The next real session established WebSocket 101 but OpenRemote rejected
+asset/query and console/register POST because its own CORS list lacked the
+public Manager origin; protected asset/count POST was also absent. The exact
+origin is now configured in Manager Compose, and that one container was
+recreated using the same image, persistent storage and disabled setup-on-restart.
+The proxy now includes scoped asset/count POST. The owner confirmed from an
+external browser that Manager and assets are visible. Customer-realm acceptance
+remains pending. Preserve
+OpenRemote inventory, client isolation, suspension controls and the single
+backend env. See HANDOFF for the rollout gate.
+
+Одобрен е незабавен еднократен вход от наличната администраторска страница,
+без имейл и ново меню. Manager маршрутите изискват проверена кратка сесия и
+активна организация; директният публичен адрес вече отказва без сесия.
+Миграция 014, API, `novacom` callback, frontend и proxy са внедрени с архиви
+и проверки. Docs са публикувани. Първата реална проба откри 403 за двата
+синтетични Manager bootstrap пътя и празна страница; PR #48 коригира само
+тях след проверена сесия и API е внедрен с архив. Остава повторна реална
+проверка с пилотния и клиентския потребител; локален тест не я замества.
+Втората проба откри Event bus грешка: WebSocket/шрифтове 403 от препратен
+Origin към вътрешната CORS проверка и console/register 404. PR #50 е
+внедрен само в proxy със запазен отказ за анонимен/чужд Origin.
+Следващата проба изолира OpenRemote CORS отказ за публичния Origin и
+липсващия защитен POST asset/count. Точният Origin е зададен в Compose,
+пресъздаден е само Manager със същия image/volume и забранен setup-on-restart;
+proxy-то вече допуска asset/count само със сесия и точен realm. Собственикът
+потвърди от външен браузър, че Manager и обектите се виждат. Остава отделна
+проба с клиентски realm.
+
 ## Решение на собственика — 2026-09-27
 
 За всяка нова функционалност извън изрично одобреното задай конкретен въпрос
@@ -60,6 +142,55 @@ are still open; the pasted one-time URL should be replaced.
 проверки минаха. Изходният код е отделен от широкия onboarding клон.
 Външното приемане и изолацията предстоят; споделеният еднократен линк трябва
 да се замени.
+
+## Organisation suspension / Спиране на организация — 2026-09-27
+
+EN: Implemented suspension/restoration in the existing super-admin panel, strict verified pilot-subject permission, pilot protection, revision-locked durable operations, audit and one Mailgun attempt per suspension with recipient-specific delivery verification. API responses/SSE and patched OpenRemote HTTP/WebSocket sessions enforce denial; old JWTs stay revoked after restoration. Accounts, roles and inventory are preserved. Request source: delegated owner task `01a0cea9-3cd0-7430-b309-95795bf293a6`; history reader returned empty items, so the explicit request and repository decisions were used.
+
+BG: Реализирани са спиране/възстановяване в съществуващия супер-админ панел, право само за проверения pilot subject, защита на пилотната организация, устойчиви операции/ревизии, audit и един Mailgun опит за всяко спиране с проверка на доставката до получателя. API/SSE и поправеният OpenRemote HTTP/WebSocket налагат отказ; старите JWT остават невалидни след възстановяване. Акаунтите, ролите и инвентарът се пазят. Източник е делегираното искане от посочената задача; history инструментът върна празни записи и са използвани изричното искане и repository решенията.
+
+Evidence / Доказателства:
+- Backend: 68 passing tests, including isolated PostgreSQL transactions, concurrency, multi-realm identity, idempotency, mail ambiguity and active SSE denial. Manager image `1.30.0-organisation-access-v2` compiled with the original issuer test plus access-guard tests.
+- Isolated real OpenRemote/Keycloak: populated synthetic Asset inventory preserved, other realm unchanged, cross-realm denial, existing WebSocket closed, BG/EN disabled login, restore, old-token denial and fresh-token access. Test containers/volumes were removed afterward; no real customer data or email was used.
+- Frontend: 23 unit/render tests, 52 Chromium tests after integrating main's realm-isolation PR #51, including BG/EN two-tab suspension, null battery/SOC/SOH, empty/denied/unavailable states. Lint has only two existing image warnings.
+- Docs: typecheck and both locale builds; BG/EN 390/1440px layout reviewed without overflow.
+
+Runtime / Внедряване: Manager v2 and API with migration 013 are healthy; source hashes match this branch. Private backup `organisation-access-vzUVs1`; organisation/membership/Site counts unchanged. Read-only verified platform identity, feature flag and unauthenticated 401 passed; access-operation count is zero. Local master discovery/admin/login and forced-local trusted-TLS public issuer/Manager/ingress denials passed. Normal-DNS public auth probes time out from this Mac; external real-owner acceptance remains unverified. Няма спряна реална организация, изтрити акаунти, повторна покана или изпратен имейл. Реалната първа доставка остава непроверена; Mailgun acceptance не се представя като delivered.
+
+Publication / Публикуване: backend PR https://github.com/antouanbg/gridex-openremote-backend/pull/40 targets `feat/live-organisation-invitations`, since deployed setup-client/docs-proxy dependencies are not in main. Frontend PR https://github.com/antouanbg/gridex-energy-os/pull/52 and docs PR https://github.com/antouanbg/gridex-docs/pull/1 target main; neither is merged or publicly deployed by this task. Automatic approval review rejected the docs merge, citing trusted AGENTS review/no-automatic-merge rules. No workaround was used. Автоматичната проверка отказа docs merge по правилото за review и забрана за автоматично сливане; frontend/docs остават за изрично одобрение.
+
+Exact next action / Точно следващо действие: obtain owner approval to merge and publish frontend #52 and docs #1 after their checks; update the publication-status note, deploy docs with `scripts/deploy-local.sh`, verify live Pages and BG/EN CSS/JS MIME, then record the actual first owner-triggered suspension/delivery. Keep backend #40's separate base dependency for review. Do not resend the onboarding email here. Изчакай одобрение за frontend #52 и docs #1; след проверките публикувай, смени статуса в ръководството, провери Pages/MIME и запиши първото реално спиране/доставка. Backend #40 пази отделната dependency основа. Не изпращай повторна покана от тази задача.
+
+
+## First customer action link / Първи клиентски линк — 2026-09-27
+
+Live proxy root cause: only `/auth/realms/gridex/` was public, while the
+delivered action email targets the new `novacom` realm. A strictly exact
+`/auth/realms/novacom/` route is now active; no wildcard, `master` or admin
+exposure. Local HTTPS route checks and local master auth checks passed; normal
+public DNS from this Mac still times out. The real action URL was deliberately
+not used. Next: owner requests a fresh link, tests it externally, completes
+email verification/password setup, signs in to `novacom` and accepts the
+pending invitation; then verify realm isolation. Add a reviewed exact proxy
+route before sending email for each future customer realm. See HANDOFF for
+backup and detailed checks.
+
+Български: причината бе публично разрешен само `gridex`, а писмото сочи към
+`novacom`. Включен е единствено точният `novacom` маршрут; `master` и admin
+остават забранени. Локалните HTTPS и master auth проверки минаха; външният
+DNS маршрут от Mac още дава timeout. Истинският еднократен линк не е ползван.
+Следва нов линк и външно приемане от собственика, после тест за изолация.
+
+## Текущо състояние на поканите — 2026-09-26
+
+Актуалното решение е описано в `docs/ORGANISATION_INVITATION_PLAN.md` и
+`HANDOFF.md`. Пилотният owner акаунт и активите му се пазят. `platform:manage`
+идва само от проверен subject в пилотния realm; постоянният setup client е
+backend-only и не е потребител. Отделен OpenRemote realm за всеки нов клиент;
+първият администратор се кани от глобалния, членовете — от администратора на
+тяхната организация с изрични роли/Обекти. Няма права преди приемане.
+Миграция 012/setup client са активни; първи реален клиент и изолацията още не
+са проверени. По-старите „pending deployment“ записи по-долу са исторически.
 
 ## Verified existing owner and mail / Проверен собственик и поща — 2026-09-24
 
