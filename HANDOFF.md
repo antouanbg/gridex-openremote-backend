@@ -2,6 +2,41 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## Main reconciliation — 2026-09-28 / Съгласуване с main
+
+Owner-approved integration PR #55 was merged into `main` as `e34f9c1`,
+combining the deployed organisation-access/Manager source with the later
+password-recovery and customer-realm fixes. API tests: 79 passed, 1 skipped;
+script tests: 19 passed; the reviewed Nginx template passed syntax validation.
+The live API's core source hashes match main, Manager v3 is healthy, and the
+live proxy uses per-request Manager authorisation and slug-shaped customer
+realms without a separate novacom route. Forced-local trusted-TLS negative
+ingress and issuer checks passed. No production restart or migration was
+performed by this reconciliation. External customer Manager acceptance and
+first real suspension/email delivery remain separate checks.
+
+The active customer Site/device PR #43 is **not** merged or deployed: it still
+states tenant-aware OpenRemote provisioning is incomplete, and its migration
+`013_inventory_provisioning.sql` conflicts with the already-applied
+`013_organisation_access.sql`. Resolve the migration sequence, finish
+fail-closed multi-realm provisioning and test ownership/rollback before
+publishing the dependent frontend/docs PRs. Do not activate a form backed by
+pilot-only provisioning. The local edge config-pull changes in the other
+worktree also remain unfinished and were not included. Historical Windows and
+VPN-only PRs were not merged because they contradict newer owner decisions.
+
+Одобреният интеграционен PR #55 е в `main` (`e34f9c1`). Живият API съвпада
+по основните кодови хешове, Manager v3 е здрав, а proxy-то пази заявките и
+допуска клиентски realm-и без отделно правило само за novacom. Локалните TLS
+проверки минаха; тук няма рестарт или нова миграция. Външният клиентски тест
+и първо реално спиране/доставка на имейл остават отделни приемателни проверки.
+PR #43 за клиентски Обекти/устройства НЕ е слят: липсва завършено
+tenant-aware OpenRemote провизиране, а миграцията му `013` се сблъсква с
+вече приложената `013`. Преди публикуване на зависимите UI/помощ:
+преномериране, fail-closed права, тестове и безопасно внедряване.
+Недовършеният edge config-pull не е включен. Старите Windows/VPN-only PR-и
+не са сливани, защото противоречат на по-новите решения.
+
 ## Клиентски Manager issuer — 2026-09-28
 
 Клиентската проба с `novacom` откри повтарящ се `Invalid token issuer` в

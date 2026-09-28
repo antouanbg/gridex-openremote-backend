@@ -1,5 +1,13 @@
 # CODEX_STATE.md
 
+## 2026-09-28 main reconciliation
+
+PR #55 is merged as e34f9c1. API 79 pass/1 skip, script 19 pass,
+Nginx template valid. Live API core hashes match; Manager v3 healthy;
+forced-local ingress/issuer checks pass. No restart/migration in this step.
+PR #43 remains blocked by incomplete tenant-aware OpenRemote provisioning
+and duplicate migration 013. See HANDOFF for the exact gate.
+
 ## Multi-realm Manager issuer repair — 2026-09-28
 
 The customer `novacom` Manager attempt exposed repeated `Invalid token issuer`
