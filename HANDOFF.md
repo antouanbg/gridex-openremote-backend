@@ -1,5 +1,16 @@
 # Handoff — GrideX OpenRemote backend
 
+## 2026-09-29 — live checkpoint: Site визуализации
+
+PR #68 е в `main` (`231b8e9`). Изграден и пресъздаден е само `gridex-api`
+от същите Compose слоеве и частен `.env`; контейнерът е `healthy`.
+Анонимна заявка към новия `/visualisations/history` връща 401.
+Предишният работещ образ е запазен като
+`gridex-api-rollback:before-site-visualisations`. Няма нова миграция,
+промяна на MQTT/ROCK, OpenRemote provisioning или права. Тест с реален
+клиентски токен и одобрена услуга предстои; не представяй графиките като
+потвърдени с потребителски акаунт преди него.
+
 ## 2026-09-29 — Site визуализации през OpenRemote, без общ Grafana източник
 
 Добавен е `GET /api/v1/sites/{siteId}/visualisations/history` за измервания
