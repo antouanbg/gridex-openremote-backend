@@ -12,6 +12,7 @@ import {DeviceVault} from './device-vault.mjs';
 import {DeviceHeartbeats} from './device-heartbeats.mjs';
 import {HeartbeatEmailSubscriptions} from './heartbeat-subscriptions.mjs';
 import {ManagerLaunch} from './manager-launch.mjs';
+import { DayAheadMarket } from './market-prices.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -48,8 +49,9 @@ const deviceHeartbeats = repository.pool ? new DeviceHeartbeats(repository.pool)
 const heartbeatSubscriptions = repository.pool ? new HeartbeatEmailSubscriptions(repository.pool) : null;
 const managerLaunch = repository.pool && config.managerPublicOrigin
   ? new ManagerLaunch(repository.pool, config.managerPublicOrigin, config.realm, config.platformAdminSubjects) : null;
+const market = new DayAheadMarket({ token: config.entsoeSecurityToken });
 if (managerLaunch) await managerLaunch.invalidateAll();
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }));
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 

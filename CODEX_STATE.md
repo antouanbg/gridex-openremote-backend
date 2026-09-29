@@ -1,5 +1,14 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — approved market price integration
+
+Owner approved existing `/market/` placement and market-product selector
+(not customer tariff). Initial read-only ENTSO-E A44 Node adapter/API and
+5-country bidding-zone catalogue are implemented locally. Token must be
+provisioned only in the single private backend env; it is not present yet.
+No production deploy, source publication or real-price acceptance has been
+claimed. See HANDOFF and paired frontend/docs branches.
+
 ## 2026-09-29 — approved invitation/session correction
 
 Local branch `fix/account-switch-invitations` adds migration 016, verified

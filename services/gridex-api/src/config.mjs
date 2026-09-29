@@ -74,6 +74,7 @@ export function loadConfig(env = process.env) {
     maximumBodyBytes: integer(env.GRIDEX_MAXIMUM_BODY_BYTES, 131072),
     historyBindings,
     historyMaximumRangeMs: integer(env.GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS, 744) * 60 * 60 * 1000,
+    entsoeSecurityToken: env.GRIDEX_ENTSOE_SECURITY_TOKEN || '',
   };
 }
 

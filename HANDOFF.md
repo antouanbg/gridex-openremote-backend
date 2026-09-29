@@ -1,5 +1,23 @@
 # Handoff — GrideX OpenRemote backend
 
+## 2026-09-29 — реални цени „ден напред“ (подготвено, не внедрено)
+
+Собственикът потвърди: цените са в съществуващото меню „Пазар“ (`/market/`),
+с избор държава/ценова зона и **пазарен продукт**, без ново меню. Първият
+поддържан продукт е само ENTSO-E A44 „Ден напред“; не представяй intraday,
+балансиращи или клиентски тарифи като готови. Предишният `feat/data-services`
+Python A44 адаптер бе прегледан, но старият branch/worker не се слива с
+текущата Mac/mTLS система. Текущият Node API има authenticated каталог и
+GET цени с официални EIC зони, UTC интервали, локална дата/DST, проверка
+за непълен ден и кратък in-process cache. Ключът е само в единния private
+backend `.env` чрез `GRIDEX_ENTSOE_SECURITY_TOKEN`; Compose го препраща.
+Браузърът не получава ключа. Няма промяна на OpenRemote инвентара или
+управление на батерия. Backend 96/97 теста минават (1 съществуващ skip),
+но provider token липсва в текущия private env и реален A44/live browser
+тест не е правен. Не внедрявай frontend самостоятелно, не показвай demo цена
+като real. Следва безопасно добавяне на token, backend rollout и проверка с
+реален A44, после frontend и BG/EN docs публикация.
+
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## 2026-09-29 — миграция 016 и API внедрени

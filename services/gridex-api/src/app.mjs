@@ -13,6 +13,7 @@ import { STRATEGY_CODES, validateStrategyConfiguration } from "./strategy-config
 import { ROCK_METRICS } from "./history-ingest.mjs";
 import { createLoginDiscoveryLimit, normaliseLoginEmail } from './login-discovery.mjs';
 import {idempotencyKey,provisionGateway,provisionSite} from './inventory-provisioning.mjs';
+import { MARKET_ZONES } from './market-prices.mjs';
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -123,7 +124,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market }) {
   const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
@@ -275,6 +276,20 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           preferredUsername: principal.preferredUsername, roles: principal.roles, permissions: principal.permissions,
           memberships,
         }, context);
+      }
+
+      if (req.method === 'GET' && url.pathname === '/api/v1/market/services') {
+        requirePermission(principal, 'site:read');
+        return await json(res, 200, { services: [{ id: 'day_ahead', label: 'Day-ahead', provider: 'ENTSO-E' }],
+          zones: MARKET_ZONES }, context);
+      }
+      if (req.method === 'GET' && url.pathname === '/api/v1/market/prices') {
+        requirePermission(principal, 'site:read');
+        if (!market) throw new ApiError(503, 'market_not_configured', 'The market provider is not configured.');
+        return await json(res, 200, await market.prices({
+          country: url.searchParams.get('country'), zone: url.searchParams.get('zone'),
+          date: url.searchParams.get('date'), service: url.searchParams.get('service'),
+        }), context);
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/me/preferences") {
