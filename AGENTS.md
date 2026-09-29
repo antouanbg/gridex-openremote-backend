@@ -1,5 +1,21 @@
 # GrideX OpenRemote backend — Working rules
 
+## Member acceptance and resend — owner decision 2026-09-29
+
+After verified email, password setup and customer-realm sign-in, the portal
+may invoke the existing checked member-invitation acceptance transition
+without a second manual Accept button. Do not grant membership merely from
+delivery of email or a browser claim. A pending recipient may request exactly
+one resend to the stored email; the public response must not reveal account
+existence. Accepted membership remains until revoked/suspended, independent
+of the former action-link expiry. Persist verified last login separately.
+
+След проверен вход порталът може да извика съществуващото защитено приемане
+на членска покана без второ ръчно действие. Писмото само по себе си не дава
+членство. Поканеният може еднократно да поиска нов линк до същия записан
+имейл, без публичен отговор дали акаунтът съществува. Приетите права не
+изтичат със стария линк; последният проверен вход се пази отделно.
+
 ## Every customer realm has a verified public issuer / Публичен issuer за всеки realm — 2026-09-28
 
 The Manager must validate signed Keycloak tokens for every approved customer

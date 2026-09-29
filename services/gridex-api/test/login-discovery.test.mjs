@@ -45,3 +45,22 @@ test('lookup guard limits repeated addresses and does not retain plaintext email
   time += 300001;
   assert.doesNotThrow(() => limit('test@example.com'));
 });
+
+test('public recipient resend never reveals whether a pending invitation exists', async () => {
+  const seen=[];
+  const invitations={async resendToRecipient(email){seen.push(['member',email]);}};
+  const onboarding={async resendToRecipient(email){seen.push(['first-admin',email]);}};
+  const app=createApp({config,repository:new MemoryRepository(),authenticate:async()=>{throw Error('must stay public');},
+    openRemote:{},invitations,onboarding});
+  await withServer(app,async base=>{
+    const resend=body=>fetch(base+'/api/v1/auth/resend-invitation',{
+      method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body),
+    });
+    const response=await resend({email:'  MEMBER@EXAMPLE.INVALID  '});
+    assert.equal(response.status,202);
+    assert.equal(response.headers.get('Cache-Control'),'no-store');
+    assert.deepEqual(await response.json(),{status:'accepted'});
+    assert.deepEqual(seen,[['first-admin','member@example.invalid'],['member','member@example.invalid']]);
+    assert.equal((await resend({email:'member@example.invalid',password:'x'})).status,400);
+  });
+});

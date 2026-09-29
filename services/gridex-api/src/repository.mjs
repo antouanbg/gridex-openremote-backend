@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql', '014_manager_launch.sql', '015_inventory_provisioning.sql'];
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql', '014_manager_launch.sql', '015_inventory_provisioning.sql', '016_invitation_login_activity.sql'];
 
 const siteRow = (row) => ({
   id: row.id,
@@ -72,6 +72,15 @@ export class PostgresRepository {
       WHERE i.email=$1 AND (i.state='accepted' OR (i.state='sent' AND i.expires_at>now()))
     ) known ORDER BY realm`, [email]);
     return rows.map(row => row.realm);
+  }
+
+  async recordAuthenticatedLogin(identity) {
+    if (!identity.emailVerified || !identity.realm || !identity.subject || !Number.isFinite(identity.authTime)) return;
+    const authenticatedAt = new Date(identity.authTime * 1000);
+    if (Number.isNaN(authenticatedAt.getTime()) || authenticatedAt.getTime() > Date.now() + 60000) return;
+    await this.pool.query(`INSERT INTO user_login_activity(realm,subject,last_authenticated_at) VALUES($1,$2,$3)
+      ON CONFLICT(realm,subject) DO UPDATE SET last_authenticated_at=GREATEST(user_login_activity.last_authenticated_at,EXCLUDED.last_authenticated_at)`,
+      [identity.realm, identity.subject, authenticatedAt]);
   }
 
   async assertOrganisationAccess(identity) {
