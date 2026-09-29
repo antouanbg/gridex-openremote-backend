@@ -32,8 +32,10 @@ administrator explicitly enables that zone. Organisation service grants,
 organisation market-zone grants and member grants are separate, all default
 off. Do not infer a zone grant from a Site's country or from an invitation.
 Stopping collection preserves existing historical rows; never silently delete
-them. Keep Grafana private, local-only and unactivated until separate read-only
-database credentials, SSO/tenant isolation and owner approval for publication.
+them. The later owner decision above permits only the guarded embedded BG
+dashboard using a separate BG-filtered read-only database role. Do not expose
+a standalone Grafana login or add a customer/OpenRemote data source without a
+new security review and approval.
 Grafana OSS charts may use GrideX colours, but do not claim the product has
 full OSS white-label branding.
 
@@ -41,9 +43,10 @@ full OSS white-label branding.
 единствено след изрично включване от проверения супер администратор.
 Разрешението за услуга, зона на организация и отделен потребител са различни
 права и всички са изключени по подразбиране. Не извеждай права от държавата
-на Обекта или от покана. Спирането на събиране не трие историята. Grafana е
-само частно подготвен операторски инструмент без публичен достъп, докато няма
-отделни read-only права, SSO/tenant проверка и одобрение за публикуване.
+на Обекта или от покана. Спирането на събиране не трие историята. По-късното
+решение по-горе допуска само защитен BG dashboard с отделна read-only роля и
+проверка на всяка заявка; без самостоятелен публичен Grafana вход или нов
+източник на клиентски данни без нов преглед и одобрение.
 
 ## Service grants and market archive — owner decision 2026-09-29
 
@@ -53,8 +56,10 @@ one active organisation; this must never auto-enable its members. Only that
 organisation's verified administrator may then grant it to approved members
 one by one. Organisation revocation removes member grants, and re-enabling
 does not restore them. Enforce every grant at the API, not only in the UI.
-Day-ahead price values and historical archive remain platform-admin-only until
-the owner separately approves customer publication, regardless of grants.
+The direct day-ahead price API and full archive remain platform-admin-only.
+The later approved embedded BG dashboard may serve a customer only after both
+individual service grants and the organisation's BG zone grant pass the
+API/proxy check; this does not open the archive API.
 Store complete UTC hours in a dedicated GrideX TimescaleDB, preserve supplier
 revisions, add no retention/drop policy, and show only provider health and last
 successful update in the live Market screen for now. Never log or commit the
@@ -65,8 +70,10 @@ ENTSO-E token; its sole private backend env is the configuration source.
 това не дава достъп автоматично на никой потребител. Нейният администратор
 разрешава услугата поотделно на одобрени членове. Отнемането на организационното
 право премахва и личните; повторното включване не ги възстановява. API
-проверява правата независимо от интерфейса. Стойностите на цените „ден напред“
-и архивът засега са само за супер администратора. Пълните UTC часове се пазят
+проверява правата независимо от интерфейса. Директният API за цените „ден
+напред“ и пълният архив остават само за супер администратора. Одобреният
+по-късно вграден BG dashboard допуска клиент само след двете лични услуги и
+BG зоната; това не отваря директния архивен API. Пълните UTC часове се пазят
 в отделна GrideX TimescaleDB без политика за изтриване и с история на
 корекциите. Реалният екран „Пазар“ показва само състояние на източника и
 последен успешен час на обновяване. Токенът е само в частния backend env.

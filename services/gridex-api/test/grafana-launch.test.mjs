@@ -54,3 +54,24 @@ test('wrong realm and unverified platform identity cannot launch',async()=>{
   await assert.rejects(launch.issue({subject,realm:'other',emailVerified:true,permissions:['platform:manage']}),
     error=>error.code==='grafana_access_denied');
 });
+
+test('every dashboard request rechecks current grants and rejects encoded paths',async()=>{
+  let revoked=false;
+  const pool={query:async(query)=>{
+    if(query.includes('UPDATE grafana_launch_sessions'))
+      return {rows:[{subject,realm:'customer',organisation_id:organisationId}]};
+    if(query.includes('SELECT subject,realm,organisation_id'))
+      return {rows:[{subject,realm:'customer',organisation_id:organisationId}]};
+    if(query.includes('SELECT o.id FROM organisations'))
+      return {rows:revoked?[]:[{id:organisationId}]};
+    return {rows:[]};
+  }};
+  const launch=new GrafanaLaunch(pool,'https://api.gridex.tech',config,market);
+  const session=await launch.consume('A'.repeat(43));
+  assert.equal(await launch.check(session.cookie,'/grafana/api/ds/query'),`gridex-${subject}`);
+  await assert.rejects(launch.check(session.cookie,'/grafana/%2e%2e/manager/'),
+    error=>error.code==='grafana_path_denied');
+  revoked=true;
+  await assert.rejects(launch.check(session.cookie,'/grafana/api/ds/query'),
+    error=>error.code==='grafana_access_denied');
+});
