@@ -38,3 +38,18 @@ test('market zone grants require platform identity and day-ahead organisation gr
   await assert.rejects(grants.setOrganisationMarketZone(platform,organisationId,'FR','bogus',true),
     error=>error.code==='market_zone_invalid');
 });
+
+test('Site charts require both current organisation and member visualisations grants',async()=>{
+  const calls=[];
+  const pool={query:async(sql,args)=>{calls.push({sql,args});return {rows:[]};}};
+  const grants=new ServiceEntitlements(pool,config);
+  await assert.rejects(grants.requireSiteVisualisations(member,organisationId),error=>error.code==='service_not_enabled');
+  assert.match(calls[0].sql,/organisation_services s/);
+  assert.match(calls[0].sql,/member_services g/);
+  assert.match(calls[0].sql,/o\.openremote_realm=\$3 AND o\.status='active'/);
+  assert.deepEqual(calls[0].args,[organisationId,member.subject,member.realm]);
+  await grants.requireSiteVisualisations(platform,organisationId);
+  assert.equal(calls.length,1,'verified allowlisted platform identity may use an already-authorised Site');
+  await assert.rejects(grants.requireSiteVisualisations({...platform,emailVerified:false},organisationId),
+    error=>error.code==='service_not_enabled');
+});

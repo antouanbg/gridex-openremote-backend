@@ -48,6 +48,7 @@ OpenRemote owns live Asset attributes, datapoints, rules and protocol Agents. Po
 | `GET, PUT /api/v1/sites/{siteId}/configurations/{section}` | versioned battery/tariff/forecast/grid/EVSE/notification/trader/balancing settings | `site:read` / `configuration:manage` |
 | `GET /api/v1/sites/{siteId}/snapshot` | canonical dashboard snapshot | `asset:read` |
 | `GET /api/v1/sites/{siteId}/events` | filtered live snapshot stream | `asset:read` |
+| `GET /api/v1/sites/{siteId}/visualisations/history` | configured OpenRemote measurement history, no demo fallback | `site:read`, active Site link, organisation + member `visualisations` grants |
 | `GET /api/v1/sites/{siteId}/strategy` | current active strategy | `strategy:read` |
 | `POST/PUT /api/v1/sites/{siteId}/strategy/drafts...` | revision-safe strategy drafts | `strategy:draft` |
 | `POST .../validate`, `POST .../simulate` | validate capabilities and queue an optimizer simulation | `strategy:draft` / `strategy:simulate` |
@@ -56,6 +57,14 @@ OpenRemote owns live Asset attributes, datapoints, rules and protocol Agents. Po
 | `POST /api/v1/sites/{siteId}/commands/power` | audited desired-power command | `command:write` |
 
 All configuration updates use numeric `If-Match` revisions. Provisioning, activation and control writes stay locked until `GRIDEX_WRITES_ENABLED=true` after commissioning.
+
+The Site-visualisation response is `{siteId,from,to,items:[{assetId,metric,unit,points:[{x,y}]}]}`.
+`from`/`to` are optional epoch milliseconds (default: last 24 hours), bounded
+by `GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS`. The API reads only configured
+history bindings for the exact Site, checks the signed user's OpenRemote
+Site/Asset links and rechecks service and Site access before returning.
+An empty `items` array means no configured/accessible history, not zero.
+The existing administrative `/history` route remains separate.
 
 ### Asset blueprints
 

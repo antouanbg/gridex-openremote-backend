@@ -1,5 +1,26 @@
 # Handoff — GrideX OpenRemote backend
 
+## 2026-09-29 — Site визуализации през OpenRemote, без общ Grafana източник
+
+Добавен е `GET /api/v1/sites/{siteId}/visualisations/history` за измервания
+от конфигурираните ROCK Pi/OpenRemote Assets. Новият маршрут е read-only и
+проверява `site:read`, активна организация, локален Site grant, OpenRemote
+Site/user link и отделните org/member `visualisations` права. Проверките се
+повтарят преди отговор; клиентските Asset заявки използват неговия realm и
+token. Няма демо fallback, MQTT/ROCK промяна, нова база или общ клиентски
+Grafana datasource. Старият admin `/history` остава непроменен.
+
+Unit/HTTP тестовете включват отказ без услуга, отказ при отнета OpenRemote
+връзка и 404 за чужд Site. Пълният suite: 117 passed, 1 skipped. **Публикуване
+и реален browser тест все още се отбелязват отделно**. Разделът е в
+„Обекти → Обект → Визуализации“ с URL `/sites/{id}/visualisations/`.
+
+Заявките за услуги от PR #67 са вече в live: миграция 020 след проверен
+частен pg_dump, новите таблици 0 записа, съществуващите 2 организации/
+3 членства запазени, `gridex-api` healthy, анонимният нов маршрут 401.
+Rollback image: `gridex-api-rollback:before-service-requests-020`; частният
+архив е в `/Users/antouan/GrideX-runtime/private-backups/service-requests-20260929/`.
+
 ## 2026-09-29 — заявки за услуги: код и миграция 020, внедряване отделно
 
 Собственикът поиска довършване, докато проверява BG Grafana. Добавени са

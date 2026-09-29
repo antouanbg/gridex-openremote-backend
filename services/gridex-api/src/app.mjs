@@ -521,6 +521,39 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         return await json(res, 200, { from, to, items }, context);
       }
 
+      if (req.method === 'GET' && suffix === '/visualisations/history') {
+        requirePermission(principal, 'site:read');
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service access is unavailable.');
+        await serviceEntitlements.requireSiteVisualisations(principal, site.organisationId);
+        const authoritative = await authoritativeSites([site], openRemote, principal.subject,
+          { realm: principal.realm, token: principal.accessToken });
+        if (authoritative.length !== 1) throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');
+        const now = Date.now();
+        const fromParam = url.searchParams.get('from');
+        const toParam = url.searchParams.get('to');
+        const from = fromParam === null ? now - 24 * 60 * 60 * 1000 : Number(fromParam);
+        const to = toParam === null ? now : Number(toParam);
+        if (!Number.isFinite(from) || !Number.isFinite(to) || from < now - config.historyMaximumRangeMs ||
+          to < from || to > now + 5000)
+          throw new ApiError(400, 'invalid_history_range', 'History range is invalid or exceeds the configured maximum.');
+        const bindings = config.historyBindings.filter(binding => binding.siteId === site.id);
+        const linked = await openRemote.getUserLinkedAssets(bindings.map(binding => binding.assetId),
+          principal.subject, { realm: principal.realm, token: principal.accessToken });
+        const linkedIds = new Set(linked.map(asset => asset.id));
+        const items = await Promise.all(bindings.filter(binding => linkedIds.has(binding.assetId)).map(async binding => ({
+          assetId: binding.assetId, metric: binding.metric, unit: ROCK_METRICS[binding.metric].unit,
+          points: normalizeDatapoints(await openRemote.getDatapoints(binding.assetId, binding.metric,
+            { fromTimestamp: from, toTimestamp: to })).filter(point => point.x >= from && point.x <= to &&
+              point.y >= ROCK_METRICS[binding.metric].minimum && point.y <= ROCK_METRICS[binding.metric].maximum),
+        })));
+        await serviceEntitlements.requireSiteVisualisations(principal, site.organisationId);
+        if ((await authoritativeSites([site], openRemote, principal.subject,
+          { realm: principal.realm, token: principal.accessToken })).length !== 1)
+          throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');
+        res.setHeader('Cache-Control', 'no-store');
+        return await json(res, 200, { siteId: site.id, from, to, items }, context);
+      }
+
       if (req.method === "POST" && suffix === "/hardware-configurations") {
         requireDeviceAdmin(site,principal);
         if(site.openremoteRealm!==config.realm)throw new ApiError(409,'use_verified_gateway_provisioning','Customer hardware must be provisioned through OpenRemote-backed gateway selection.');
