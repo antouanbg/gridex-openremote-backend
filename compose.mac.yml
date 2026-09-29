@@ -5,6 +5,7 @@ networks:
   ingress: {}
 volumes:
   gridex-db:
+  gridex-market-db:
   openremote-db:
   manager-data:
   proxy-data:
@@ -21,6 +22,20 @@ services:
     volumes: [gridex-db:/var/lib/postgresql/data]
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U gridex -d gridex']
+      interval: 5s
+      retries: 30
+  gridex-market-db:
+    image: timescale/timescaledb:2.26.4-pg17@sha256:dfbf3c54f03e01d9a6fe7eeb736b513064a849606ca5acd7edcf51fdcab76a5e
+    platform: linux/arm64
+    restart: unless-stopped
+    networks: [backend]
+    environment:
+      POSTGRES_USER: gridex_market
+      POSTGRES_DB: gridex_market
+      POSTGRES_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+    volumes: [gridex-market-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U gridex_market -d gridex_market']
       interval: 5s
       retries: 30
   postgresql:
@@ -90,6 +105,7 @@ services:
     networks: [backend, ingress]
     depends_on:
       gridex-db: {condition: service_healthy}
+      gridex-market-db: {condition: service_healthy}
       manager: {condition: service_healthy}
     ports: ['127.0.0.1:8081:8080']
     environment:
@@ -107,7 +123,8 @@ services:
       OIDC_AUDIENCE: gridex-portal
       GRIDEX_PUBLIC_AUTH_BASE: ${GRIDEX_PUBLIC_AUTH_BASE:-}
       GRIDEX_PLATFORM_ADMIN_SUBJECTS: ${GRIDEX_PLATFORM_ADMIN_SUBJECTS:-}
-      GRIDEX_ENTSOE_SECURITY_TOKEN: ${GRIDEX_ENTSOE_SECURITY_TOKEN:-}
+      GRIDEX_MARKET_DB_HOST: gridex-market-db
+      GRIDEX_MARKET_DB_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
       GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_PORTAL_ORIGIN:-https://localhost:8443},https://localhost:8443,http://127.0.0.1:4173
       GRIDEX_WRITES_ENABLED: 'false'
       GRIDEX_AUTO_MIGRATE: 'false'
@@ -115,3 +132,15 @@ services:
       test: [CMD, node, -e, "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s
       retries: 30
+  gridex-market-worker:
+    build: ./services/gridex-api
+    platform: linux/arm64
+    command: [node, src/market-worker.mjs]
+    restart: unless-stopped
+    networks: [backend, ingress]
+    depends_on:
+      gridex-market-db: {condition: service_healthy}
+    environment:
+      GRIDEX_MARKET_DB_HOST: gridex-market-db
+      GRIDEX_MARKET_DB_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+      GRIDEX_ENTSOE_SECURITY_TOKEN: ${GRIDEX_ENTSOE_SECURITY_TOKEN:?required}

@@ -30,6 +30,32 @@ test('acknowledgement is not misrepresented as zero prices', () => {
   assert.equal(parseDayAheadXml('<Acknowledgement_MarketDocument/>').status, 'not_published');
 });
 
+test('identical ENTSO-E duplicate series are deduplicated but conflicting prices fail closed', () => {
+  const duplicate = xml().replace('</Publication_MarketDocument>',
+    `<TimeSeries><contract_MarketAgreement.type>A01</contract_MarketAgreement.type>
+    <currency_Unit.name>EUR</currency_Unit.name><price_Measure_Unit.name>MWH</price_Measure_Unit.name>
+    <curveType>A01</curveType><Period><timeInterval><start>2026-09-29T00:00Z</start>
+    <end>2026-09-29T00:30Z</end></timeInterval><resolution>PT15M</resolution>
+    <Point><position>1</position><price.amount>-12.5</price.amount></Point>
+    <Point><position>2</position><price.amount>42</price.amount></Point>
+    </Period></TimeSeries></Publication_MarketDocument>`);
+  assert.equal(parseDayAheadXml(duplicate).intervals.length, 2);
+  assert.throws(() => parseDayAheadXml(duplicate.replace('<price.amount>42</price.amount></Point>\n    </Period>',
+    '<price.amount>43</price.amount></Point>\n    </Period>')),
+  error => error.code === 'market_invalid_response');
+});
+
+test('day-ahead sequence 2 never overrides the primary auction sequence', () => {
+  const primary = xml().replace('<curveType>A01</curveType>',
+    '<classificationSequence_AttributeInstanceComponent.position>1</classificationSequence_AttributeInstanceComponent.position><curveType>A01</curveType>');
+  const secondary = primary.match(/<TimeSeries>[\s\S]*?<\/TimeSeries>/)[0]
+    .replace('<classificationSequence_AttributeInstanceComponent.position>1</classificationSequence_AttributeInstanceComponent.position>',
+      '<classificationSequence_AttributeInstanceComponent.position>2</classificationSequence_AttributeInstanceComponent.position>')
+    .replace('<price.amount>42</price.amount>', '<price.amount>99</price.amount>');
+  const result = parseDayAheadXml(primary.replace('</Publication_MarketDocument>', `${secondary}</Publication_MarketDocument>`));
+  assert.deepEqual(result.intervals.map(item => item.priceEurMwh), [-12.5,42]);
+});
+
 test('market validates zone and caches concurrent requests without exposing token', async () => {
   let requests = 0;
   const market = new DayAheadMarket({ token: 'secret-test-token', now: () => Date.parse('2026-09-29T12:00:00Z'),
@@ -48,27 +74,32 @@ test('market validates zone and caches concurrent requests without exposing toke
   await assert.rejects(market.prices({ ...query, date: 'invalid' }), error => error.code === 'market_date_invalid');
 });
 
-test('market routes require a verified member and never return the provider token', async () => {
+test('market archive and status are platform-only, never return the provider token', async () => {
   const repository = new MemoryRepository({ memberships: [{ subject: 'member', organisationId: 'org', role: 'viewer', allSites: true }] });
   const market = new DayAheadMarket({ token: 'secret-test-token', now: () => Date.parse('2026-09-29T12:00:00Z'),
     fetcher: async () => ({ ok: true, text: async () => xml() }) });
-  const app = createApp({ config: { realm: 'gridex', allowedOrigins: new Set(), platformAdminSubjects: new Set() },
+  const app = createApp({ config: { realm: 'gridex', allowedOrigins: new Set(), platformAdminSubjects: new Set(['owner']) },
     authenticate: async request => {
       if (!request.headers.authorization) throw new ApiError(401, 'authentication_required', 'Sign in.');
-      return { subject: request.headers.authorization === 'Bearer member' ? 'member' : 'stranger',
+      return { subject: request.headers.authorization === 'Bearer member' ? 'member' : request.headers.authorization === 'Bearer owner' ? 'owner' : 'stranger',
         realm: 'gridex', emailVerified: true, roles: [], permissions: [] };
-    }, repository, openRemote: { health: async () => true }, market });
+    }, repository, openRemote: { health: async () => true }, market,
+    serviceEntitlements: { platform(principal) {
+      if (principal.subject !== 'owner') throw new ApiError(403, 'permission_denied', 'Platform administrator required.');
+    } } });
   const server = createServer(app);
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   try {
     const base = `http://127.0.0.1:${server.address().port}`;
     assert.equal((await fetch(`${base}/api/v1/market/services`)).status, 401);
     assert.equal((await fetch(`${base}/api/v1/market/services`, { headers: { Authorization: 'Bearer stranger' } })).status, 403);
-    const catalog = await fetch(`${base}/api/v1/market/services`, { headers: { Authorization: 'Bearer member' } });
+    assert.equal((await fetch(`${base}/api/v1/market/prices?country=BG&zone=BG&date=2026-09-29&service=day_ahead`,
+      { headers: { Authorization: 'Bearer member' } })).status, 403);
+    const catalog = await fetch(`${base}/api/v1/market/services`, { headers: { Authorization: 'Bearer owner' } });
     assert.equal(catalog.status, 200);
     assert.equal((await catalog.json()).services[0].id, 'day_ahead');
     const prices = await fetch(`${base}/api/v1/market/prices?country=BG&zone=BG&date=2026-09-29&service=day_ahead`,
-      { headers: { Authorization: 'Bearer member' } });
+      { headers: { Authorization: 'Bearer owner' } });
     assert.equal(prices.status, 200);
     assert.equal((await prices.text()).includes('secret-test-token'), false);
   } finally { await new Promise(resolve => server.close(resolve)); }

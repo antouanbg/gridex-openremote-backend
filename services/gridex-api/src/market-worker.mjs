@@ -1,0 +1,47 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { loadConfig } from './config.mjs';
+import { DayAheadMarket, MARKET_ZONES } from './market-prices.mjs';
+import { MarketStorage } from './market-storage.mjs';
+
+const config = loadConfig();
+if (!config.entsoeSecurityToken || !config.marketDatabase?.password)
+  throw new Error('Market token and separate TimescaleDB configuration are required');
+const storage = new MarketStorage(config.marketDatabase);
+const market = new DayAheadMarket({ token: config.entsoeSecurityToken });
+const schema = await readFile(fileURLToPath(new URL('../market-schema.sql', import.meta.url)), 'utf8');
+await storage.pool.query(schema);
+let stopped = false;
+let busy = false;
+
+async function refresh() {
+  if (busy || stopped) return;
+  busy = true;
+  try {
+    for (const selected of MARKET_ZONES) {
+      if (stopped) break;
+      try {
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+          timeZone:selected.timezone,year:'numeric',month:'2-digit',day:'2-digit',
+        }).formatToParts(new Date()).map(part => [part.type,part.value]));
+        const tomorrow = new Date(Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day)+1))
+          .toISOString().slice(0,10);
+        const result = await market.prices({ country:selected.country, zone:selected.zone,
+          date:tomorrow, service:'day_ahead' });
+        const count = await storage.save(result);
+        console.log(JSON.stringify({ event:'market_refresh', zone:selected.zone, status:result.status,
+          hourlyPricesStored:count, fetchedAt:result.fetchedAt }));
+      } catch (error) {
+        await storage.recordError(selected.zone, selected.country, error?.code);
+        console.error(JSON.stringify({ event:'market_refresh_failed', zone:selected.zone,
+          code:error?.code || 'market_unavailable' }));
+      }
+    }
+  } finally { busy = false; }
+}
+
+await refresh();
+const timer = setInterval(refresh, 60*60*1000);
+async function shutdown() { stopped = true; clearInterval(timer); await storage.close(); }
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

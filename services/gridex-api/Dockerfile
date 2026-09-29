@@ -5,6 +5,7 @@ COPY package-lock.json ./
 RUN npm ci --omit=dev
 COPY src ./src
 COPY migrations ./migrations
+COPY market-schema.sql ./market-schema.sql
 USER node
 EXPOSE 8080
 CMD ["node", "src/server.mjs"]

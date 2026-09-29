@@ -39,6 +39,11 @@ export function parseDayAheadXml(xml) {
     if (series['contract_MarketAgreement.type'] !== 'A01'
         || series['currency_Unit.name'] !== 'EUR'
         || series['price_Measure_Unit.name'] !== 'MWH') continue;
+    // Some zones publish more than one auction sequence under A44. The first
+    // sequence is the canonical day-ahead product; later sequences must not
+    // be mixed into it (DE-LU publishes different prices in sequence 2).
+    const sequence = series['classificationSequence_AttributeInstanceComponent.position'];
+    if (sequence !== undefined && Number(sequence) !== 1) continue;
     const curve = series.curveType || 'A01';
     if (!['A01', 'A03'].includes(curve)) continue;
     for (const period of list(series.Period)) {
@@ -72,9 +77,20 @@ export function parseDayAheadXml(xml) {
   }
   if (!intervals.length) throw new ApiError(502, 'market_incomplete', 'No eligible day-ahead prices were published.');
   intervals.sort((a, b) => a.startUtc.localeCompare(b.startUtc));
-  if (new Set(intervals.map(item => item.startUtc)).size !== intervals.length)
-    throw new ApiError(502, 'market_invalid_response', 'The market provider returned overlapping prices.');
-  return { status: 'published', documentId: String(body.mRID || ''), intervals };
+  // ENTSO-E can return the same A44 series twice for one zone/day. Identical
+  // points are harmless duplicates; divergent prices are never guessed away.
+  const unique = [];
+  for (const item of intervals) {
+    const previous = unique.at(-1);
+    if (previous?.startUtc === item.startUtc) {
+      if (previous.endUtc !== item.endUtc || previous.priceEurMwh !== item.priceEurMwh
+          || previous.resolutionMinutes !== item.resolutionMinutes)
+        throw new ApiError(502, 'market_invalid_response', 'The market provider returned conflicting prices.');
+      continue;
+    }
+    unique.push(item);
+  }
+  return { status: 'published', documentId: String(body.mRID || ''), intervals: unique };
 }
 
 export class DayAheadMarket {

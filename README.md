@@ -28,7 +28,9 @@ The Compose files define a **core stack** and **optional integrations**. An over
 | `manager` | OpenRemote Assets, attributes, rules, Agents and authenticated Manager UI. |
 | `proxy` | Local HTTPS entry point for OpenRemote and Keycloak. |
 | `gridex-db` | Separate PostgreSQL for GrideX workflows, permissions/bindings and audit; not a second inventory. |
+| `gridex-market-db` | Dedicated TimescaleDB for permanent hourly wholesale-price history; not customer inventory. |
 | `gridex-api` | Portal-facing API, authorization and provisioning orchestration. |
+| `gridex-market-worker` | Retrieves ENTSO-E A44 day-ahead prices with the private token and stores complete UTC hours. |
 | `broker` | Mosquitto MQTT broker with client certificates and scoped topic access. |
 | `heartbeat-worker` | Consumes gateway/node health messages and updates connection state. |
 | `history-worker` | Consumes approved measurements and writes attributes/datapoints through OpenRemote. |
@@ -71,7 +73,9 @@ Compose файловете описват **основен стек** и **до�
 | `manager` | OpenRemote Assets, атрибути, правила, Agents и защитен Manager интерфейс. |
 | `proxy` | Локален HTTPS вход към OpenRemote и Keycloak. |
 | `gridex-db` | Отделна PostgreSQL за процесите, правата/връзките и одита на GrideX; не втори регистър на устройствата. |
+| `gridex-market-db` | Отделна TimescaleDB за постоянна история на часовите борсови цени; не е клиентски инвентар. |
 | `gridex-api` | API за портала, проверки на права и координация на провизирането. |
+| `gridex-market-worker` | Получава ENTSO-E A44 цени с частния токен и пази само пълни UTC часове. |
 | `broker` | Mosquitto MQTT с клиентски сертификати и ограничен достъп по теми. |
 | `heartbeat-worker` | Приема съобщения за състоянието на шлюза/нода и обновява връзката. |
 | `history-worker` | Приема одобрените измервания и записва атрибути/история през OpenRemote. |

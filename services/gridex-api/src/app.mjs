@@ -124,7 +124,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market, serviceEntitlements }) {
   const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
@@ -212,6 +212,28 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (!organisationAccess) throw new ApiError(503, 'organisation_access_unavailable', 'Organisation access management is unavailable.');
         return await json(res, 200, { organisations: await organisationAccess.list(principal) }, context);
       }
+      if (url.pathname === '/api/v1/platform/services' && req.method === 'GET') {
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
+        return await json(res, 200, { services: await serviceEntitlements.catalog(principal) }, context);
+      }
+      const platformService = url.pathname.match(/^\/api\/v1\/platform\/organisations\/([0-9a-f-]{36})\/services(?:\/([a-z][a-z0-9_]{1,63}))?$/i);
+      if (platformService && serviceEntitlements) {
+        if (req.method === 'GET' && !platformService[2]) return await json(res, 200,
+          { services: await serviceEntitlements.listOrganisation(principal, platformService[1], true) }, context);
+        if (req.method === 'PUT' && platformService[2]) return await json(res, 200,
+          await serviceEntitlements.setOrganisation(principal, platformService[1], platformService[2],
+            (await readJson(req, 512)).enabled), context);
+      }
+      const memberService = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/services(?:\/([a-z][a-z0-9_]{1,63})\/members(?:\/([^/]+))?)?$/i);
+      if (memberService && serviceEntitlements) {
+        if (req.method === 'GET' && !memberService[2]) return await json(res, 200,
+          { services: await serviceEntitlements.listOrganisation(principal, memberService[1]) }, context);
+        if (req.method === 'GET' && memberService[2] && !memberService[3]) return await json(res, 200,
+          { members: await serviceEntitlements.listMembers(principal, memberService[1], memberService[2]) }, context);
+        if (req.method === 'PUT' && memberService[2] && memberService[3]) return await json(res, 200,
+          await serviceEntitlements.setMember(principal, memberService[1], memberService[2],
+            decodeURIComponent(memberService[3]), (await readJson(req, 512)).enabled), context);
+      }
       const organisationAccessRoute = url.pathname.match(/^\/api\/v1\/platform\/organisations\/([0-9a-f-]{36})\/(access|delivery)$/i);
       if (organisationAccessRoute && req.method === 'POST') {
         requirePermission(principal, 'platform:manage');
@@ -277,14 +299,26 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           memberships,
         }, context);
       }
+      if (req.method === 'GET' && url.pathname === '/api/v1/me/services') {
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
+        return await json(res, 200, { services: await serviceEntitlements.mine(principal) }, context);
+      }
 
       if (req.method === 'GET' && url.pathname === '/api/v1/market/services') {
-        requirePermission(principal, 'site:read');
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
+        serviceEntitlements.platform(principal);
         return await json(res, 200, { services: [{ id: 'day_ahead', label: 'Day-ahead', provider: 'ENTSO-E' }],
           zones: MARKET_ZONES }, context);
       }
+      if (req.method === 'GET' && url.pathname === '/api/v1/market/status') {
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
+        serviceEntitlements.platform(principal);
+        if (!market) throw new ApiError(503, 'market_not_configured', 'Market archive is not configured.');
+        return await json(res, 200, { provider: 'ENTSO-E', zones: await market.status() }, context);
+      }
       if (req.method === 'GET' && url.pathname === '/api/v1/market/prices') {
-        requirePermission(principal, 'site:read');
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
+        serviceEntitlements.platform(principal);
         if (!market) throw new ApiError(503, 'market_not_configured', 'The market provider is not configured.');
         return await json(res, 200, await market.prices({
           country: url.searchParams.get('country'), zone: url.searchParams.get('zone'),
