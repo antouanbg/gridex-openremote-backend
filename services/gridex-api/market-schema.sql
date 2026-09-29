@@ -1,6 +1,27 @@
 -- Dedicated GrideX market TimescaleDB. No retention/drop policy: prices are permanent.
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
+-- Explicit collection allowlist. Existing historical prices are preserved, but
+-- only Bulgaria is collected until the platform administrator enables a zone.
+CREATE TABLE IF NOT EXISTS market_collection_zones (
+  zone text PRIMARY KEY,
+  country text NOT NULL,
+  enabled boolean NOT NULL DEFAULT false,
+  changed_by text NOT NULL,
+  changed_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO market_collection_zones(zone,country,enabled,changed_by)
+VALUES ('BG','BG',true,'system:bulgaria-default') ON CONFLICT (zone) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS market_collection_zone_events (
+  id bigserial PRIMARY KEY,
+  zone text NOT NULL,
+  country text NOT NULL,
+  enabled boolean NOT NULL,
+  changed_by text NOT NULL,
+  changed_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS market_hourly_prices (
   start_utc timestamptz NOT NULL,
   zone text NOT NULL,

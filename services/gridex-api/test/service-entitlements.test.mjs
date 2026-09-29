@@ -24,3 +24,17 @@ test('organisation enablement never grants a member automatically',async()=>{
   await grants.setOrganisation(platform,organisationId,'day_ahead',false);
   assert.equal(sql.some(query=>query.includes('DELETE FROM organisation_services')),true);
 });
+
+test('market zone grants require platform identity and day-ahead organisation grant',async()=>{
+  const sql=[];
+  const db={query:async(query)=>{sql.push(query);return {rows:query.includes('FROM organisations WHERE id=$1')
+    ?[{status:'active'}]:[]};},release(){}};
+  const grants=new ServiceEntitlements({query:db.query,connect:async()=>db},config);
+  await assert.rejects(grants.setOrganisationMarketZone(member,organisationId,'BG','BG',true),
+    error=>error.code==='permission_denied');
+  await assert.rejects(grants.setOrganisationMarketZone(platform,organisationId,'BG','BG',true),
+    error=>error.code==='service_not_enabled');
+  assert.equal(sql.some(query=>query.includes('INSERT INTO organisation_market_zones')),false);
+  await assert.rejects(grants.setOrganisationMarketZone(platform,organisationId,'FR','bogus',true),
+    error=>error.code==='market_zone_invalid');
+});

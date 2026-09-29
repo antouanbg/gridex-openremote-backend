@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { ApiError } from './errors.mjs';
+import { MARKET_ZONES } from './market-prices.mjs';
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const serviceCode = /^[a-z][a-z0-9_]{1,63}$/;
@@ -69,6 +70,40 @@ export class ServiceEntitlements {
         VALUES($1,$2,'service',$3,'success',$4)`, [principal.subject,enabled?'service.organisation.enabled':'service.organisation.disabled',`${id}:${code}`,randomUUID()]);
       await db.query('COMMIT');
       return { code, enabled };
+    } catch (error) { await db.query('ROLLBACK'); throw error; }
+    finally { db.release(); }
+  }
+
+  async listOrganisationMarketZones(principal, id, collected) {
+    await this.platformOrganisation(principal, id);
+    const { rows } = await this.pool.query(`SELECT country,zone FROM organisation_market_zones
+      WHERE organisation_id=$1 AND service_code='day_ahead'`, [id]);
+    return MARKET_ZONES.map(item => ({ ...item,
+      collected: collected.some(zone => zone.zone === item.zone && zone.enabled),
+      enabled: rows.some(row => row.zone === item.zone && row.country === item.country) }));
+  }
+
+  async setOrganisationMarketZone(principal, id, country, zone, enabled) {
+    await this.platformOrganisation(principal, id);
+    const selected = MARKET_ZONES.find(item => item.country === country && item.zone === zone);
+    if (!selected || typeof enabled !== 'boolean')
+      throw new ApiError(400, 'market_zone_invalid', 'Select a supported country and bidding zone.');
+    const db = await this.pool.connect();
+    try {
+      await db.query('BEGIN');
+      const service = await db.query(`SELECT 1 FROM organisation_services
+        WHERE organisation_id=$1 AND service_code='day_ahead' FOR UPDATE`, [id]);
+      if (enabled && !service.rows.length)
+        throw new ApiError(403, 'service_not_enabled', 'Enable day-ahead for this organisation first.');
+      if (enabled) await db.query(`INSERT INTO organisation_market_zones
+        (organisation_id,country,zone,granted_by) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+        [id,country,zone,principal.subject]);
+      else await db.query(`DELETE FROM organisation_market_zones WHERE organisation_id=$1 AND zone=$2`, [id,zone]);
+      await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
+        VALUES($1,$2,'market_zone',$3,'success',$4)`,
+        [principal.subject,enabled?'market.zone.granted':'market.zone.revoked',`${id}:${zone}`,randomUUID()]);
+      await db.query('COMMIT');
+      return { country,zone,enabled };
     } catch (error) { await db.query('ROLLBACK'); throw error; }
     finally { db.release(); }
   }

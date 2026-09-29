@@ -216,6 +216,32 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
         return await json(res, 200, { services: await serviceEntitlements.catalog(principal) }, context);
       }
+      if (url.pathname === '/api/v1/platform/market/zones' && req.method === 'GET') {
+        if (!serviceEntitlements || !market) throw new ApiError(503, 'market_not_configured', 'Market administration is unavailable.');
+        serviceEntitlements.platform(principal);
+        return await json(res, 200, { zones: await market.collectionZones() }, context);
+      }
+      const collectionZone = url.pathname.match(/^\/api\/v1\/platform\/market\/zones\/([A-Za-z-]{2,32})$/);
+      if (collectionZone && req.method === 'PUT') {
+        if (!serviceEntitlements || !market) throw new ApiError(503, 'market_not_configured', 'Market administration is unavailable.');
+        serviceEntitlements.platform(principal);
+        const body = await readJson(req, 512);
+        return await json(res, 200, await market.setCollectionZone(body.country, collectionZone[1], body.enabled, principal.subject), context);
+      }
+      const organisationZone = url.pathname.match(/^\/api\/v1\/platform\/organisations\/([0-9a-f-]{36})\/market-zones(?:\/([A-Za-z-]{2,32}))?$/i);
+      if (organisationZone) {
+        if (!serviceEntitlements || !market) throw new ApiError(503, 'market_not_configured', 'Market administration is unavailable.');
+        if (req.method === 'GET' && !organisationZone[2]) return await json(res, 200,
+          { zones: await serviceEntitlements.listOrganisationMarketZones(principal, organisationZone[1], await market.collectionZones()) }, context);
+        if (req.method === 'PUT' && organisationZone[2]) {
+          serviceEntitlements.platform(principal);
+          const body = await readJson(req, 512);
+          if (body.enabled && !(await market.isZoneEnabled(body.country, organisationZone[2])))
+            throw new ApiError(403, 'market_zone_disabled', 'Enable collection for this zone first.');
+          return await json(res, 200, await serviceEntitlements.setOrganisationMarketZone(
+            principal, organisationZone[1], body.country, organisationZone[2], body.enabled), context);
+        }
+      }
       const platformService = url.pathname.match(/^\/api\/v1\/platform\/organisations\/([0-9a-f-]{36})\/services(?:\/([a-z][a-z0-9_]{1,63}))?$/i);
       if (platformService && serviceEntitlements) {
         if (req.method === 'GET' && !platformService[2]) return await json(res, 200,

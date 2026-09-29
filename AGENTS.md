@@ -1,5 +1,26 @@
 # GrideX OpenRemote backend — Working rules
 
+## Country collection and Grafana boundary — owner decision 2026-09-29
+
+Only Bulgarian day-ahead zone BG is collected by default. Never fetch or
+persist another ENTSO-E zone unless the verified allowlisted platform
+administrator explicitly enables that zone. Organisation service grants,
+organisation market-zone grants and member grants are separate, all default
+off. Do not infer a zone grant from a Site's country or from an invitation.
+Stopping collection preserves existing historical rows; never silently delete
+them. Keep Grafana private, local-only and unactivated until separate read-only
+database credentials, SSO/tenant isolation and owner approval for publication.
+Grafana OSS charts may use GrideX colours, but do not claim the product has
+full OSS white-label branding.
+
+По подразбиране се събират само BG цени. Друга зона се заявява и записва
+единствено след изрично включване от проверения супер администратор.
+Разрешението за услуга, зона на организация и отделен потребител са различни
+права и всички са изключени по подразбиране. Не извеждай права от държавата
+на Обекта или от покана. Спирането на събиране не трие историята. Grafana е
+само частно подготвен операторски инструмент без публичен достъп, докато няма
+отделни read-only права, SSO/tenant проверка и одобрение за публикуване.
+
 ## Service grants and market archive — owner decision 2026-09-29
 
 Services are disabled by default for every new organisation and member. A

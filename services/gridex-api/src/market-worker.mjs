@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from './config.mjs';
-import { DayAheadMarket, MARKET_ZONES } from './market-prices.mjs';
+import { DayAheadMarket } from './market-prices.mjs';
 import { MarketStorage } from './market-storage.mjs';
 
 const config = loadConfig();
@@ -18,7 +18,7 @@ async function refresh() {
   if (busy || stopped) return;
   busy = true;
   try {
-    for (const selected of MARKET_ZONES) {
+    for (const selected of await storage.enabledZones()) {
       if (stopped) break;
       try {
         const parts = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
