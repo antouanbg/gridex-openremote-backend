@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { ApiError } from './errors.mjs';
+import { MARKET_ZONES } from './market-prices.mjs';
 
 export function hourlyPrices(intervals) {
   const groups = new Map();
@@ -34,16 +35,48 @@ export class MarketStorage {
     this.pool = pool || new pg.Pool({ ...database, max: 4, idleTimeoutMillis: 30000 });
   }
   async close() { await this.pool.end(); }
+  async collectionZones() {
+    const { rows } = await this.pool.query('SELECT zone,country,enabled,changed_at AS "changedAt" FROM market_collection_zones ORDER BY zone');
+    return MARKET_ZONES.map(item => ({ ...item, enabled: rows.find(row => row.zone === item.zone)?.enabled === true }));
+  }
+  async enabledZones() {
+    return (await this.collectionZones()).filter(zone => zone.enabled);
+  }
+  async isZoneEnabled(country, zone) {
+    const { rows } = await this.pool.query('SELECT enabled FROM market_collection_zones WHERE country=$1 AND zone=$2', [country,zone]);
+    return rows[0]?.enabled === true;
+  }
+  async setCollectionZone(country, zone, enabled, subject) {
+    const selected = MARKET_ZONES.find(item => item.country === country && item.zone === zone);
+    if (!selected || typeof enabled !== 'boolean')
+      throw new ApiError(400, 'market_zone_invalid', 'Select a supported country and bidding zone.');
+    const db = await this.pool.connect();
+    try {
+      await db.query('BEGIN');
+      const { rows } = await db.query(`INSERT INTO market_collection_zones(zone,country,enabled,changed_by)
+        VALUES($1,$2,$3,$4) ON CONFLICT(zone) DO UPDATE SET enabled=excluded.enabled,
+        changed_by=excluded.changed_by,changed_at=now() RETURNING zone,country,enabled`,
+        [zone,country,enabled,subject]);
+      await db.query(`INSERT INTO market_collection_zone_events(zone,country,enabled,changed_by)
+        VALUES($1,$2,$3,$4)`, [zone,country,enabled,subject]);
+      await db.query('COMMIT');
+      return rows[0];
+    } catch (error) { await db.query('ROLLBACK'); throw error; }
+    finally { db.release(); }
+  }
   async status() {
-    const { rows } = await this.pool.query(`SELECT zone,country,status,error_code AS "errorCode",
+    const { rows } = await this.pool.query(`SELECT zone,s.country,status,error_code AS "errorCode",
       last_attempt_at AS "lastAttemptAt",last_success_at AS "lastSuccessAt",
-      latest_delivery_date AS "latestDeliveryDate" FROM market_fetch_status ORDER BY zone`);
+      latest_delivery_date AS "latestDeliveryDate" FROM market_fetch_status s
+      JOIN market_collection_zones c USING(zone) WHERE c.enabled=true ORDER BY zone`);
     return rows;
   }
   async prices({ country, zone, date, service }) {
     if (service !== 'day_ahead' || !/^[A-Z]{2}$/.test(country || '')
         || !/^[A-Za-z-]{2,32}$/.test(zone || '') || !/^\d{4}-\d{2}-\d{2}$/.test(date || ''))
       throw new ApiError(400, 'market_query_invalid', 'Valid day-ahead country, zone and date are required.');
+    if (!(await this.isZoneEnabled(country, zone)))
+      throw new ApiError(403, 'market_zone_disabled', 'Collection is not enabled for this zone.');
     const { rows } = await this.pool.query(`SELECT start_utc AS "startUtc",
       start_utc + interval '1 hour' AS "endUtc",price_eur_mwh::float8 AS "priceEurMwh",
       source_resolution_minutes AS "sourceResolutionMinutes",source_interval_count AS "sourceIntervalCount",
@@ -57,6 +90,10 @@ export class MarketStorage {
     const db = await this.pool.connect();
     try {
       await db.query('BEGIN');
+      // Lock the allowlist row for this transaction. A concurrent disable
+      // waits for the current save; no prices can be saved after it commits.
+      const permission = await db.query('SELECT enabled FROM market_collection_zones WHERE zone=$1 FOR SHARE', [result.zone]);
+      if (permission.rows[0]?.enabled !== true) { await db.query('ROLLBACK'); return 0; }
       for (const hour of hours) {
         // Match the numeric(16,6) archive precision before deduplication.
         const price=Number(hour.priceEurMwh.toFixed(6));

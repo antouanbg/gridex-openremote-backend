@@ -105,6 +105,42 @@ test('market archive and status are platform-only, never return the provider tok
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
 
+test('country collection and organisation zone administration require the platform identity', async () => {
+  const repository=new MemoryRepository();
+  const changes=[];
+  const market={
+    collectionZones:async()=>[{country:'BG',zone:'BG',enabled:true},{country:'FR',zone:'FR',enabled:false}],
+    isZoneEnabled:async(country,zone)=>country==='BG'&&zone==='BG',
+    setCollectionZone:async(country,zone,enabled,subject)=>{changes.push({country,zone,enabled,subject});return {country,zone,enabled};},
+  };
+  const entitlements={
+    platform(principal){if(principal.subject!=='owner')throw new ApiError(403,'permission_denied','Platform administrator required.');},
+    listOrganisationMarketZones:async()=>[],
+    setOrganisationMarketZone:async()=>{throw new Error('disabled collection must fail first');},
+  };
+  const app=createApp({config:{realm:'gridex',allowedOrigins:new Set(),maximumBodyBytes:1024},
+    authenticate:async req=>{
+      if(!req.headers.authorization)throw new ApiError(401,'authentication_required','Sign in.');
+      return {subject:req.headers.authorization==='Bearer owner'?'owner':'member',realm:'gridex',emailVerified:true,
+        roles:[],permissions:[]};
+    },repository,openRemote:{health:async()=>true},market,serviceEntitlements:entitlements});
+  const server=createServer(app);
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`;
+    const route=`${base}/api/v1/platform/market/zones`;
+    assert.equal((await fetch(route)).status,401);
+    assert.equal((await fetch(route,{headers:{Authorization:'Bearer member'}})).status,403);
+    const response=await fetch(route,{headers:{Authorization:'Bearer owner'}});
+    assert.equal(response.status,200);
+    assert.deepEqual((await response.json()).zones.map(zone=>zone.enabled),[true,false]);
+    const org=`${base}/api/v1/platform/organisations/11111111-1111-4111-8111-111111111111/market-zones/FR`;
+    assert.equal((await fetch(org,{method:'PUT',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},
+      body:JSON.stringify({country:'FR',enabled:true})})).status,403);
+    assert.equal(changes.length,0);
+  } finally {await new Promise(resolve=>server.close(resolve));}
+});
+
 test('fall DST day keeps 25 distinct UTC hours in Bulgaria', async () => {
   const points = Array.from({ length: 25 }, (_, index) => `<Point><position>${index + 1}</position><price.amount>${index}</price.amount></Point>`).join('');
   const document = `<Publication_MarketDocument><mRID>dst-25</mRID><TimeSeries>

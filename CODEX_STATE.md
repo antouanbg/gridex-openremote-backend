@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — BG-only market collection and Grafana preparation
+
+Owner requires BG-only ENTSO-E ingestion until the verified platform admin
+explicitly enables another zone. Live worker now reads a persistent collection
+allowlist; BG alone is on. Earlier multi-zone historical rows are preserved,
+not deleted. Separate organisation zone grants are default-off and cascade
+with the day-ahead service grant; members still need their own grants, and
+prices remain platform-only. Migration 018 and API are live after backup; new
+routes deny anonymous access. Frontend publication and real role acceptance
+need independent verification; see HANDOFF. Optional Grafana
+overlay/dashboard is prepared but not activated or public.
+
 ## 2026-09-29 — service grants and live hourly market archive
 
 Owner-approved organisation grant then explicit per-member grant, default-off;
