@@ -175,4 +175,19 @@ export class ServiceEntitlements {
       WHERE g.subject=$1 AND o.openremote_realm=$2 ORDER BY g.service_code`, [principal.subject,principal.realm]);
     return rows;
   }
+
+  async requireSiteVisualisations(principal, organisationId) {
+    if (!principal.emailVerified || !uuid.test(organisationId))
+      throw new ApiError(403, 'service_not_enabled', 'Verified service access required.');
+    try { this.platform(principal); return; } catch (error) {
+      if (!(error instanceof ApiError) || error.code !== 'permission_denied') throw error;
+    }
+    const { rows } = await this.pool.query(`SELECT 1 FROM organisations o
+      JOIN organisation_memberships m ON m.organisation_id=o.id AND m.subject=$2
+      JOIN organisation_services s ON s.organisation_id=o.id AND s.service_code='visualisations'
+      JOIN member_services g ON g.organisation_id=o.id AND g.subject=$2 AND g.service_code='visualisations'
+      WHERE o.id=$1 AND o.openremote_realm=$3 AND o.status='active' LIMIT 1`,
+    [organisationId, principal.subject, principal.realm]);
+    if (!rows.length) throw new ApiError(403, 'service_not_enabled', 'Visualisations are not enabled for this member.');
+  }
 }

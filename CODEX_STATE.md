@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — Site charts and live service requests
+
+Service-request migration 020/API are live after private backup; existing
+organisations/memberships preserved and anonymous route denied. Site charts
+are implemented in source via OpenRemote-only Site-scoped history, requiring
+org/member visualisations grants and current OpenRemote Site access. Full
+backend suite: 117 passed, 1 skipped. Site-chart deployment and real account
+acceptance remain separate gates; see newest HANDOFF. Do not substitute a
+shared Grafana customer datasource.
+
 ## 2026-09-29 — service request workflow in source
 
 Migration 020 and API source implement idempotent BG-only/member service
