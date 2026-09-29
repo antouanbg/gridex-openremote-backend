@@ -537,6 +537,16 @@ inventory, real addresses or VPN ranges.
 
 ## Bilingual documentation — mandatory
 
+Every new or edited user-facing documentation page, help answer or process
+description must include its English version in the same change and be
+published alongside Bulgarian. If either locale is missing or stale, do not
+mark the feature or documentation complete. Verify both public Docusaurus URLs.
+
+Всяка нова или редактирана потребителска страница, отговор в помощта или
+описание на процес трябва да има EN версия в същата промяна и да се публикува
+заедно с BG. При липсващ или остарял превод не обявявай задачата за завършена;
+провери и двата публични Docusaurus адреса.
+
 For every user-facing, architecture, API-contract, security, operational or
 deployment text:
 
