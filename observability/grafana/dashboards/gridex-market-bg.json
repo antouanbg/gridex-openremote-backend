@@ -4,16 +4,23 @@
   "tags": ["gridex", "bg", "entsoe"],
   "timezone": "Europe/Sofia",
   "schemaVersion": 40,
-  "version": 1,
+  "version": 2,
   "refresh": "1h",
   "time": {"from": "now-7d", "to": "now+2d"},
   "panels": [
+    {
+      "id": 3,
+      "type": "text",
+      "title": "Как да четем цените",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0},
+      "options": {"mode": "markdown", "content": "**Ден напред**: цената е за доставка на показаната дата и час, определена на търга през предходния ден. Оста на времето е по **българско време (Europe/Sofia)**. Графиката обхваща последните 7 дни и до 2 дни напред **само при публикувани стойности**. „Последно успешно обновяване“ е кога GrideX е получил данните от ENTSO-E, **не** датата на доставка. Стойностите са борсови **EUR/MWh**, без данъци, мрежови такси и клиентски надбавки."}
+    },
     {
       "id": 1,
       "type": "timeseries",
       "title": "България · борсова цена ден напред · EUR/MWh",
       "description": "Реални часове от ENTSO-E; без клиентски надбавки, данъци или мрежови такси.",
-      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 0},
+      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 5},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "time_series", "rawQuery": true,
         "rawSql": "SELECT $__time(start_utc), price_eur_mwh::double precision AS \"EUR/MWh\" FROM grafana_bg_hourly_prices WHERE $__timeFilter(start_utc) ORDER BY start_utc"}],
@@ -24,11 +31,22 @@
       "id": 2,
       "type": "stat",
       "title": "Последно успешно обновяване · BG",
-      "gridPos": {"h": 5, "w": 12, "x": 0, "y": 12},
+      "gridPos": {"h": 5, "w": 12, "x": 0, "y": 17},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "table", "rawQuery": true,
         "rawSql": "SELECT last_success_at AS \"Последно успешно обновяване\" FROM grafana_bg_fetch_status"}],
       "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#1B8062"}, "unit": "dateTimeAsIso"}, "overrides": []}
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Последен час с налична цена · BG",
+      "description": "Последният наличен час на доставка по българско време; не е моментът на обновяване.",
+      "gridPos": {"h": 5, "w": 12, "x": 12, "y": 17},
+      "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
+      "targets": [{"refId": "A", "format": "table", "rawQuery": true,
+        "rawSql": "SELECT MAX(start_utc) AS \"Последен час с цена\" FROM grafana_bg_hourly_prices"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#B9E343"}, "unit": "dateTimeAsIso"}, "overrides": []}
     }
   ]
 }
