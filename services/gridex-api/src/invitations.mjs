@@ -46,6 +46,12 @@ export class EnrollmentIdentity {
     }
     return { subject: users[0].id, created };
   }
+  async inspectMemberUser(subject, email) {
+    const user = await this.request(`/users/${encodeURIComponent(subject)}`);
+    if (user?.id !== subject || !user.enabled || user.email?.toLowerCase() !== email)
+      throw new ApiError(409, 'identity_conflict', 'The invited identity no longer matches.');
+    return { needsPassword: user.requiredActions?.includes('UPDATE_PASSWORD') === true };
+  }
   async sendActions(subject, created) {
     const query = new URLSearchParams({ client_id: this.config.oidcAudience,
       redirect_uri: this.config.enrollmentRedirectUri, lifespan: '86400' });
@@ -123,6 +129,49 @@ export class InvitationService {
       AND ($3::text IS NULL OR o.openremote_realm=$3)`,
     [principal.subject, principal.email?.toLowerCase(), principal.realm]);
     return rows;
+  }
+  async listCreated(principal, org) {
+    return this.transaction(async db => {
+      await this.admin(db, principal.subject, org, principal.realm);
+      const { rows } = await db.query(`SELECT id,email,role,site_ids AS "siteIds",state,
+        expires_at AS "expiresAt",created_at AS "createdAt"
+        FROM organisation_invitations WHERE organisation_id=$1 AND created_by=$2
+        ORDER BY created_at DESC LIMIT 100`, [org, principal.subject]);
+      return rows;
+    });
+  }
+  async resend(principal, org, id) {
+    const invite = await this.transaction(async db => {
+      await this.admin(db, principal.subject, org, principal.realm);
+      const { rows } = await db.query(`SELECT subject,email,site_ids AS "siteIds" FROM organisation_invitations
+        WHERE id=$1 AND organisation_id=$2 AND created_by=$3 AND state='sent' FOR UPDATE`,
+      [id, org, principal.subject]);
+      if (!rows.length) throw new ApiError(404, 'invitation_unavailable', 'Only a sent invitation can be resent.');
+      await this.permittedSites(db, principal.subject, org, rows[0].siteIds, principal.realm);
+      await db.query(`UPDATE organisation_invitations SET state='pending_delivery' WHERE id=$1 AND state='sent'`, [id]);
+      await this.audit(db, principal.subject, id, 'invitation.resend_started');
+      return rows[0];
+    });
+    try {
+      const inspected = await this.identity.inspectMemberUser(invite.subject, invite.email, principal.realm);
+      await this.identity.sendActions(invite.subject, inspected.needsPassword, principal.realm);
+      return await this.transaction(async db => {
+        const { rows } = await db.query(`UPDATE organisation_invitations
+          SET state='sent',expires_at=now()+interval '24 hours'
+          WHERE id=$1 AND organisation_id=$2 AND created_by=$3 AND state='pending_delivery'
+          RETURNING id,state,expires_at AS "expiresAt"`, [id, org, principal.subject]);
+        if (!rows.length) throw new ApiError(409, 'invitation_unavailable', 'Invitation was revoked.');
+        await this.audit(db, principal.subject, id, 'invitation.resent');
+        return rows[0];
+      });
+    } catch {
+      await this.transaction(async db => {
+        await db.query(`UPDATE organisation_invitations SET state='delivery_failed'
+          WHERE id=$1 AND organisation_id=$2 AND state='pending_delivery'`, [id, org]);
+        await this.audit(db, principal.subject, id, 'invitation.resend_unconfirmed');
+      });
+      throw new ApiError(503, 'invitation_resend_unconfirmed', 'Resend was not confirmed; inspect status before retrying.');
+    }
   }
   async accept(principal, id) {
     if (!principal.emailVerified || !principal.email) throw new ApiError(403, 'email_not_verified', 'Verify your email first.');

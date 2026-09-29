@@ -171,6 +171,12 @@ export class OpenRemoteRealmSetup {
       throw new ApiError(409, 'identity_conflict', 'The invited identity cannot be used.');
     return { subject: users[0].id, created };
   }
+  async inspectMemberUser(realm, subject, email) {
+    const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
+    if (user?.id !== subject || !user.enabled || user.email?.toLowerCase() !== email)
+      throw new ApiError(409, 'identity_conflict', 'The invited identity no longer matches.');
+    return { needsPassword: user.requiredActions?.includes('UPDATE_PASSWORD') === true };
+  }
   async verifyUser(realm, subject, email) {
     const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
     if (user?.id !== subject || !user.enabled || !user.emailVerified || user.email?.toLowerCase() !== email)
