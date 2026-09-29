@@ -124,7 +124,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements, serviceRequests }) {
   const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
@@ -239,6 +239,37 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (url.pathname === '/api/v1/platform/services' && req.method === 'GET') {
         if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service administration is unavailable.');
         return await json(res, 200, { services: await serviceEntitlements.catalog(principal) }, context);
+      }
+      if (url.pathname === '/api/v1/me/service-catalog' && req.method === 'GET') {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        return await json(res, 200, { services: await serviceRequests.catalog(principal) }, context);
+      }
+      if (url.pathname === '/api/v1/me/service-requests' && ['GET','POST'].includes(req.method)) {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        if (req.method === 'GET') return await json(res, 200, { requests: await serviceRequests.list(principal, 'mine') }, context);
+        return await json(res, 201, await serviceRequests.create(principal, await readJson(req, 1024)), context);
+      }
+      if (url.pathname === '/api/v1/platform/service-requests' && req.method === 'GET') {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        return await json(res, 200, { requests: await serviceRequests.list(principal, 'platform') }, context);
+      }
+      const platformRequest = url.pathname.match(/^\/api\/v1\/platform\/service-requests\/([0-9a-f-]{36})\/(approve|reject)$/i);
+      if (platformRequest && req.method === 'POST') {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        return await json(res, 200, platformRequest[2] === 'approve'
+          ? await serviceRequests.approvePlatform(principal, platformRequest[1])
+          : await serviceRequests.reject(principal, platformRequest[1], null, (await readJson(req, 1024)).note), context);
+      }
+      const organisationRequest = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/service-requests(?:\/([0-9a-f-]{36})\/(approve|reject))?$/i);
+      if (organisationRequest && (req.method === 'GET' || req.method === 'POST')) {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        if (req.method === 'GET' && !organisationRequest[2]) return await json(res, 200,
+          { requests: await serviceRequests.list(principal, 'organisation', organisationRequest[1]) }, context);
+        if (req.method === 'POST' && organisationRequest[2]) return await json(res, 200,
+          organisationRequest[3] === 'approve'
+            ? await serviceRequests.approveOrganisation(principal, organisationRequest[1], organisationRequest[2])
+            : await serviceRequests.reject(principal, organisationRequest[2], organisationRequest[1],
+              (await readJson(req, 1024)).note), context);
       }
       if (url.pathname === '/api/v1/platform/market/zones' && req.method === 'GET') {
         if (!serviceEntitlements || !market) throw new ApiError(503, 'market_not_configured', 'Market administration is unavailable.');

@@ -66,6 +66,12 @@ export class ServiceEntitlements {
       if (enabled) await db.query(`INSERT INTO organisation_services(organisation_id,service_code,granted_by)
         VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, [id,code,principal.subject]);
       else await db.query('DELETE FROM organisation_services WHERE organisation_id=$1 AND service_code=$2', [id,code]);
+      if (enabled) await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
+        SELECT gen_random_uuid(),r.id,$3,'platform_approved' FROM service_requests r
+        WHERE r.organisation_id=$1 AND r.service_code=$2 AND r.state='open'
+          AND (r.service_code<>'day_ahead' OR EXISTS (SELECT 1 FROM organisation_market_zones z
+            WHERE z.organisation_id=$1 AND z.service_code='day_ahead' AND z.country='BG' AND z.zone='BG'))
+        ON CONFLICT DO NOTHING`, [id,code,principal.subject]);
       // Revocation cascades to every user grant; re-enabling never restores old access.
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
         VALUES($1,$2,'service',$3,'success',$4)`, [principal.subject,enabled?'service.organisation.enabled':'service.organisation.disabled',`${id}:${code}`,randomUUID()]);
@@ -100,6 +106,11 @@ export class ServiceEntitlements {
         (organisation_id,country,zone,granted_by) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
         [id,country,zone,principal.subject]);
       else await db.query(`DELETE FROM organisation_market_zones WHERE organisation_id=$1 AND zone=$2`, [id,zone]);
+      if (enabled && country === 'BG' && zone === 'BG') await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
+        SELECT gen_random_uuid(),r.id,$2,'platform_approved' FROM service_requests r
+        JOIN organisation_services s ON s.organisation_id=r.organisation_id AND s.service_code='day_ahead'
+        WHERE r.organisation_id=$1 AND r.service_code='day_ahead' AND r.state='open'
+        ON CONFLICT DO NOTHING`, [id,principal.subject]);
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
         VALUES($1,$2,'market_zone',$3,'success',$4)`,
         [principal.subject,enabled?'market.zone.granted':'market.zone.revoked',`${id}:${zone}`,randomUUID()]);
@@ -141,6 +152,10 @@ export class ServiceEntitlements {
         if (!member.rows.length) throw new ApiError(404, 'member_not_found', 'Approved member not found.');
         await db.query(`INSERT INTO member_services(organisation_id,service_code,subject,granted_by)
           VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`, [id,code,subject,principal.subject]);
+        await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
+          SELECT gen_random_uuid(),r.id,$4,'organisation_approved' FROM service_requests r
+          WHERE r.organisation_id=$1 AND r.service_code=$2 AND r.subject=$3 AND r.state='open'
+          ON CONFLICT DO NOTHING`, [id,code,subject,principal.subject]);
       } else await db.query(`DELETE FROM member_services
         WHERE organisation_id=$1 AND service_code=$2 AND subject=$3`, [id,code,subject]);
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
@@ -153,7 +168,7 @@ export class ServiceEntitlements {
 
   async mine(principal) {
     if (!principal.emailVerified) return [];
-    const { rows } = await this.pool.query(`SELECT g.service_code AS code FROM member_services g
+    const { rows } = await this.pool.query(`SELECT g.organisation_id AS "organisationId",g.service_code AS code FROM member_services g
       JOIN organisation_services og ON og.organisation_id=g.organisation_id AND og.service_code=g.service_code
       JOIN organisation_memberships m ON m.organisation_id=g.organisation_id AND m.subject=g.subject
       JOIN organisations o ON o.id=g.organisation_id AND o.status='active'

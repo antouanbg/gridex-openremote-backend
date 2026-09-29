@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — service request workflow in source
+
+Migration 020 and API source implement idempotent BG-only/member service
+requests, separate platform and organisation approvals, and decision history.
+No request directly grants access. Backend suite: 115 passed, 1 skipped.
+Live migration/restart, frontend publication and human role acceptance are
+separate gates; see the latest HANDOFF. Site charts remain pending a
+tenant-safe delivery decision. Do not infer production completion from this
+source checkpoint.
+
 ## 2026-09-29 — BG-only market collection and Grafana preparation
 
 Owner requires BG-only ENTSO-E ingestion until the verified platform admin
