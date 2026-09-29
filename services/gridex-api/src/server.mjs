@@ -12,6 +12,7 @@ import {DeviceVault} from './device-vault.mjs';
 import {DeviceHeartbeats} from './device-heartbeats.mjs';
 import {HeartbeatEmailSubscriptions} from './heartbeat-subscriptions.mjs';
 import {ManagerLaunch} from './manager-launch.mjs';
+import {GrafanaLaunch} from './grafana-launch.mjs';
 import { MarketStorage } from './market-storage.mjs';
 import { ServiceEntitlements } from './service-entitlements.mjs';
 
@@ -52,8 +53,11 @@ const managerLaunch = repository.pool && config.managerPublicOrigin
   ? new ManagerLaunch(repository.pool, config.managerPublicOrigin, config.realm, config.platformAdminSubjects) : null;
 const market = config.marketDatabase ? new MarketStorage(config.marketDatabase) : null;
 const serviceEntitlements = repository.pool ? new ServiceEntitlements(repository.pool, config) : null;
+const grafanaLaunch = repository.pool && market && config.grafanaPublicOrigin
+  ? new GrafanaLaunch(repository.pool, config.grafanaPublicOrigin, config, market) : null;
 if (managerLaunch) await managerLaunch.invalidateAll();
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market, serviceEntitlements }));
+if (grafanaLaunch) await grafanaLaunch.invalidateAll();
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 

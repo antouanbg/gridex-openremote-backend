@@ -16,7 +16,7 @@ test('only verified allowlisted pilot identity can administer the service catalo
 
 test('organisation enablement never grants a member automatically',async()=>{
   const sql=[];
-  const db={query:async(query)=>{sql.push(query);return {rows:[{id:organisationId,status:'active'}]};},release(){}};
+  const db={query:async(query)=>{sql.push(query);return {rows:[{id:organisationId,status:'active',requestable:true}]};},release(){}};
   const grants=new ServiceEntitlements({query:db.query,connect:async()=>db},config);
   await grants.setOrganisation(platform,organisationId,'day_ahead',true);
   assert.equal(sql.some(query=>query.includes('INSERT INTO member_services')),false);

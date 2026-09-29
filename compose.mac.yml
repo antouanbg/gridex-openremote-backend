@@ -122,6 +122,7 @@ services:
       OIDC_TOKEN_ENDPOINT: http://keycloak:8080/auth/realms/gridex/protocol/openid-connect/token
       OIDC_AUDIENCE: gridex-portal
       GRIDEX_PUBLIC_AUTH_BASE: ${GRIDEX_PUBLIC_AUTH_BASE:-}
+      GRIDEX_PUBLIC_API_BASE: ${GRIDEX_PUBLIC_API_BASE:-https://api.gridex.tech}
       GRIDEX_PLATFORM_ADMIN_SUBJECTS: ${GRIDEX_PLATFORM_ADMIN_SUBJECTS:-}
       GRIDEX_MARKET_DB_HOST: gridex-market-db
       GRIDEX_MARKET_DB_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}

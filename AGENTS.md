@@ -1,5 +1,29 @@
 # GrideX OpenRemote backend — Working rules
 
+## Approved service requests and embedded BG dashboard — 2026-09-29
+
+The owner approved two independent requestable services: `day_ahead` with
+exactly one country/zone selection (BG only at first), and `visualisations`
+for charts. Analysis, meteorology and forecasting are visible future entries,
+not requestable yet. All verified members may discover/request the first two,
+but a request never grants access. Platform admin grants an active organisation
+and, for day-ahead, its explicitly collected zone; only that organisation's
+admin grants each member. Both admins see the request's respective stage.
+An embedded BG price dashboard requires **both** service entitlements and BG
+zone scope for a customer; the Grafana service alone cannot reveal prices.
+Check realm, membership, active status and grants on every API/proxy request.
+Keep Grafana private until tenant-scoped read-only data, SSO/session protection
+and negative cross-tenant tests are deployed. Existing platform-only price
+policy remains effective until the new customer routes pass those checks.
+
+Собственикът одобри отделни заявяеми услуги „Цени ден напред“ с точно една
+държава/зона (първоначално само BG) и „Графики“. Анализ, метеорология и
+прогнозиране се виждат като бъдещи, но не се заявяват. Заявката не е право.
+Супер администраторът разрешава активна организация и ценова зона; нейният
+администратор разрешава конкретен член. За BG ценов dashboard се изискват
+**и двете** услуги плюс BG зона. Не отваряй Grafana публично без read-only
+изолация, SSO/сесийна защита и отрицателни тестове между организации.
+
 ## Country collection and Grafana boundary — owner decision 2026-09-29
 
 Only Bulgarian day-ahead zone BG is collected by default. Never fetch or

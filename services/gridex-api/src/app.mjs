@@ -124,7 +124,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, market, serviceEntitlements }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements }) {
   const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
@@ -186,6 +186,25 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         throw new ApiError(404, 'not_found', 'Manager route not found.');
       }
 
+      if (url.pathname.startsWith('/internal/grafana/')) {
+        if (!grafanaLaunch) throw new ApiError(503, 'grafana_unavailable', 'Dashboard access is not configured.');
+        if (url.pathname === '/internal/grafana/consume' && req.method === 'GET') {
+          const result = await grafanaLaunch.consume(url.searchParams.get('ticket'));
+          res.setHeader('Set-Cookie', result.cookie);
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Referrer-Policy', 'no-referrer');
+          res.writeHead(303, { Location: `${config.grafanaPublicOrigin}/grafana/d/gridex-market-bg/gridex-market-bg?kiosk` });
+          return res.end();
+        }
+        if (url.pathname === '/internal/grafana/check' && req.method === 'GET') {
+          const user = await grafanaLaunch.check(req.headers.cookie, req.headers['x-original-uri']);
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('X-Gridex-Grafana-User', user);
+          res.writeHead(204); return res.end();
+        }
+        throw new ApiError(404, 'not_found', 'Dashboard route not found.');
+      }
+
       if (req.method === "GET" && url.pathname === "/health") {
         const online = await openRemote.health();
         return await json(res, online ? 200 : 503, { status: online ? "ready" : "degraded", openRemote: online ? "online" : "offline", writesEnabled: config.writesEnabled }, context);
@@ -203,8 +222,13 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         res.setHeader('Cache-Control', 'no-store');
         return json(res, 200, await managerLaunch.issue(principal), context);
       }
+      if (url.pathname === '/api/v1/me/grafana-launch' && req.method === 'POST') {
+        if (!grafanaLaunch) throw new ApiError(503, 'grafana_unavailable', 'Dashboard access is not configured.');
+        return json(res, 200, await grafanaLaunch.issue(principal), context);
+      }
       if (url.pathname === '/api/v1/me/manager-access/revoke' && req.method === 'POST') {
         if (managerLaunch) await managerLaunch.revoke(principal.subject, principal.realm);
+        if (grafanaLaunch) await grafanaLaunch.revoke(principal.subject, principal.realm);
         res.writeHead(204, { 'Cache-Control': 'no-store' }); return res.end();
       }
       if (url.pathname === '/api/v1/platform/organisations' && req.method === 'GET') {
