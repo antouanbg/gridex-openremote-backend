@@ -12,7 +12,7 @@ GET цени с официални EIC зони, UTC интервали, лок�
 за непълен ден и кратък in-process cache. Ключът е само в единния private
 backend `.env` чрез `GRIDEX_ENTSOE_SECURITY_TOKEN`; Compose го препраща.
 Браузърът не получава ключа. Няма промяна на OpenRemote инвентара или
-управление на батерия. Backend 96/97 теста минават (1 съществуващ skip),
+управление на батерия. Backend 97/98 теста минават (1 съществуващ skip),
 но provider token липсва в текущия private env и реален A44/live browser
 тест не е правен. Не внедрявай frontend самостоятелно, не показвай demo цена
 като real. Следва безопасно добавяне на token, backend rollout и проверка с
