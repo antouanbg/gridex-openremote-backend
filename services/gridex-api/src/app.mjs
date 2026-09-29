@@ -239,9 +239,12 @@ export function createApp({ config, authenticate, repository, openRemote, invita
 
       if (url.pathname.includes('/invitations')) {
         if (!invitations) throw new ApiError(503, 'enrollment_unavailable', 'Email enrollment is not configured.');
-        const orgRoute = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/invitations(?:\/([0-9a-f-]{36})\/revoke)?$/i);
+        const orgRoute = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/invitations(?:\/([0-9a-f-]{36})\/(revoke|resend))?$/i);
+        if (orgRoute && req.method === 'GET' && !orgRoute[2])
+          return await json(res, 200, { invitations: await invitations.listCreated(identity, orgRoute[1]) }, context);
         if (orgRoute && req.method === 'POST') {
-          const result = orgRoute[2] ? await invitations.revoke(identity, orgRoute[1], orgRoute[2])
+          const result = orgRoute[3] === 'revoke' ? await invitations.revoke(identity, orgRoute[1], orgRoute[2])
+            : orgRoute[3] === 'resend' ? await invitations.resend(identity, orgRoute[1], orgRoute[2])
             : await invitations.create(identity, orgRoute[1], await readJson(req, config.maximumBodyBytes));
           return await json(res, orgRoute[2] ? 200 : 201, result, context);
         }

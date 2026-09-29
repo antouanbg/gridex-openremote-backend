@@ -1,5 +1,13 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — organisation member invitation correction
+
+Scoped GET history and sent-only POST resend are implemented. Check the
+creator, verified realm and current Site grant on every request; reuse the
+same identity and membership; fail closed on uncertain delivery. No schema
+migration or new secret. Full API suite passes locally; live deployment and
+customer acceptance must be checked separately. See HANDOFF.
+
 ## 2026-09-29 — customer inventory integration
 
 Integrated PR #43 into current main in an isolated branch, resolved migration numbering to `015`, retained auth/Manager changes, and passed 86 backend tests (1 database test skipped). Live `gridex` and `novacom` are active but new intent table is absent. Production migration/API restart was rejected by automated risk review; do not bypass. Source publication and specific owner approval for production rollout remain, followed by real customer OpenRemote asset/role verification. See HANDOFF.

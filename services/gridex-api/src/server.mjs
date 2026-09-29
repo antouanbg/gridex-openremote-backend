@@ -32,6 +32,10 @@ const enrollment = {
     ? realmSetup?.sendMemberActions(realm, subject, created)
       ?? Promise.reject(new Error('Realm setup is unavailable'))
     : pilotEnrollment.sendActions(subject, created),
+  inspectMemberUser: (subject, email, realm) => realm && realm !== config.realm
+    ? realmSetup?.inspectMemberUser(realm, subject, email)
+      ?? Promise.reject(new Error('Realm setup is unavailable'))
+    : pilotEnrollment.inspectMemberUser(subject, email),
 };
 const invitations = config.enrollmentEnabled && repository.pool
   ? new InvitationService(repository.pool, enrollment) : null;
