@@ -2,6 +2,23 @@
 
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-29 — миграция 016 и API внедрени
+
+Собственикът изрично одобри production миграция 016, рестарт само на
+`gridex-api` и последващ frontend/docs rollout. PR #61 е слят в `main`
+като `2993e54`. Преди промяната е направен частен backup на база, env,
+Compose и стария API image в
+`/Users/antouan/GrideX-runtime/private-backups/api-invitation-login-gaeBD6`.
+Проверена е липсата на новите полета и наличието на миграция 015. Скриптът
+`scripts/deploy-invitation-login.mjs` приложи 016 и пресъздаде само API;
+той е healthy. Двете `recipient_resend_used_at` колони и
+`user_login_activity.last_authenticated_at` съществуват. Анонимен
+`/api/v1/me` върна 401; новият resend маршрут върна неразкриващ 202 за
+несъществуващ адрес `.invalid`, без реален имейл. Manager, Keycloak,
+proxy и worker-и не са пресъздавани. Реален еднократен resend, трите акаунта
+на споделен браузър и последен вход с реална самоличност още изискват
+приемателна проба; не ги обявявай за потвърдени.
+
 ## 2026-09-29 — последен вход и еднократен resend от поканения (локално)
 
 По изричното решение в текущия разговор: след имейл/парола/вход няма втори
