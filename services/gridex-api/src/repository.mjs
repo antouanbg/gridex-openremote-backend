@@ -5,7 +5,7 @@ import pg from "pg";
 import { ApiError } from "./errors.mjs";
 
 const { Pool } = pg;
-const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql', '014_manager_launch.sql', '015_inventory_provisioning.sql', '016_invitation_login_activity.sql'];
+const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql', '014_manager_launch.sql', '015_inventory_provisioning.sql', '016_invitation_login_activity.sql', '017_service_entitlements.sql'];
 
 const siteRow = (row) => ({
   id: row.id,

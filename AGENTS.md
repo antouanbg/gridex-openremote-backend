@@ -1,5 +1,31 @@
 # GrideX OpenRemote backend — Working rules
 
+## Service grants and market archive — owner decision 2026-09-29
+
+Services are disabled by default for every new organisation and member. A
+verified, allowlisted platform administrator may enable a catalog service for
+one active organisation; this must never auto-enable its members. Only that
+organisation's verified administrator may then grant it to approved members
+one by one. Organisation revocation removes member grants, and re-enabling
+does not restore them. Enforce every grant at the API, not only in the UI.
+Day-ahead price values and historical archive remain platform-admin-only until
+the owner separately approves customer publication, regardless of grants.
+Store complete UTC hours in a dedicated GrideX TimescaleDB, preserve supplier
+revisions, add no retention/drop policy, and show only provider health and last
+successful update in the live Market screen for now. Never log or commit the
+ENTSO-E token; its sole private backend env is the configuration source.
+
+Услугите са изключени по подразбиране за всяка нова организация и член.
+Провереният супер администратор разрешава услуга на активна организация, но
+това не дава достъп автоматично на никой потребител. Нейният администратор
+разрешава услугата поотделно на одобрени членове. Отнемането на организационното
+право премахва и личните; повторното включване не ги възстановява. API
+проверява правата независимо от интерфейса. Стойностите на цените „ден напред“
+и архивът засега са само за супер администратора. Пълните UTC часове се пазят
+в отделна GrideX TimescaleDB без политика за изтриване и с история на
+корекциите. Реалният екран „Пазар“ показва само състояние на източника и
+последен успешен час на обновяване. Токенът е само в частния backend env.
+
 ## Member acceptance and resend — owner decision 2026-09-29
 
 After verified email, password setup and customer-realm sign-in, the portal

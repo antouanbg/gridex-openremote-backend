@@ -1,5 +1,25 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — service grants and live hourly market archive
+
+Owner-approved organisation grant then explicit per-member grant, default-off;
+price values/history platform-admin-only, portal status/last success only.
+Migration 017 and API are live after private DB backup; API healthy and
+anonymous market/service calls 401. Dedicated TimescaleDB and approved-egress
+worker are live with 240 stored hourly rows across 10 zones for 2026-09-30
+and no retention policy. Existing 2 organisations/3 memberships unchanged;
+all grants remain zero. Source frontend/docs and real role-based browser
+acceptance are separate gates. Backend 104 pass/1 skip. See HANDOFF.
+
+## 2026-09-29 — approved market price integration
+
+Owner approved existing `/market/` placement and market-product selector
+(not customer tariff). Initial read-only ENTSO-E A44 Node adapter/API and
+5-country bidding-zone catalogue are implemented locally. Token must be
+provisioned only in the single private backend env; it is not present yet.
+No production deploy, source publication or real-price acceptance has been
+claimed. See HANDOFF and paired frontend/docs branches.
+
 ## 2026-09-29 — approved invitation/session correction
 
 Local branch `fix/account-switch-invitations` adds migration 016, verified

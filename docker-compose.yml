@@ -5,6 +5,7 @@ volumes:
   manager-data:
   postgresql-data:
   gridex-db-data:
+  gridex-market-db-data:
 
 services:
   gridex-api:
@@ -14,6 +15,8 @@ services:
       manager:
         condition: service_healthy
       gridex-db:
+        condition: service_healthy
+      gridex-market-db:
         condition: service_healthy
     ports:
       - "127.0.0.1:${GRIDEX_API_PORT:-8081}:8080"
@@ -32,6 +35,35 @@ services:
       GRIDEX_AUTO_MIGRATE: ${GRIDEX_AUTO_MIGRATE:-false}
       GRIDEX_ALLOWED_ORIGINS: ${GRIDEX_ALLOWED_ORIGINS}
       GRIDEX_WRITES_ENABLED: ${GRIDEX_WRITES_ENABLED:-false}
+      GRIDEX_MARKET_DB_HOST: gridex-market-db
+      GRIDEX_MARKET_DB_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+
+  gridex-market-db:
+    image: timescale/timescaledb:2.26.4-pg17@sha256:dfbf3c54f03e01d9a6fe7eeb736b513064a849606ca5acd7edcf51fdcab76a5e
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gridex_market
+      POSTGRES_USER: gridex_market
+      POSTGRES_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+    volumes:
+      - gridex-market-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gridex_market -d gridex_market"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  gridex-market-worker:
+    build: ./services/gridex-api
+    command: [node, src/market-worker.mjs]
+    restart: unless-stopped
+    depends_on:
+      gridex-market-db:
+        condition: service_healthy
+    environment:
+      GRIDEX_MARKET_DB_HOST: gridex-market-db
+      GRIDEX_MARKET_DB_PASSWORD: ${GRIDEX_DATABASE_PASSWORD:?required}
+      GRIDEX_ENTSOE_SECURITY_TOKEN: ${GRIDEX_ENTSOE_SECURITY_TOKEN:?required}
 
   gridex-db:
     image: postgres:17-alpine

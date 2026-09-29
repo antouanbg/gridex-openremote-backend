@@ -74,6 +74,14 @@ export function loadConfig(env = process.env) {
     maximumBodyBytes: integer(env.GRIDEX_MAXIMUM_BODY_BYTES, 131072),
     historyBindings,
     historyMaximumRangeMs: integer(env.GRIDEX_HISTORY_MAXIMUM_RANGE_HOURS, 744) * 60 * 60 * 1000,
+    entsoeSecurityToken: env.GRIDEX_ENTSOE_SECURITY_TOKEN || '',
+    marketDatabase: env.GRIDEX_MARKET_DB_HOST ? {
+      host: env.GRIDEX_MARKET_DB_HOST,
+      port: integer(env.GRIDEX_MARKET_DB_PORT, 5432),
+      database: env.GRIDEX_MARKET_DB_NAME || 'gridex_market',
+      user: env.GRIDEX_MARKET_DB_USER || 'gridex_market',
+      password: env.GRIDEX_MARKET_DB_PASSWORD || '',
+    } : null,
   };
 }
 
