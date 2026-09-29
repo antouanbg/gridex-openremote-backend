@@ -50,6 +50,7 @@ export function loadConfig(env = process.env) {
     realmSetupAdminBaseUrl: env.GRIDEX_REALM_SETUP_ADMIN_URL || 'http://keycloak:8080/auth/admin/realms',
     portalOrigin: env.GRIDEX_PORTAL_ORIGIN || '',
     managerPublicOrigin: env.GRIDEX_PUBLIC_AUTH_BASE ? new URL(env.GRIDEX_PUBLIC_AUTH_BASE).origin : '',
+    grafanaPublicOrigin: env.GRIDEX_PUBLIC_API_BASE ? new URL(env.GRIDEX_PUBLIC_API_BASE).origin : '',
     platformAdminSubjects,
     organisationAccessEnabled: env.GRIDEX_ORGANISATION_ACCESS_ENABLED === 'true',
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',

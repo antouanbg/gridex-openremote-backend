@@ -27,7 +27,7 @@ export class ServiceEntitlements {
 
   async catalog(principal) {
     this.platform(principal);
-    const { rows } = await this.pool.query('SELECT code,description,prerequisites FROM service_catalog ORDER BY code');
+    const { rows } = await this.pool.query('SELECT code,description,prerequisites,requestable FROM service_catalog ORDER BY code');
     return rows;
   }
 
@@ -41,7 +41,7 @@ export class ServiceEntitlements {
   async listOrganisation(principal, id, platform = false) {
     if (platform) await this.platformOrganisation(principal, id);
     else await this.organisation(principal, id);
-    const { rows } = await this.pool.query(`SELECT c.code,c.description,c.prerequisites,
+    const { rows } = await this.pool.query(`SELECT c.code,c.description,c.prerequisites,c.requestable,
       (g.organisation_id IS NOT NULL) AS enabled
       FROM service_catalog c LEFT JOIN organisation_services g
       ON g.service_code=c.code AND g.organisation_id=$1
@@ -60,8 +60,9 @@ export class ServiceEntitlements {
       const organisation = await db.query('SELECT status FROM organisations WHERE id=$1 FOR UPDATE', [id]);
       if (organisation.rows[0]?.status !== 'active')
         throw new ApiError(403, 'organisation_not_active', 'Only an active organisation can receive services.');
-      const found = await db.query('SELECT 1 FROM service_catalog WHERE code=$1', [code]);
+      const found = await db.query('SELECT requestable FROM service_catalog WHERE code=$1', [code]);
       if (!found.rows.length) throw new ApiError(404, 'service_not_found', 'Unknown service.');
+      if (enabled && !found.rows[0].requestable) throw new ApiError(403, 'service_unavailable', 'This service is not available yet.');
       if (enabled) await db.query(`INSERT INTO organisation_services(organisation_id,service_code,granted_by)
         VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, [id,code,principal.subject]);
       else await db.query('DELETE FROM organisation_services WHERE organisation_id=$1 AND service_code=$2', [id,code]);
@@ -130,6 +131,7 @@ export class ServiceEntitlements {
     try {
       await db.query('BEGIN');
       const orgGrant = await db.query(`SELECT 1 FROM organisation_services g
+        JOIN service_catalog c ON c.code=g.service_code AND c.requestable=true
         JOIN organisations o ON o.id=g.organisation_id AND o.status='active'
         WHERE g.organisation_id=$1 AND g.service_code=$2 FOR UPDATE OF g`, [id,code]);
       if (!orgGrant.rows.length) throw new ApiError(403, 'service_not_enabled', 'The organisation has not been granted this service.');

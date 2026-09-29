@@ -52,6 +52,33 @@ http {
         location /api/v1/ {
             proxy_pass http://$api_backend;
         }
+        # BEGIN GRIDEX EMBEDDED GRAFANA
+        set $grafana_backend gridex-grafana:3000;
+        # Embedded BG dashboard: one-time portal launch, then a checked
+        # host-only cookie on *every* Grafana HTML, asset and query request.
+        location = /grafana { return 404; }
+        location = /grafana/launch {
+            limit_except GET { deny all; }
+            proxy_pass http://$api_backend/internal/grafana/consume?ticket=$arg_ticket;
+        }
+        location = /_grafana_authorize {
+            internal;
+            proxy_pass_request_body off;
+            proxy_set_header Content-Length "";
+            proxy_set_header Origin "";
+            proxy_set_header X-Original-URI $request_uri;
+            proxy_pass http://$api_backend/internal/grafana/check;
+        }
+        location ^~ /grafana/ {
+            auth_request /_grafana_authorize;
+            auth_request_set $grafana_user $upstream_http_x_gridex_grafana_user;
+            limit_except GET POST { deny all; }
+            proxy_set_header Authorization "";
+            proxy_set_header X-WEBAUTH-USER $grafana_user;
+            proxy_pass http://$grafana_backend;
+            add_header Content-Security-Policy "frame-ancestors https://gridex.tech" always;
+        }
+        # END GRIDEX EMBEDDED GRAFANA
         location / { return 404; }
     }
     server {
@@ -160,4 +187,19 @@ http {
         }
         location / { return 404; }
     }
+    # BEGIN GRIDEX PUBLIC DOCS -- static content only, no API or management upstream
+    server {
+        listen 8443 ssl;
+        server_name doc.gridex.tech;
+        ssl_certificate /certs/docs/fullchain.pem;
+        ssl_certificate_key /certs/docs/privkey.pem;
+        set $docs_backend gridex-docs:8080;
+        limit_req zone=per_client burst=40 nodelay;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+        location / {
+            limit_except GET { deny all; }
+            proxy_pass http://$docs_backend;
+        }
+    }
+    # END GRIDEX PUBLIC DOCS
 }

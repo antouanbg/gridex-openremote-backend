@@ -1,21 +1,29 @@
-# Optional private operator visualisation. Never include this overlay in the
-# public proxy deployment until portal SSO and tenant isolation are reviewed.
+# Embedded BG-only visualisation. Enable only after reviewed SSO proxy,
+# read-only BG views and negative tenant tests pass.
 services:
   gridex-grafana:
-    image: ${GRIDEX_GRAFANA_IMAGE:?pin a reviewed Grafana OSS image digest in the private backend env}
+    image: grafana/grafana:12.4.0@sha256:b0ae311af06228bcfd4a620504b653db80f5b91e94dc3dc2a5b7dab202bcde20
+    platform: linux/arm64
     profiles: [observability]
     restart: unless-stopped
     networks: [backend]
     depends_on:
       gridex-market-db: {condition: service_healthy}
-    ports:
-      - '127.0.0.1:${GRIDEX_GRAFANA_LOCAL_PORT:-3300}:3000'
     environment:
       GF_SECURITY_ADMIN_USER: ${GRIDEX_GRAFANA_ADMIN_USER:-gridex-operator}
       GF_SECURITY_ADMIN_PASSWORD: ${GRIDEX_GRAFANA_ADMIN_PASSWORD:?required only when Grafana overlay is enabled}
       GF_AUTH_ANONYMOUS_ENABLED: 'false'
       GF_USERS_ALLOW_SIGN_UP: 'false'
-      GF_SECURITY_ALLOW_EMBEDDING: 'false'
+      GF_SECURITY_ALLOW_EMBEDDING: 'true'
+      GF_AUTH_BASIC_ENABLED: 'false'
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+      GF_AUTH_PROXY_ENABLED: 'true'
+      GF_AUTH_PROXY_HEADER_NAME: X-WEBAUTH-USER
+      GF_AUTH_PROXY_AUTO_SIGN_UP: 'true'
+      GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: 'false'
+      GF_USERS_AUTO_ASSIGN_ORG_ROLE: Viewer
+      GF_SERVER_ROOT_URL: ${GRIDEX_PUBLIC_API_BASE:-https://api.gridex.tech}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: 'true'
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/gridex-market-bg.json
       GF_DATE_FORMATS_DEFAULT_TIMEZONE: Europe/Sofia
       GF_USERS_DEFAULT_THEME: dark

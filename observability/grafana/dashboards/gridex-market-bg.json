@@ -1,7 +1,7 @@
 {
   "uid": "gridex-market-bg",
   "title": "GrideX · България · Ден напред",
-  "tags": ["gridex", "operator-only", "bg", "entsoe"],
+  "tags": ["gridex", "bg", "entsoe"],
   "timezone": "Europe/Sofia",
   "schemaVersion": 40,
   "version": 1,
@@ -12,11 +12,11 @@
       "id": 1,
       "type": "timeseries",
       "title": "България · борсова цена ден напред · EUR/MWh",
-      "description": "Само за оператора. Реални часове от ENTSO-E; без клиентски надбавки, данъци или мрежови такси.",
+      "description": "Реални часове от ENTSO-E; без клиентски надбавки, данъци или мрежови такси.",
       "gridPos": {"h": 12, "w": 24, "x": 0, "y": 0},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "time_series", "rawQuery": true,
-        "rawSql": "SELECT $__time(start_utc), price_eur_mwh::double precision AS \"EUR/MWh\" FROM market_hourly_prices WHERE country='BG' AND zone='BG' AND $__timeFilter(start_utc) ORDER BY start_utc"}],
+        "rawSql": "SELECT $__time(start_utc), price_eur_mwh::double precision AS \"EUR/MWh\" FROM grafana_bg_hourly_prices WHERE $__timeFilter(start_utc) ORDER BY start_utc"}],
       "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#B9E343"}, "unit": "currencyEUR", "custom": {"lineWidth": 3, "fillOpacity": 18}}, "overrides": []},
       "options": {"legend": {"displayMode": "list", "placement": "bottom"}}
     },
@@ -27,7 +27,7 @@
       "gridPos": {"h": 5, "w": 12, "x": 0, "y": 12},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "table", "rawQuery": true,
-        "rawSql": "SELECT last_success_at AS \"Последно успешно обновяване\" FROM market_fetch_status WHERE zone='BG'"}],
+        "rawSql": "SELECT last_success_at AS \"Последно успешно обновяване\" FROM grafana_bg_fetch_status"}],
       "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#1B8062"}, "unit": "dateTimeAsIso"}, "overrides": []}
     }
   ]

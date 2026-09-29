@@ -31,7 +31,7 @@ The Compose files define a **core stack** and **optional integrations**. An over
 | `gridex-market-db` | Dedicated TimescaleDB for permanent hourly wholesale-price history; not customer inventory. |
 | `gridex-api` | Portal-facing API, authorization and provisioning orchestration. |
 | `gridex-market-worker` | Retrieves ENTSO-E A44 day-ahead prices only for explicitly enabled zones (BG by default) and stores complete UTC hours. |
-| `gridex-grafana` | Optional, not enabled: private local-only operator dashboards from `compose.grafana.yml`; not a public customer service. |
+| `gridex-grafana` | Optional BG-only dashboard from `compose.grafana.yml`, without a published port; portal embedding is guarded by one-time launch and per-request API authorisation. |
 | `broker` | Mosquitto MQTT broker with client certificates and scoped topic access. |
 | `heartbeat-worker` | Consumes gateway/node health messages and updates connection state. |
 | `history-worker` | Consumes approved measurements and writes attributes/datapoints through OpenRemote. |
@@ -41,7 +41,9 @@ The Compose files define a **core stack** and **optional integrations**. An over
 
 Core services are defined in [`compose.mac.yml`](compose.mac.yml); MQTT, workers, email, public access and other optional services have separate `compose.*.yml` files. Persistent volumes hold the databases and service state. Certificates, credentials and the single operator backend environment file live outside Git.
 
-Market collection is controlled by the allowlist in the market TimescaleDB: `BG` is the only default. The platform-only `/api/v1/platform/market/zones` API manages collection; `/api/v1/platform/organisations/{id}/market-zones` separately manages each active organisation's zone grants. Migration 018 stores organisation grants in GrideX PostgreSQL and revokes them when its day-ahead service grant is removed. Member rights remain separate. Price history remains platform-only, even with all three grants. Disabling collection stops new writes without deleting old rows. Grafana preparation, datasource restrictions and activation prerequisites are in [`observability/README.md`](observability/README.md).
+Market collection is controlled by the allowlist in the market TimescaleDB: `BG` is the only default. The platform-only `/api/v1/platform/market/zones` API manages collection; `/api/v1/platform/organisations/{id}/market-zones` separately manages each active organisation's zone grants. Migration 018 stores organisation grants in GrideX PostgreSQL and revokes them when its day-ahead service grant is removed. Member rights remain separate. Direct price-history API **currently** remains platform-only; the embedded BG Grafana view requires both service grants and BG zone scope for a customer. Disabling collection stops new writes without deleting old rows. The guarded dashboard, datasource restrictions and activation checks are in [`observability/README.md`](observability/README.md).
+
+The approved, **not yet implemented**, request workflow is [Service catalog and approvals](docs/SERVICE_CATALOG_APPROVALS.md): `day_ahead` with exactly one selected country/zone (BG only for now) and `visualisations` are separate requestable services. Analysis, meteorology and forecasting remain future catalog entries. Platform approval grants an active organisation and its selected zone; its administrator separately grants an approved member. The BG-only data source and protected portal launch are implemented separately; future Site telemetry charts require their own tenant- and Site-scoped read-only data access.
 
 ## Provisioning and data flow
 
@@ -79,7 +81,7 @@ Compose файловете описват **основен стек** и **до�
 | `gridex-market-db` | Отделна TimescaleDB за постоянна история на часовите борсови цени; не е клиентски инвентар. |
 | `gridex-api` | API за портала, проверки на права и координация на провизирането. |
 | `gridex-market-worker` | Получава ENTSO-E A44 цени само за изрично разрешени зони (по подразбиране BG) и пази пълни UTC часове. |
-| `gridex-grafana` | Незадължителен, невключен: частни локални операторски графики от `compose.grafana.yml`; не е публична клиентска услуга. |
+| `gridex-grafana` | Незадължителен BG-only dashboard от `compose.grafana.yml`, без публикуван порт; вграждането минава през еднократен вход и проверка на всяка заявка. |
 | `broker` | Mosquitto MQTT с клиентски сертификати и ограничен достъп по теми. |
 | `heartbeat-worker` | Приема съобщения за състоянието на шлюза/нода и обновява връзката. |
 | `history-worker` | Приема одобрените измервания и записва атрибути/история през OpenRemote. |
@@ -89,7 +91,9 @@ Compose файловете описват **основен стек** и **до�
 
 Основните услуги са в [`compose.mac.yml`](compose.mac.yml); MQTT, обработващите услуги, имейлът, публичният достъп и другите допълнения са в отделни `compose.*.yml` файлове. Постоянните volumes пазят базите и състоянието на услугите. Сертификатите, тайните и единният операторски `.env` на backend-а са извън Git.
 
-Събирането на цени се управлява от allowlist в пазарната TimescaleDB: само `BG` е включена по подразбиране. Само супер администраторът управлява зоните чрез `/api/v1/platform/market/zones` и отделно разрешава зона за активна организация чрез `/api/v1/platform/organisations/{id}/market-zones`. Миграция 018 пази тези организационни права в GrideX PostgreSQL и ги отнема при спиране на услугата „ден напред“. Личните права са отделни. Дори при трите разрешения ценовата история остава само за супер администратора. Изключването на зона спира новите записи без изтриване на старите. Подготовката на Grafana и условията за активиране са в [`observability/README.md`](observability/README.md).
+Събирането на цени се управлява от allowlist в пазарната TimescaleDB: само `BG` е включена по подразбиране. Само супер администраторът управлява зоните чрез `/api/v1/platform/market/zones` и отделно разрешава зона за активна организация чрез `/api/v1/platform/organisations/{id}/market-zones`. Миграция 018 пази тези организационни права в GrideX PostgreSQL и ги отнема при спиране на услугата „ден напред“. Личните права са отделни. Директният API за ценовата история **в момента** остава само за супер администратора; вграденият BG Grafana изглед проверява и двете услуги плюс BG зона за клиент. Изключването на зона спира новите записи без изтриване на старите. Защитеният dashboard и условията за бъдещи източници са в [`observability/README.md`](observability/README.md).
+
+Одобреният, но **още невнедрен като заявки**, договор за [каталог и заявки за услуги](docs/SERVICE_CATALOG_APPROVALS.md) разделя `day_ahead` с точно една избрана държава/зона (засега само BG) от `visualisations`. Анализ, метеорология и прогнозиране остават бъдещи услуги. Супер администраторът разрешава организация и избрана зона; нейният администратор разрешава конкретен одобрен член. BG-only източникът и защитеният вход от портала са реализирани отделно; бъдещите графики за Обекти изискват собствени read-only източници с изолация по организация и Обект.
 
 ### Провизиране и поток на данните
 

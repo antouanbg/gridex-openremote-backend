@@ -1,26 +1,30 @@
-# GrideX operator visualisations (prepared, not publicly enabled)
+# GrideX BG visualisations and protected embedding
 
-Grafana OSS is an **optional private operator tool**, not a new public menu or
-tenant-facing login. The separate `compose.grafana.yml` overlay binds only to
-`127.0.0.1`, disables anonymous access and embedding, and is not included in
-the production Compose command. Do not put it behind `auth.gridex.tech` or
-expose port 3300 to the Internet. The included dashboard displays only the
-Bulgarian ENTSO-E hourly series and fetch timestamp. Its queries are fixed to
-`country='BG' AND zone='BG'`; other customer and OpenRemote data are not wired.
+The optional `compose.grafana.yml` overlay has **no published port**. The BG
+dashboard is embedded only behind `api.gridex.tech/grafana/`: a verified portal
+identity obtains a one-time ticket, the API sets a host-only short-lived cookie,
+and Nginx rechecks it for every Grafana page, asset and query. Anonymous and
+forged cookies are denied. Customer access requires both `day_ahead` and
+`visualisations` grants plus BG zone permission; the platform administrator
+uses a separate verified allowlist. No standalone public Grafana login exists.
+The dashboard displays only Bulgarian ENTSO-E hours and fetch time. Neither
+OpenRemote nor customer telemetry is connected to this data source.
 
-Before activation, pin `GRIDEX_GRAFANA_IMAGE` to a reviewed Grafana OSS digest
-and set `GRIDEX_GRAFANA_ADMIN_PASSWORD` and
+The reviewed Grafana OSS ARM64 image is pinned in the Compose overlay. Set
+`GRIDEX_GRAFANA_ADMIN_PASSWORD` and
 `GRIDEX_GRAFANA_MARKET_READER_PASSWORD` in the **single private backend env**.
-`market-reader-role.sql` prepares a NOLOGIN SELECT-only role on the three
-market tables. At activation, give it a unique private password and LOGIN;
-never reuse the market owner password. Test
-read-only denial of INSERT/UPDATE, datasource health and the local dashboard.
-Do not claim this preparation is an operational Grafana installation.
+`market-reader-role.sql` prepares a NOLOGIN role with SELECT only on two
+BG-filtered views, not the underlying market tables. At activation, give it a
+unique private password and LOGIN; never reuse the market owner password.
+Test denial of direct table reads and writes, datasource health, anonymous
+proxy denial and a real authorised browser dashboard before declaring the
+end-to-end path complete. The service-request UI is a separate pending task.
 
 For future telemetry, provision separate read-only data sources and narrow
 database roles for GrideX Timescale measurement history and OpenRemote's
 authoritative assets. Dashboard queries must be tenant-scoped before any
 customer embedding. OSS Grafana has light/dark themes but not full custom
 branding; the GrideX portal should own the approved visual shell, while
-charts use its dark green/lime palette. Public access and SSO need a separate
-security review and owner approval.
+charts use its dark green/lime palette. Any future customer telemetry source
+needs its own tenant-filtered read-only role and security review; the BG
+market role must not be expanded.
