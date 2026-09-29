@@ -149,6 +149,18 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         return json(res, 200, { realms }, context);
       }
 
+      if (url.pathname === '/api/v1/auth/resend-invitation') {
+        if (req.method !== 'POST') throw new ApiError(405, 'method_not_allowed', 'Use POST for invitation resend.');
+        const body = await readJson(req, Math.min(config.maximumBodyBytes, 1024));
+        if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => key !== 'email'))
+          throw new ApiError(400, 'invalid_resend_request', 'Only an email address is accepted.');
+        const email = normaliseLoginEmail(body.email);
+        limitLoginDiscovery(email);
+        await Promise.all([onboarding?.resendToRecipient(email), invitations?.resendToRecipient(email)]);
+        res.setHeader('Cache-Control', 'no-store');
+        return json(res, 202, { status: 'accepted' }, context);
+      }
+
       if (url.pathname.startsWith('/internal/manager/')) {
         if (!managerLaunch) throw new ApiError(503, 'manager_unavailable', 'Manager access is not configured.');
         if (url.pathname === '/internal/manager/consume' && req.method === 'GET') {
@@ -257,6 +269,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
 
       if (req.method === "GET" && url.pathname === "/api/v1/me") {
+        await repository.recordAuthenticatedLogin?.(identity);
         return await json(res, 200, {
           subject: principal.subject, realm: principal.realm, email: principal.email, name: principal.name,
           preferredUsername: principal.preferredUsername, roles: principal.roles, permissions: principal.permissions,

@@ -1,5 +1,14 @@
 # CODEX_STATE.md
 
+## 2026-09-29 — approved invitation/session correction
+
+Local branch `fix/account-switch-invitations` adds migration 016, verified
+last-login recording, one-time recipient resend to the same email with a
+non-enumerating public response, and accepted-invitation activity fields.
+The existing checked Accept API remains the sole membership transition.
+Backend/API must be migrated and deployed before frontend/docs; real
+three-account browser acceptance remains pending. See HANDOFF.
+
 ## 2026-09-29 — organisation member invitation correction
 
 Scoped GET history and sent-only POST resend are implemented. Check the

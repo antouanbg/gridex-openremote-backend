@@ -1,5 +1,24 @@
 # Organisation and member invitations / Покани за организации и членове
 
+## Current owner-approved correction — 2026-09-29
+
+After verified email, password setup and customer-realm sign-in, the portal
+invokes the checked acceptance API for both the first administrator and an
+invited member. There is no second manual Accept button. A recipient who did
+not receive a pending invitation can request one resend to the **same** stored
+email; the public response never confirms account existence. Accepted access
+does not expire with the original action link. The backend stores the verified
+last authentication time separately; admins see it instead of link expiry.
+Migration `016_invitation_login_activity.sql` is required before API rollout.
+This branch is prepared locally, not yet a claim about live deployment.
+
+След проверени имейл, парола и вход порталът извиква защитеното приемане и за
+първия администратор, и за поканен член, без втори бутон. Поканеният може
+еднократно да поиска нов линк само до **същия** записан имейл, без отговорът
+да разкрива дали съществува акаунт. Приетите права не изтичат със стария
+линк; последният проверен вход се пази отделно. Преди внедряване на API е
+нужна миграция `016`. Историческите абзаци по-долу описват стария план.
+
 ## Current authority and status / Актуално решение и статус — 2026-09-26
 
 2026-09-27 action-email gate: The first `novacom` email was delivered, but the

@@ -317,10 +317,28 @@ export class OrganisationOnboarding {
   async listCreated(principal) {
     this.requirePlatform(principal, false);
     const { rows } = await this.pool.query(`SELECT id,realm,name,email,state,
-      expires_at AS "expiresAt",created_at AS "createdAt"
+      expires_at AS "expiresAt",created_at AS "createdAt",accepted_at AS "acceptedAt",
+      (SELECT a.last_authenticated_at FROM user_login_activity a
+        WHERE a.realm=organisation_onboarding_invitations.realm
+        AND a.subject=organisation_onboarding_invitations.subject) AS "lastLoginAt"
       FROM organisation_onboarding_invitations WHERE created_by=$1
       ORDER BY created_at DESC LIMIT 50`, [principal.subject]);
     return rows;
+  }
+  async resendToRecipient(email) {
+    const { rows } = await this.pool.query(`UPDATE organisation_onboarding_invitations
+      SET recipient_resend_used_at=now() WHERE email=$1 AND state='sent'
+      AND recipient_resend_used_at IS NULL RETURNING id,realm,subject,email`, [email]);
+    for (const invite of rows) {
+      try {
+        await this.setup.verifyPreparedUser(invite.realm, invite.subject, invite.email);
+        await this.setup.sendActions(invite.realm, invite.subject);
+        await this.pool.query(`UPDATE organisation_onboarding_invitations SET expires_at=now()+interval '24 hours'
+          WHERE id=$1 AND state='sent'`, [invite.id]);
+      } catch (error) {
+        console.error('Recipient organisation invitation resend failed', { id: invite.id, cause: error?.message });
+      }
+    }
   }
   async revoke(principal, id) {
     this.requirePlatform(principal);

@@ -134,11 +134,31 @@ export class InvitationService {
     return this.transaction(async db => {
       await this.admin(db, principal.subject, org, principal.realm);
       const { rows } = await db.query(`SELECT id,email,role,site_ids AS "siteIds",state,
-        expires_at AS "expiresAt",created_at AS "createdAt"
+        expires_at AS "expiresAt",created_at AS "createdAt",accepted_at AS "acceptedAt",
+        (SELECT a.last_authenticated_at FROM user_login_activity a JOIN organisations o
+          ON o.openremote_realm=a.realm WHERE o.id=organisation_invitations.organisation_id
+          AND a.subject=organisation_invitations.subject) AS "lastLoginAt"
         FROM organisation_invitations WHERE organisation_id=$1 AND created_by=$2
         ORDER BY created_at DESC LIMIT 100`, [org, principal.subject]);
       return rows;
     });
+  }
+  async resendToRecipient(email) {
+    const { rows } = await this.pool.query(`UPDATE organisation_invitations i
+      SET recipient_resend_used_at=now() FROM organisations o
+      WHERE o.id=i.organisation_id AND i.email=$1 AND i.state='sent'
+      AND i.recipient_resend_used_at IS NULL
+      RETURNING i.id,i.subject,i.email,o.openremote_realm AS realm`, [email]);
+    for (const invite of rows) {
+      try {
+        const inspected=await this.identity.inspectMemberUser(invite.subject, invite.email, invite.realm);
+        await this.identity.sendActions(invite.subject, inspected.needsPassword, invite.realm);
+        await this.pool.query(`UPDATE organisation_invitations SET expires_at=now()+interval '24 hours'
+          WHERE id=$1 AND state='sent'`, [invite.id]);
+      } catch (error) {
+        console.error('Recipient membership invitation resend failed', { id: invite.id, cause: error?.message });
+      }
+    }
   }
   async resend(principal, org, id) {
     const invite = await this.transaction(async db => {
