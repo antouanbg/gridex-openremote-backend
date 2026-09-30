@@ -30,6 +30,22 @@ with backup, Nginx syntax test and rollback. Neither price data nor grants
 change. Regression covers range validation, proxy contract and mobile controls.
 This is source-ready, not yet deployed or owner-verified.
 
+Deployment update (2026-09-30 18:30 UTC): backend PR #80 is in `main`
+(`49434ed`), API suite passed (125 passed, one pre-existing skip), and only
+`gridex-api` was rebuilt/recreated with its existing five Compose layers;
+Docker reports `healthy`. Rollback image:
+`gridex-api-rollback:before-grafana-range-20260930`. The exact Grafana launch
+proxy line was updated with a private backup at
+`/Users/antouan/GrideX-runtime/private-backups/grafana-range-proxy-zfXUM1/nginx.conf`;
+Nginx syntax test and reload passed. A public-proxy probe with a fake ticket
+and invalid range returned 400 (the range reached the API); unauthenticated
+Grafana returned 401. The mounted dashboard contains both revised Stats.
+Frontend PR #91 passed CI, merged to `main` (`b4800bc`), and Pages published
+the new Market chunk with the period selector. Docs PR #35 merged and the BG
+and EN Docusaurus build/deploy passed, including the public BG route check.
+Still open: visual acceptance of both Stat values and range changes from an
+authenticated mobile browser; do not claim that browser check as completed.
+
 ## 2026-09-30 — Novacom Site creation rejected by OpenRemote
 
 The customer administrator reported that creating a Site returned the generic
