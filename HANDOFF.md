@@ -1,6 +1,48 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — Novacom Site creation rejected by OpenRemote
+
+The customer administrator reported that creating a Site returned the generic
+"not verified in OpenRemote" message. Read-only inspection found two failed
+`novacom` Site intents at 16:04 and 16:11 UTC, no local Site projection and no
+matching OpenRemote asset; no duplicate was created. Manager logs identify the
+actual cause: `ThingAsset` validation rejected `attributes.notes: required
+attribute is missing`. Both Site and gateway creation used the same incomplete
+asset template. The template now includes a non-secret text `notes` attribute
+for each; the fake OpenRemote test enforces its presence. API suite: 122 pass,
+1 existing skip. Only `gridex-api` was rebuilt/recreated with the five active
+Compose layers and the single private env; it is healthy, reports OpenRemote
+online, and the running image contains both attributes. Rollback image:
+`gridex-api-rollback:before-openremote-notes-20260930`. No migration, realm,
+existing asset or other service was changed. Remaining acceptance: the owner
+retries Site creation in the existing portal; then verify exactly one new
+OpenRemote Site and matching local projection before adding devices. Do not
+claim that live customer creation passed until that browser test.
+
+Администраторът на `novacom` получи общата грешка при създаване на Обект.
+Два опита са неуспешни, без локален Обект и без нов OpenRemote актив — няма
+дубликат. Manager посочи липсващ задължителен `notes` атрибут за `ThingAsset`.
+Поправени са шаблоните и за Обект, и за устройство; тестовете са 122 успешни,
+1 вече съществуващ пропуснат. Внедрен е само здравият `gridex-api`, със
+запазен предишен образ за връщане. Остава реален повторен опит от потребителя
+и проверка на точната двойка OpenRemote актив/локален запис.
+
+## 2026-09-30 — live contact submission confirmed
+
+The owner confirms the live enquiry form now submits correctly. Mailgun
+events for the latest contact message show `accepted` at 17:21:29
+Europe/Sofia and `delivered` to the recipient mail servers of both
+`support@novacom.bg` (To) and `support@gridex.tech` (CC) within seconds.
+This is not an independent inbox-placement check. No resend, API restart,
+configuration or code change was needed. A separate signed-in Reply-To
+acceptance test remains open.
+
+Собственикът потвърди работещо изпращане от живия формуляр. Mailgun отчете
+приемане и доставка до сървърите на двата служебни адреса в 17:21 ч.
+Проверката не доказва получаване във „Входящи“. Няма повторно изпращане или
+промяна по услугите; отделният Reply-To тест остава отворен.
+
 ## 2026-09-30 — enquiry Reply-To without changing account identity
 
 Live checkpoint: PR #76 is merged. Only `gridex-api` was rebuilt/recreated

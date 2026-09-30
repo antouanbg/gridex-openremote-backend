@@ -12,7 +12,7 @@ function setup(){
   const remote={
     queryAssets:async()=>assets,
     getAsset:async id=>assets.find(asset=>asset.id===id)||null,
-    createUserAsset:async(asset,token,targetRealm)=>{assert.equal(token,'customer-token');assert.equal(targetRealm,realm);const saved={...asset,id:randomUUID()};assets.push(saved);creates++;return saved;},
+    createUserAsset:async(asset,token,targetRealm)=>{assert.equal(token,'customer-token');assert.equal(targetRealm,realm);assert.equal(asset.attributes.notes?.type,'text');assert.ok(asset.attributes.notes?.value);const saved={...asset,id:randomUUID()};assets.push(saved);creates++;return saved;},
     getUserLinkedAssets:async(ids,who)=>assets.filter(asset=>ids.includes(asset.id)&&links.has(`${who}:${asset.id}`)),
     linkUserAsset:async(id,who)=>{if(failLink)throw Error('OpenRemote link unavailable');links.add(`${who}:${id}`);},
   };
@@ -24,6 +24,7 @@ test('customer administrator provisions an OpenRemote Site before local projecti
   const site=await provisionSite({repository:env.repository,remote:env.remote,principal:env.principal,key:'customer-site-001',input});
   assert.equal(site.openremoteRealm,env.principal.realm);
   assert.equal(env.assets[0].attributes.gridexResourceId.value,site.id);
+  assert.equal(env.assets[0].attributes.notes.value,'GrideX Site');
   assert.equal(env.assets[0].id,site.openremoteSiteAssetId);
   assert.equal(env.repository.sites.length,1);
   const retry=await provisionSite({repository:env.repository,remote:env.remote,principal:env.principal,key:'customer-site-001',input});
@@ -58,6 +59,7 @@ test('only approved ROCK then ESP can be added inside the same customer Site',as
   const rock=await provisionGateway({repository:env.repository,remote:env.remote,principal:env.principal,site,key:'customer-rock-001',
     input:{name:'ROCK Pi E',hardwareModel:'rock-pi-e'}});
   assert.equal(rock.role,'controller');
+  assert.equal(env.assets[1].attributes.notes.value,'GrideX gateway');
   const rockRetry=await provisionGateway({repository:env.repository,remote:env.remote,principal:env.principal,site,key:'customer-rock-001',
     input:{name:'ROCK Pi E',hardwareModel:'rock-pi-e'}});
   assert.equal(rockRetry.id,rock.id);
