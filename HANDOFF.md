@@ -1,6 +1,28 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — contact API live; visible support CC requested
+
+Backend PR #73, frontend PR #79 and BG/EN docs PR #25 are merged. The live
+`gridex-api` is healthy; a public-demo smoke enquiry through the restricted
+HTTPS proxy returned HTTP 202/`queued`, and the owner confirmed receipt in
+`support@novacom.bg`. Frontend form is published. Public-browser acceptance
+from an external network is still pending; this Mac cannot reach the public
+API host directly, while its local protected proxy route returns the challenge.
+Rollback image: `gridex-api-rollback:before-contact-20260930`.
+
+The owner now requires a visible `support@gridex.tech` CC on **contact
+enquiries only**. `GRIDEX_SUPPORT_CC` belongs in the single private backend
+`.env`; keep the existing To and Mailgun BCC unchanged. Validate that contact
+messages include exactly that CC, while account/alert emails do not. Rebuild
+only `gridex-api` using its current Compose layers, verify health and one
+clearly labelled delivery to both support mailboxes. Never claim the CC mailbox
+received mail solely from Mailgun's queued response.
+
+BG: Запитванията са внедрени и едно тестово писмо е потвърдено в основната
+support поща. Новото видимо CC е само за запитвания и още изисква внедряване
+и потвърждение за втората поща; външната браузърна проба също предстои.
+
 ## 2026-09-30 — contact enquiries require publication and live delivery proof
 
 Source branch `feat/secure-contact-inquiries` adds the restricted contact API

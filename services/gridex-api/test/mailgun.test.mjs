@@ -19,6 +19,17 @@ test('Mailgun EU request disables tracking and distinguishes test acceptance fro
 test('BCC rejects header injection', () => {
   assert.throws(() => mailgunConfig({ GRIDEX_MAILGUN_BCC: 'a@example.com\r\nBcc: attacker@example.com' }), /BCC/);
 });
+test('contact CC is visible and a matching BCC is not duplicated', async () => {
+  const contactConfig = { ...config, bcc: ['copy@example.com', 'audit@example.com'] };
+  await sendMailgun(contactConfig, { to: 'support@example.com', cc: 'copy@example.com',
+    subject: 'Enquiry', text: 'Test enquiry' }, async (_url, opts) => {
+    assert.equal(opts.body.get('cc'), 'copy@example.com');
+    assert.deepEqual(opts.body.getAll('bcc'), ['audit@example.com']);
+    return Response.json({ id: '<contact@example.com>' });
+  });
+  await assert.rejects(sendMailgun(config, { to: 'support@example.com',
+    cc: 'copy@example.com\r\nBcc: attacker@example.com', subject: 'Enquiry', text: 'Test' }), /Invalid email/);
+});
 test('Mailgun errors do not leak provider body or key and are not retried', async () => {
   let calls = 0;
   await assert.rejects(sendMailgun(config, { to: 'owner@example.com', subject: 'Test', text: 'Test' }, async () => {

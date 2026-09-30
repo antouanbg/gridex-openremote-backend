@@ -15,7 +15,7 @@ async function withServer(app, work) {
 test('public and verified-user enquiries require a human check and use the configured support mailbox', async () => {
   let time = 1000;
   const messages = [];
-  const contactInquiries = new ContactInquiries({ recipient: 'support@example.invalid', now: () => time,
+  const contactInquiries = new ContactInquiries({ recipient: 'support@example.invalid', cc: 'copy@example.invalid', now: () => time,
     random: () => 4, mailgun: () => ({}), send: async (_config, mail) => { messages.push(mail); return { status: 'queued' }; } });
   const app = createApp({ config: { allowedOrigins: new Set([origin]), maximumBodyBytes: 8192 }, contactInquiries,
     authenticate: async () => ({ subject: 'member', realm: 'customer', email: 'member@example.invalid', emailVerified: true }),
@@ -37,6 +37,7 @@ test('public and verified-user enquiries require a human check and use the confi
     assert.equal(accepted.status, 202);
     assert.deepEqual(await accepted.json(), { status: 'queued' });
     assert.equal(messages[0].to, 'support@example.invalid');
+    assert.equal(messages[0].cc, 'copy@example.invalid');
     assert.match(messages[0].text, /visitor@example.invalid/);
     const third = await challenge();
     time += 3000;

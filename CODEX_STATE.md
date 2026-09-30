@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — contact live checkpoint and CC scope
+
+The contact API, form and BG/EN guide are published. A labelled public-demo
+test was queued by Mailgun and received in the primary support mailbox.
+The owner requested a separate visible `support@gridex.tech` CC for contact
+enquiries only. Use `GRIDEX_SUPPORT_CC` in the single private backend `.env`;
+do not add this CC to identity or alert emails. External-browser acceptance
+and receipt in the CC mailbox remain separate verification steps.
+
+Формулярът работи през API и основната support поща получи теста. Новото
+видимо CC е само за запитвания; не го добавяй към покани и известия.
+
 ## 2026-09-30 — secure contact enquiries (source only)
 
 Owner approved public demo enquiries and free-topic enquiries for verified
