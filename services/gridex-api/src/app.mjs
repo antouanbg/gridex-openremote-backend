@@ -124,7 +124,7 @@ async function loadSnapshot(site, repository, openRemote) {
   return { ...normalizeSiteSnapshot(site, devices, strategy, control), batteryEconomicsToday };
 }
 
-export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements, serviceRequests }) {
+export function createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements, serviceRequests, contactInquiries }) {
   const limitLoginDiscovery = createLoginDiscoveryLimit();
   return async function app(req, res) {
     const requestId = req.headers["x-request-id"]?.toString().slice(0, 128) || randomUUID();
@@ -134,6 +134,25 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       assertAllowedOrigin(config, origin);
       if (req.method === "OPTIONS") { cors(res, config, origin); res.writeHead(204); return res.end(); }
       const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+      if (url.pathname === '/api/v1/contact/challenge' && req.method === 'GET') {
+        if (!origin || !config.allowedOrigins.has(origin)) throw new ApiError(403, 'origin_not_allowed', 'This web origin is not allowed.');
+        if (!contactInquiries) throw new ApiError(503, 'contact_unavailable', 'Enquiries are unavailable.');
+        res.setHeader('Cache-Control', 'no-store');
+        return json(res, 200, contactInquiries.challenge(), context);
+      }
+      if (url.pathname === '/api/v1/contact/inquiries' && req.method === 'POST') {
+        if (!origin || !config.allowedOrigins.has(origin)) throw new ApiError(403, 'origin_not_allowed', 'This web origin is not allowed.');
+        if (!contactInquiries) throw new ApiError(503, 'contact_unavailable', 'Enquiries are unavailable.');
+        const body = await readJson(req, Math.min(config.maximumBodyBytes, 8192));
+        let identity = null;
+        if (req.headers.authorization) {
+          identity = await authenticate(req);
+          await repository.assertOrganisationAccess?.(identity);
+        }
+        res.setHeader('Cache-Control', 'no-store');
+        return json(res, 202, await contactInquiries.submit(body, identity), context);
+      }
 
       if (url.pathname === '/api/v1/auth/login-realm') {
         if (req.method !== 'POST') throw new ApiError(405, 'method_not_allowed', 'Use POST for login routing.');

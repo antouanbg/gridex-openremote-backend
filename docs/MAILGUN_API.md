@@ -20,6 +20,10 @@ historical split settings, rejects conflicts and keeps a private rollback.
   Applies to both transports, including invitations, verification and password
   reset. Copies contain usable account links: protect this mailbox as privileged
   access. BCC is not a substitute for audit/delivery status.
+- `GRIDEX_SUPPORT_INBOX`: destination for the constrained contact-enquiry
+  endpoint. Configure in the same private backend `.env`; do not expose a
+  browser-selectable recipient. If it equals a BCC address, the Node sender
+  omits the duplicate blind copy.
 - `GRIDEX_ENROLLMENT_ENABLED`, `GRIDEX_ENROLLMENT_CLIENT_SECRET`: dedicated
   enrollment identity, separate from the OpenRemote Asset client.
 - `GRIDEX_PUBLIC_AUTH_BASE`, `GRIDEX_ADMIN_AUTH_BASE`, `GRIDEX_PORTAL_ORIGIN`:
@@ -52,8 +56,9 @@ energy_manager/integrator roles; administrator assignment is not exposed in
 the invitation form. Verified matching identity and invitation acceptance are
 required before membership is granted.
 
-Only Keycloak gets the Mailgun key and a dedicated outbound network. No new
-public ports. Existing `restart: unless-stopped` applies; Colima must also start
+Only Keycloak and `gridex-api` get the Mailgun key; email egress remains
+restricted and no new public port is opened. Existing `restart: unless-stopped`
+applies; Colima must also start
 after reboot. Always include the email override when recreating the deployment.
 Retired split env files must not be loaded again.
 
@@ -66,6 +71,16 @@ audit checkpoints and does not resend a recorded successful attempt. An uncertai
 attempt requires provider inspection and an explicit decision; do not delete audit.
 Bounce/delivery webhooks and a durable application-mail outbox remain future work.
 This is not an exactly-once or guaranteed-delivery system.
+
+The contact-enquiry endpoint accepts only a fixed support recipient. Anonymous
+demo visitors and verified signed-in members may submit a name, topic and
+message. Signed-in email comes from the verified token. Every request needs a
+short-lived one-use human question; a honeypot and per-address/global rate
+limits reduce automated submissions. These controls are friction, not a
+guarantee against a determined bot. An HTTP 202 means Mailgun queued the
+message, not that it reached the support mailbox. No automatic retry follows
+an uncertain provider result. A public browser acceptance test with a real
+recipient remains necessary after API and portal deployment.
 
 ```sh
 node --env-file="$HOME/GrideX-runtime/backend/.env" \
@@ -100,6 +115,9 @@ Keycloak генерира/проверява action връзките и шабл
   Важи за двата транспорта, включително покани, потвърждение и възстановяване на
   парола. Копията съдържат работещи account връзки: пази пощата като привилегирован
   достъп. BCC не замества audit/следене на доставка.
+- `GRIDEX_SUPPORT_INBOX`: получателят на ограничените запитвания. Задава се в
+  същия частен backend `.env`; браузърът не избира получателя. Ако адресът
+  присъства и в BCC, Node не добавя второ копие.
 - `GRIDEX_ENROLLMENT_ENABLED`, `GRIDEX_ENROLLMENT_CLIENT_SECRET`: отделна
   enrollment идентичност, различна от OpenRemote Asset клиента.
 - `GRIDEX_PUBLIC_AUTH_BASE`, `GRIDEX_ADMIN_AUTH_BASE`, `GRIDEX_PORTAL_ORIGIN`:
@@ -118,8 +136,9 @@ credential, създава `gridex-enrollment` с realm manage/view/query-users,
 integrator; формата не дава administrator. Преди членството са нужни потвърден
 съвпадащ имейл и приемане на поканата.
 
-Само Keycloak получава Mailgun ключа и отделна изходяща мрежа. Без нови публични
-портове. `restart: unless-stopped` остава; Colima също трябва да стартира след reboot.
+Само Keycloak и `gridex-api` получават Mailgun ключа; изходът за поща остава
+ограничен и няма нов публичен порт. `restart: unless-stopped` остава;
+Colima също трябва да стартира след reboot.
 Винаги включвай email override при пресъздаване. Старите env файлове не се зареждат.
 
 Tracking е изключен, redirects се отказват, timeout е ограничен; не се логват
@@ -128,6 +147,15 @@ Tracking е изключен, redirects се отказват, timeout е огр
 и не повтаря записан успешен опит. При неясен опит: provider проверка и изрично
 решение, без изтриване на audit. Delivery/bounce webhooks и трайна application-mail
 опашка остават бъдеща работа; няма exactly-once/гарантирана доставка.
+
+Публичното API за запитвания изпраща само до фиксирания support получател.
+Посетител на демото или потвърден влязъл потребител може да подаде име, тема
+и съобщение; при вход имейлът се взема от проверения токен. За всяко
+запитване се иска кратка еднократна проверка за човек. Скрито поле и
+ограничения по адрес/общ брой намаляват автоматичните заявки, но не са
+гаранция срещу настойчив бот. HTTP 202 означава, че Mailgun е приел писмото
+за изпращане, не че е доставено. При неясен отговор няма автоматичен retry.
+След внедряване са нужни реален браузърен тест и проверка в support пощата.
 
 Тестовият CLI по подразбиране е test mode; `--send` е одобрено истинско писмо с BCC.
 API тестовете покриват BCC/injection/fail-closed покани; provider build проверява
