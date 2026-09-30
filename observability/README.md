@@ -7,13 +7,15 @@ and Nginx rechecks it for every Grafana page, asset and query. Anonymous and
 forged cookies are denied. Customer access requires both `day_ahead` and
 `visualisations` grants plus BG zone permission; the platform administrator
 uses a separate verified allowlist. No standalone public Grafana login exists.
-The dashboard displays only Bulgarian ENTSO-E hours and fetch time. Neither
+The dashboard displays Bulgarian ENTSO-E native 15-minute day-ahead intervals
+where archived; older hourly history remains hourly. The last successful full
+day import is distinct from the worker's last hourly provider check. Neither
 OpenRemote nor customer telemetry is connected to this data source.
 
 The reviewed Grafana OSS ARM64 image is pinned in the Compose overlay. Set
 `GRIDEX_GRAFANA_ADMIN_PASSWORD` and
 `GRIDEX_GRAFANA_MARKET_READER_PASSWORD` in the **single private backend env**.
-`market-reader-role.sql` prepares a NOLOGIN role with SELECT only on two
+`market-reader-role.sql` prepares a NOLOGIN role with SELECT only on
 BG-filtered views, not the underlying market tables. At activation, give it a
 unique private password and LOGIN; never reuse the market owner password.
 Test denial of direct table reads and writes, datasource health, anonymous
