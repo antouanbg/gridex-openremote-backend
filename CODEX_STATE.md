@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — secure contact enquiries (source only)
+
+Owner approved public demo enquiries and free-topic enquiries for verified
+signed-in members. Source branch `feat/secure-contact-inquiries` adds fixed
+support-recipient Mailgun delivery, a one-use human question, honeypot,
+per-email/global throttling and no automatic retry on unknown delivery. No
+new menu, database inventory or Google Forms service. `GRIDEX_SUPPORT_INBOX`
+must be set in the single private backend env before Compose deployment.
+Backend tests: 121 passed, 1 existing skip. Deployment and a real recipient
+delivery check remain pending; see HANDOFF. Do not claim production mail works.
+
+Одобрен е формуляр за посетители на демото и влезли потребители. Промените
+са само в изходния код. Преди внедряване задай `GRIDEX_SUPPORT_INBOX` в
+единствения частен `.env`; след това провери истинска доставка. API тестовете
+са 121 успешни, 1 пропуснат. Не обявявай писмата за работещи на живо преди
+приемателната проверка.
+
 ## 2026-09-29 — Site charts and live service requests
 
 Service-request migration 020/API are live after private backup; existing

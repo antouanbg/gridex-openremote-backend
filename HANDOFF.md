@@ -1,4 +1,20 @@
 # Handoff — GrideX OpenRemote backend
+Repository / GitHub: `antouanbg/gridex-openremote-backend`
+
+## 2026-09-30 — contact enquiries require publication and live delivery proof
+
+Source branch `feat/secure-contact-inquiries` adds the restricted contact API
+and Mailgun support recipient. Dependency: backend PR review/merge; set
+`GRIDEX_SUPPORT_INBOX` in the single private backend `.env` before recreating
+`gridex-api` with `compose.mailgun.yml`; publish the matching frontend and
+BG/EN Docusaurus guide afterward. Acceptance: anonymous demo and verified
+member each submit once, Mailgun queues each message, the support mailbox
+actually receives it, bot check/rate limits reject abuse, and no other
+recipient can be selected. Exact next action: review backend PR, then perform
+the env/config/deploy and real recipient tests before claiming live service.
+
+Само кодът е готов; няма потвърдена реална доставка. Първо review/merge,
+после частният env, backend внедряване, портал/ръководство и реален тест.
 
 ## 2026-09-29 — BG Grafana обяснява delivery date срещу refresh time
 

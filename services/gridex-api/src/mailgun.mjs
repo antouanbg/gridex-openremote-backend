@@ -24,7 +24,7 @@ export async function sendMailgun(config, { to, subject, text, testMode = false 
   for (const [name, value] of Object.entries({ from: config.from, to, subject, text,
     'o:tracking': 'no', 'o:tracking-clicks': 'no', 'o:tracking-opens': 'no' })) body.set(name, value);
   if (testMode) body.set('o:testmode', 'yes');
-  for (const address of config.bcc || []) body.append('bcc', address);
+  for (const address of config.bcc || []) if (address.toLowerCase() !== to.toLowerCase()) body.append('bcc', address);
   let response;
   try {
     response = await fetcher(`${config.base}/v3/${encodeURIComponent(config.domain)}/messages`, {

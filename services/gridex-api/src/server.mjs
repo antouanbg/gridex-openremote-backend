@@ -16,6 +16,7 @@ import {GrafanaLaunch} from './grafana-launch.mjs';
 import { MarketStorage } from './market-storage.mjs';
 import { ServiceEntitlements } from './service-entitlements.mjs';
 import { ServiceRequests } from './service-requests.mjs';
+import { ContactInquiries } from './contact-inquiries.mjs';
 
 const config = loadConfig();
 validateProductionConfig(config);
@@ -56,11 +57,12 @@ const market = config.marketDatabase ? new MarketStorage(config.marketDatabase) 
 const serviceEntitlements = repository.pool ? new ServiceEntitlements(repository.pool, config) : null;
 const serviceRequests = repository.pool && serviceEntitlements
   ? new ServiceRequests(repository.pool, serviceEntitlements, market) : null;
+const contactInquiries = new ContactInquiries({ recipient: process.env.GRIDEX_SUPPORT_INBOX });
 const grafanaLaunch = repository.pool && market && config.grafanaPublicOrigin
   ? new GrafanaLaunch(repository.pool, config.grafanaPublicOrigin, config, market) : null;
 if (managerLaunch) await managerLaunch.invalidateAll();
 if (grafanaLaunch) await grafanaLaunch.invalidateAll();
-const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements, serviceRequests }));
+const server = createServer(createApp({ config, authenticate, repository, openRemote, invitations, onboarding, organisationAccess, deviceVault, deviceHeartbeats, heartbeatSubscriptions, managerLaunch, grafanaLaunch, market, serviceEntitlements, serviceRequests, contactInquiries }));
 
 server.listen(config.port, "0.0.0.0", () => console.log(`GrideX API listening on ${config.port}`));
 
