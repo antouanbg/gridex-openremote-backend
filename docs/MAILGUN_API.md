@@ -24,6 +24,10 @@ historical split settings, rejects conflicts and keeps a private rollback.
   endpoint. Configure in the same private backend `.env`; do not expose a
   browser-selectable recipient. If it equals a BCC address, the Node sender
   omits the duplicate blind copy.
+- `GRIDEX_SUPPORT_CC`: visible copy recipient for contact enquiries only.
+  It is fixed in the same private `.env`, never selected by the browser.
+  Invitations, verification, password reset and heartbeat alerts do not get
+  this CC. A matching BCC is omitted to avoid duplicate delivery.
 - `GRIDEX_ENROLLMENT_ENABLED`, `GRIDEX_ENROLLMENT_CLIENT_SECRET`: dedicated
   enrollment identity, separate from the OpenRemote Asset client.
 - `GRIDEX_PUBLIC_AUTH_BASE`, `GRIDEX_ADMIN_AUTH_BASE`, `GRIDEX_PORTAL_ORIGIN`:
@@ -118,6 +122,10 @@ Keycloak генерира/проверява action връзките и шабл
 - `GRIDEX_SUPPORT_INBOX`: получателят на ограничените запитвания. Задава се в
   същия частен backend `.env`; браузърът не избира получателя. Ако адресът
   присъства и в BCC, Node не добавя второ копие.
+- `GRIDEX_SUPPORT_CC`: видимо копие само за запитванията, зададено в същия
+  частен `.env`, не от браузъра. Поканите, потвържденията, възстановяването
+  на парола и heartbeat известията не получават това CC. Съвпадащ BCC не се
+  изпраща повторно.
 - `GRIDEX_ENROLLMENT_ENABLED`, `GRIDEX_ENROLLMENT_CLIENT_SECRET`: отделна
   enrollment идентичност, различна от OpenRemote Asset клиента.
 - `GRIDEX_PUBLIC_AUTH_BASE`, `GRIDEX_ADMIN_AUTH_BASE`, `GRIDEX_PORTAL_ORIGIN`:

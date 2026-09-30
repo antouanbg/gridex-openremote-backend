@@ -57,7 +57,7 @@ const market = config.marketDatabase ? new MarketStorage(config.marketDatabase) 
 const serviceEntitlements = repository.pool ? new ServiceEntitlements(repository.pool, config) : null;
 const serviceRequests = repository.pool && serviceEntitlements
   ? new ServiceRequests(repository.pool, serviceEntitlements, market) : null;
-const contactInquiries = new ContactInquiries({ recipient: process.env.GRIDEX_SUPPORT_INBOX });
+const contactInquiries = new ContactInquiries({ recipient: process.env.GRIDEX_SUPPORT_INBOX, cc: process.env.GRIDEX_SUPPORT_CC });
 const grafanaLaunch = repository.pool && market && config.grafanaPublicOrigin
   ? new GrafanaLaunch(repository.pool, config.grafanaPublicOrigin, config, market) : null;
 if (managerLaunch) await managerLaunch.invalidateAll();

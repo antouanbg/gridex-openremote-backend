@@ -6,8 +6,9 @@ const emailPattern = /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/;
 const digest = value => createHash('sha256').update(value).digest('hex');
 
 export class ContactInquiries {
-  constructor({ recipient, mailgun = mailgunConfig, send = sendMailgun, now = () => Date.now(), random = randomInt } = {}) {
+  constructor({ recipient, cc, mailgun = mailgunConfig, send = sendMailgun, now = () => Date.now(), random = randomInt } = {}) {
     this.recipient = recipient;
+    this.cc = cc;
     this.mailgun = mailgun;
     this.send = send;
     this.now = now;
@@ -48,7 +49,7 @@ export class ContactInquiries {
         || topic.length < 3 || topic.length > 120 || /[\r\n]/.test(topic)
         || message.length < 20 || message.length > 5000)
       throw new ApiError(400, 'contact_invalid', 'Check the form fields and try again.');
-    if (!emailPattern.test(this.recipient || ''))
+    if (!emailPattern.test(this.recipient || '') || !emailPattern.test(this.cc || ''))
       throw new ApiError(503, 'contact_unavailable', 'Enquiries are temporarily unavailable.');
     const key = digest(email);
     for (const [id, time] of this.sent) if (now - time >= 3_600_000) this.sent.delete(id);
@@ -59,7 +60,7 @@ export class ContactInquiries {
     try {
       const scope = identity ? `Signed-in user · realm: ${identity.realm} · subject: ${identity.subject}` : 'Public demo visitor';
       const result = await this.send(this.mailgun(), {
-        to: this.recipient, subject: `[GrideX] ${topic}`,
+        to: this.recipient, cc: this.cc, subject: `[GrideX] ${topic}`,
         text: `New GrideX enquiry\n\nName: ${name}\nEmail: ${email}\nSource: ${scope}\n\n${message}`,
       });
       return { status: result.status === 'queued' ? 'queued' : 'accepted' };
