@@ -2,11 +2,16 @@
 
 ## 2026-09-30 — separate enquiry reply address
 
+Merged PR #76 and deployed only the API container; health and contact
+challenge endpoint passed. Rollback image is
+`gridex-api-rollback:before-reply-email-20260930`. BG/EN docs are live.
+Real alternate-address Reply-To acceptance remains open.
+
 Contact API/Mailgun source now supports a validated `replyEmail` as Reply-To
 without replacing verified identity or changing To/CC/BCC. The 122 passing
 API tests include distinct account/reply addresses and header-injection
-rejection. Pending: merge, deploy only `gridex-api`, check health and real
-owner acceptance. Paired BG/EN public guide lives in the docs repository.
+rejection. Pending: real owner browser submission and reply acceptance.
+Paired BG/EN public guide is deployed from the docs repository.
 
 ## 2026-09-30 — contact support CC verified live
 
