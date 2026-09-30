@@ -1,5 +1,17 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — contact support CC verified live
+
+Backend PR #74 is merged and deployed only to `gridex-api`, which is healthy.
+To `support@novacom.bg` and visible CC `support@gridex.tech` are fixed in the
+single private backend env. A labelled smoke enquiry returned 202; the owner
+confirmed primary inbox receipt and Mailgun reports `delivered` for the CC.
+Frontend About help link and BG/EN guide are live. External-browser acceptance
+remains open. See latest HANDOFF; older source-only notes below are historical.
+
+Видимото CC е активно само за запитвания. Основната поща потвърди теста, а
+Mailgun отчете доставка към CC. Външната браузърна проба остава отделна.
+
 ## 2026-09-30 — contact live checkpoint and CC scope
 
 The contact API, form and BG/EN guide are published. A labelled public-demo

@@ -1,6 +1,32 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — contact CC live and provider-delivered
+
+PR #74 is merged into `main` (`7db2436`). The single private backend `.env`
+contains `GRIDEX_SUPPORT_INBOX=support@novacom.bg` and
+`GRIDEX_SUPPORT_CC=support@gridex.tech`; no credentials are in Git. Only
+`gridex-api` was rebuilt/recreated from the same five active Compose layers.
+It is healthy, with the exact recipient configuration verified in-container.
+The prior image remains tagged `gridex-api-rollback:before-contact-cc-20260930`.
+
+One labelled public-demo CC smoke enquiry via the local protected HTTPS proxy
+returned HTTP 202/`queued`. The owner confirmed the received test message in
+the primary support mailbox. Mailgun events for that exact subject and CC
+recipient report `accepted` and `delivered` to `support@gridex.tech`. This is
+provider-delivery evidence, not a manual check of the CC inbox. No new
+database, migration, network port or other service restart was involved.
+Frontend Pages and quality workflows for the About help link completed
+successfully; the live page now links to the BG/EN contact guide. The docs
+container was deployed with its approved script and BG/EN build/MIME checks.
+An external-network browser submission by a person is still pending; this
+Mac's public API hostname does not answer locally, while its protected local
+proxy route works. Do not treat this as proof that every external client works.
+
+BG: CC за запитванията е внедрено. Основната поща получи теста; Mailgun
+потвърждава доставка към `support@gridex.tech`. Остава проба на формата от
+външна мрежа; никакви други пощенски потоци не получават новото CC.
+
 ## 2026-09-30 — contact API live; visible support CC requested
 
 Backend PR #73, frontend PR #79 and BG/EN docs PR #25 are merged. The live
