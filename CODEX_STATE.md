@@ -1,5 +1,23 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — customer Site provisioning validation fix
+
+Manager logs for two failed `novacom` Site intents identify missing required
+`notes` on the new `ThingAsset`; neither attempt created an OpenRemote asset or
+local Site. Added the required text attribute to both Site and gateway
+templates, with regression assertions. API suite: 122 pass, 1 existing skip.
+Only `gridex-api` was rebuilt/recreated and is healthy; rollback image is
+`gridex-api-rollback:before-openremote-notes-20260930`. Next: owner retries
+from the portal, then verify one OpenRemote asset/local Site pair and, later,
+the gateway path. No live customer create has yet been claimed successful.
+
+## 2026-09-30 — live contact acceptance
+
+Owner confirms the enquiry form submits correctly. Mailgun events at
+17:21 Europe/Sofia show accepted and recipient-server delivered for both
+configured support recipients. Inbox placement was not inspected; signed-in
+alternate Reply-To remains unverified. No code, config or runtime change.
+
 ## 2026-09-30 — separate enquiry reply address
 
 Merged PR #76 and deployed only the API container; health and contact
