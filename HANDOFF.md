@@ -2633,3 +2633,21 @@ ENTSO-E A44 веднъж на час (последен проверен опит
 `market-reader-role.sql` минаха в отделен временен TimescaleDB 2.26.4/PG17
 контейнер; read-only ролята няма директен SELECT върху native таблицата, но
 има SELECT върху BG-only view (`f|t`). Тестовият контейнер е спрян/изтрит.
+# 2026-09-30 — BG native market rollout (verified locally; external user check pending)
+
+PR #71 е слят в `main` (`a5408dd`). Преди live промяната е направен частен
+архив `/Users/antouan/GrideX-runtime/private-backups/gridex-market-before-native-20260930.dump`
+(0600, `pg_restore -l` успешен). Приложени са само новите market hypertable-и
+и BG-only reader view; старите часови таблици/права/записи са запазени.
+Пресъздаден е **само** `gridex-market-worker` от този `main`, с rollback image
+`gridex-mac-gridex-market-worker:before-native-20260930`.
+
+Живите логове при старт в 07:37 UTC: BG 2026-09-30 `published`, 96 точки по
+15 минути и 24 производни часа; BG 2026-10-01 `partial`, 4 точки (0 записани
+като пълен ден). SQL проверка: `96|24|f|t` = 96 native BG точки, 24 часови,
+reader няма SELECT на native таблица, има SELECT на BG-only view. В native
+таблицата **няма друга зона**. Reader view се заявява успешно под ограничената
+роля. Текущ BG status при проверката: последен опит 10:37:24 местно,
+последен пълен импорт 10:37:23, дата на пълния набор 2026-09-30.
+Grafana dashboard файлът е монтиран от `main` с новия native view; пълен
+външен клиентски browser тест на вградената графика още не е потвърден.
