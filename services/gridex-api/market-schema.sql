@@ -37,6 +37,35 @@ CREATE TABLE IF NOT EXISTS market_hourly_prices (
 
 SELECT create_hypertable('market_hourly_prices', 'start_utc', if_not_exists => TRUE);
 
+-- Preserve the provider's native market time unit. Bulgaria has used 15-minute
+-- day-ahead prices since delivery day 2025-10-01. The hourly table above is
+-- retained as a derived compatibility series, not the source of truth.
+CREATE TABLE IF NOT EXISTS market_interval_prices (
+  start_utc timestamptz NOT NULL,
+  zone text NOT NULL,
+  country text NOT NULL,
+  delivery_date date NOT NULL,
+  price_eur_mwh numeric(16,6) NOT NULL,
+  source_document_id text,
+  resolution_minutes integer NOT NULL CHECK (resolution_minutes IN (15,60)),
+  fetched_at timestamptz NOT NULL,
+  PRIMARY KEY (zone, start_utc)
+);
+SELECT create_hypertable('market_interval_prices', 'start_utc', if_not_exists => TRUE);
+
+CREATE TABLE IF NOT EXISTS market_interval_price_revisions (
+  start_utc timestamptz NOT NULL,
+  zone text NOT NULL,
+  country text NOT NULL,
+  delivery_date date NOT NULL,
+  price_eur_mwh numeric(16,6) NOT NULL,
+  source_document_id text NOT NULL,
+  resolution_minutes integer NOT NULL CHECK (resolution_minutes IN (15,60)),
+  first_seen_at timestamptz NOT NULL,
+  PRIMARY KEY (zone,start_utc,source_document_id,price_eur_mwh)
+);
+SELECT create_hypertable('market_interval_price_revisions', 'start_utc', if_not_exists => TRUE);
+
 -- Append-only distinct revisions preserve supplier corrections for later analysis.
 CREATE TABLE IF NOT EXISTS market_hourly_price_revisions (
   start_utc timestamptz NOT NULL,

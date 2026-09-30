@@ -36,11 +36,47 @@ test('repeated hourly archive writes compare rounded prices, not floating-point 
   assert.match(revision.sql,/WHERE NOT EXISTS/);
 });
 
+test('published BG quarter-hours are archived at native precision as well as derived hourly means', async () => {
+  const seen=[];
+  const db={query:async(sql,args)=>{seen.push({sql,args});return {rows:sql.includes('SELECT enabled')?[{enabled:true}]:[]};},release(){}};
+  const storage=new MarketStorage(null,{pool:{connect:async()=>db}});
+  const intervals=[-12.5,0,20,32.5].map((price,index)=>({
+    startUtc:new Date(Date.parse('2026-09-30T10:00:00Z')+index*900000).toISOString(),
+    endUtc:new Date(Date.parse('2026-09-30T10:15:00Z')+index*900000).toISOString(),
+    priceEurMwh:price,resolutionMinutes:15,
+  }));
+  assert.equal(await storage.save({status:'published',zone:'BG',country:'BG',date:'2026-09-30',
+    sourceDocumentId:'a44',fetchedAt:'2026-09-29T12:00:00Z',intervals}),1);
+  const native=seen.filter(item=>item.sql.includes('INSERT INTO market_interval_prices'));
+  assert.equal(native.length,4);
+  assert.deepEqual(native.map(item=>item.args[4]),[-12.5,0,20,32.5]);
+  assert.ok(native.every(item=>item.args[6]===15));
+  assert.equal(seen.filter(item=>item.sql.includes('INSERT INTO market_interval_price_revisions')).length,4);
+  assert.equal(seen.filter(item=>item.sql.includes('INSERT INTO market_hourly_prices')).length,1);
+});
+
+test('unpublished day does not write prices and invalid source intervals fail closed', async () => {
+  const seen=[];
+  const db={query:async(sql)=>{seen.push(sql);return {rows:sql.includes('SELECT enabled')?[{enabled:true}]:[]};},release(){}};
+  const storage=new MarketStorage(null,{pool:{connect:async()=>db}});
+  const base={zone:'BG',country:'BG',date:'2026-10-01',fetchedAt:'2026-09-30T07:00:00Z'};
+  assert.equal(await storage.save({...base,status:'not_published',intervals:[]}),0);
+  assert.equal(seen.filter(sql=>sql.includes('INSERT INTO market_interval_prices')).length,0);
+  await assert.rejects(storage.save({...base,status:'published',intervals:[{
+    startUtc:'2026-10-01T00:00:00Z',endUtc:'2026-10-01T00:30:00Z',
+    priceEurMwh:10,resolutionMinutes:15,
+  }]}),error=>error.code==='market_invalid_interval');
+  assert.equal(seen.filter(sql=>sql.includes('INSERT INTO market_interval_prices')).length,0);
+});
+
 test('only Bulgaria is enabled by the schema; disabled zones cannot be saved or read', async () => {
   const { readFileSync } = await import('node:fs');
   const { fileURLToPath } = await import('node:url');
   const schema=readFileSync(fileURLToPath(new URL('../market-schema.sql',import.meta.url)),'utf8');
   assert.match(schema,/VALUES \('BG','BG',true,'system:bulgaria-default'\)/);
+  assert.match(schema,/CREATE TABLE IF NOT EXISTS market_interval_prices/);
+  assert.match(schema,/CREATE TABLE IF NOT EXISTS market_interval_price_revisions/);
+  assert.doesNotMatch(schema,/add_retention_policy|drop_chunks/i);
   assert.doesNotMatch(schema,/VALUES \('(?:DE|FR|ES|IT)'/);
   const db={query:async(sql)=>({rows:sql.includes('SELECT enabled')?[{enabled:false}]:[]}),release(){}};
   const storage=new MarketStorage(null,{pool:{connect:async()=>db,query:db.query}});
