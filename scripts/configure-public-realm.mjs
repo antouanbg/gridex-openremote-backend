@@ -42,7 +42,7 @@ try {
     attributes: { ...client.attributes, 'pkce.code.challenge.method': 'S256',
       'post.logout.redirect.uris': [...new Set([
         ...(client.attributes?.['post.logout.redirect.uris'] || '').split('##').filter(Boolean),
-        `${origin.origin}/`, `${origin.origin}/en/`,
+        `${origin.origin}/`, `${origin.origin}/demo/`, `${origin.origin}/en/`,
         'http://127.0.0.1:4173/', 'http://127.0.0.1:4173/en/',
       ])].join('##') },
   }) });

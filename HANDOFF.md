@@ -1,6 +1,24 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — logout callback към демото
+
+Потребител съобщи празен екран на `gridex.tech` след „Изход“. Frontend
+използваше `/` като Keycloak post-logout адрес и браузърният тест не
+проверяваше непосредственото връщане. През публичния proxy Keycloak приемаше
+`/` (302), но platform realm отказваше точния `/demo/` (400); клиентският
+`novacom` realm вече приемаше `/demo/`. Няма данни за загуба на клиентски данни
+или за заобикаляне на права. Добавен е само `https://gridex.tech/demo/` към
+post-logout адресите на `gridex-portal` в platform realm. Частен архив:
+`/Users/antouan/GrideX-runtime/private-backups/demo-logout-OqPu9z/` (не се
+качва в Git). След промяната read-only публични проверки за `gridex` и
+`novacom` връщат 302 към `/demo/`. Изходът от реална потребителска сесия
+остава за приемателна проверка след frontend публикуване; при проблем върни
+точния client snapshot от частния архив. Не разширявай whitelist към wildcard.
+Източникът `configure-public-realm.mjs` вече пази същия точен callback за
+следващо провизиране, а `enable-demo-logout.mjs` е тесният повторяем
+операторски инструмент с архив и проверка.
+
 ## 2026-09-30 18:01 UTC — embedded BG Grafana range and empty stats
 
 The owner reports that the mobile Market dashboard spans many empty dates,

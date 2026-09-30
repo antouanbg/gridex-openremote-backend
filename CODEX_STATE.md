@@ -1,5 +1,13 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — demo redirect after logout
+
+Platform `gridex-portal` initially rejected `/demo/` as a post-logout URI
+(HTTP 400), although customer `novacom` accepted it. Only the exact platform
+callback was added with private rollback snapshot; both realms now return 302
+to the demo. Frontend source and browser regression send logout directly to
+`/demo/`; real-user logout acceptance is still open. See HANDOFF.
+
 ## 2026-09-30 — Grafana BG range and empty Stats (source gate)
 
 The mobile Market screenshot shows a long mostly empty chart and two “No data”
