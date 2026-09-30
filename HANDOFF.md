@@ -1,6 +1,37 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — new-cloud deployment knowledge transfer
+
+### Open task — sanitised deployment configuration matrix
+
+- [ ] Enumerate every selected Compose service/overlay and its required and optional environment variables, mounts, certificates, networks, ports and persistent volumes. Compare the result with `.env.example` and the single private backend `.env` **by key names only**; never print or commit values.
+- [ ] For each setting record purpose, safe example/default, source of truth, owning service, whether it is secret, and how a new installation obtains it. Update `.env.example` and `DEPLOYMENT.md` together; preserve the one-file backend configuration rule.
+- [ ] Validate the rendered Compose configuration with placeholder secrets in an isolated environment, then have a second operator reproduce the inventory. Mark the task complete only after the matrix and verification evidence are committed. Do not start or modify production services as part of the inventory.
+
+### Отворена задача — обезличена матрица на настройките за внедряване
+
+- [ ] Опиши всички избрани Compose услуги/overlays и задължителните и незадължителните им променливи, mounts, сертификати, мрежи, портове и постоянни volumes. Сравни ги с `.env.example` и единния частен backend `.env` **само по имената на ключовете**, без да показваш или публикуваш стойности.
+- [ ] За всяка настройка запиши предназначение, безопасен пример/стойност по подразбиране, източник на истина, услуга собственик, дали е тайна и откъде я получава новата инсталация. Обнови `.env.example` и `DEPLOYMENT.md` заедно, като запазиш правилото за един backend конфигурационен файл.
+- [ ] Провери ефективния Compose с примерни тайни в изолирана среда, после втори оператор да възпроизведе описа. Затвори задачата едва след публикувана матрица и доказателства от проверката. Описът не стартира и не променя продукционни услуги.
+
+Source-only preparation: added bilingual `DEPLOYMENT.md` and linked it from the
+backend README. It inventories backend, portal and Edge boundaries, private
+inputs, current ARM64/Mac coupling, and the order and acceptance gates for an
+isolated clean-room installation. This is **not** a tested deployment recipe:
+no cloud environment, customer data, secret, certificate, container or physical
+device was changed. Next: complete the sanitised environment/overlay matrix,
+portable target profile, bootstrap/migration and backup/restore procedures,
+Edge enrolment and clean-room regression suite before any live cutover. Keep
+the existing host and commissioning locks unchanged.
+
+Подготвен е двуезичен `DEPLOYMENT.md` с връзка от README за backend, портал и
+Edge, частните зависимости и проверките при преместване. Това **не е** проверен
+инсталационен процес: няма промяна на облак, данни, тайни, контейнери или
+устройства. Следват пълна обезличена матрица на настройките, преносим профил,
+bootstrap/миграции, backup/restore, Edge enrolment и тест от чиста среда преди
+отделно одобрено преместване на живо.
+
 ## 2026-09-30 — logout callback към демото
 
 Потребител съобщи празен екран на `gridex.tech` след „Изход“. Frontend
