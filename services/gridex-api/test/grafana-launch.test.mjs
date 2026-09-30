@@ -8,17 +8,18 @@ const organisationId='22222222-2222-4222-8222-222222222222';
 const config={realm:'gridex',platformAdminSubjects:new Set([subject])};
 const market={isZoneEnabled:async(country,zone)=>country==='BG'&&zone==='BG'};
 
-test('BG dashboard distinguishes delivery hour from fetch time without broader data access',()=>{
+test('BG dashboard distinguishes native delivery intervals from fetch time without broader data access',()=>{
   const dashboard=JSON.parse(readFileSync(new URL('../../../observability/grafana/dashboards/gridex-market-bg.json',import.meta.url),'utf8'));
   assert.equal(dashboard.timezone,'Europe/Sofia');
   const explanation=dashboard.panels.find(panel=>panel.id===3);
   const delivery=dashboard.panels.find(panel=>panel.id===4);
   assert.match(explanation.options.content,/Ден напред/);
   assert.match(explanation.options.content,/предходния ден/);
-  assert.match(delivery.targets[0].rawSql,/MAX\(start_utc\).*grafana_bg_hourly_prices/);
+  assert.match(delivery.targets[0].rawSql,/MAX\(start_utc\).*grafana_bg_interval_prices/);
+  assert.match(explanation.options.content,/15 минути/);
   for(const panel of dashboard.panels)
     for(const target of panel.targets||[])
-      assert.doesNotMatch(target.rawSql,/FROM\s+market_hourly_prices\b/i);
+      assert.doesNotMatch(target.rawSql,/FROM\s+market_(?:hourly|interval)_prices\b/i);
 });
 
 test('dashboard launch requires two member services and BG zone, never one grant',async()=>{

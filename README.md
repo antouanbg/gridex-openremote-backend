@@ -28,9 +28,9 @@ The Compose files define a **core stack** and **optional integrations**. An over
 | `manager` | OpenRemote Assets, attributes, rules, Agents and authenticated Manager UI. |
 | `proxy` | Local HTTPS entry point for OpenRemote and Keycloak. |
 | `gridex-db` | Separate PostgreSQL for GrideX workflows, permissions/bindings and audit; not a second inventory. |
-| `gridex-market-db` | Dedicated TimescaleDB for permanent hourly wholesale-price history; not customer inventory. |
+| `gridex-market-db` | Dedicated TimescaleDB for permanent native-interval wholesale-price history and derived hourly compatibility data; not customer inventory. |
 | `gridex-api` | Portal-facing API, authorization and provisioning orchestration. |
-| `gridex-market-worker` | Retrieves ENTSO-E A44 day-ahead prices only for explicitly enabled zones (BG by default) and stores complete UTC hours. |
+| `gridex-market-worker` | Checks ENTSO-E A44 once per hour for the next delivery day, only for explicitly enabled zones (BG by default). One request returns the published day's intervals; BG prices have 15-minute market time units since 1 October 2025. |
 | `gridex-grafana` | Optional BG-only dashboard from `compose.grafana.yml`, without a published port; portal embedding is guarded by one-time launch and per-request API authorisation. |
 | `broker` | Mosquitto MQTT broker with client certificates and scoped topic access. |
 | `heartbeat-worker` | Consumes gateway/node health messages and updates connection state. |
@@ -78,9 +78,9 @@ Compose файловете описват **основен стек** и **до�
 | `manager` | OpenRemote Assets, атрибути, правила, Agents и защитен Manager интерфейс. |
 | `proxy` | Локален HTTPS вход към OpenRemote и Keycloak. |
 | `gridex-db` | Отделна PostgreSQL за процесите, правата/връзките и одита на GrideX; не втори регистър на устройствата. |
-| `gridex-market-db` | Отделна TimescaleDB за постоянна история на часовите борсови цени; не е клиентски инвентар. |
+| `gridex-market-db` | Отделна TimescaleDB за постоянна история на борсовите цени с оригиналния пазарен интервал и производна часова серия; не е клиентски инвентар. |
 | `gridex-api` | API за портала, проверки на права и координация на провизирането. |
-| `gridex-market-worker` | Получава ENTSO-E A44 цени само за изрично разрешени зони (по подразбиране BG) и пази пълни UTC часове. |
+| `gridex-market-worker` | Проверява ENTSO-E A44 веднъж на час за следващия ден на доставка, само за изрично разрешени зони (по подразбиране BG). Една заявка връща публикуваните интервали за деня; за BG те са 15-минутни от 1 октомври 2025 г. |
 | `gridex-grafana` | Незадължителен BG-only dashboard от `compose.grafana.yml`, без публикуван порт; вграждането минава през еднократен вход и проверка на всяка заявка. |
 | `broker` | Mosquitto MQTT с клиентски сертификати и ограничен достъп по теми. |
 | `heartbeat-worker` | Приема съобщения за състоянието на шлюза/нода и обновява връзката. |

@@ -1,5 +1,26 @@
 # GrideX OpenRemote backend — Working rules
 
+## BG day-ahead price cadence and precision — 2026-09-30
+
+Bulgaria's day-ahead auction has 15-minute market time units for delivery
+since 2025-10-01. Do not confuse this price resolution with API polling:
+one ENTSO-E A44 request can return the full day's 92/96/100 intervals (DST
+dependent). Poll the next delivery day hourly until complete, and recover
+the current day once after startup/local midnight. Do not mark a partial
+next-day response as a complete published day or claim that a yesterday's
+last successful full import means the provider connection has stopped.
+Persist native intervals and revisions without retention; keep derived hourly
+rows only for compatibility and clearly label them as averages. Collect BG
+only unless the platform administrator explicitly enables another zone.
+
+Българските цени „ден напред“ са по 15 минути от 01.10.2025 г. Това е
+резолюцията на цената, а не честотата на API заявките: една A44 заявка връща
+92/96/100 интервала според часовото време. Проверявай следващия ден веднъж на
+час до пълна публикация и възстановявай текущия ден след старт/полунощ.
+Частичен утрешен отговор не е пълен ден. Пази оригиналните интервали и
+ревизиите без изтриване; часовите средни са само производна съвместимост.
+Само BG се събира без ново изрично разрешение от супер администратора.
+
 ## Approved service requests and embedded BG dashboard — 2026-09-29
 
 The owner approved two independent requestable services: `day_ahead` with
