@@ -4,16 +4,16 @@
   "tags": ["gridex", "bg", "entsoe"],
   "timezone": "Europe/Sofia",
   "schemaVersion": 40,
-  "version": 3,
+  "version": 4,
   "refresh": "1h",
-  "time": {"from": "now-7d", "to": "now+2d"},
+  "time": {"from": "now-24h", "to": "now+36h"},
   "panels": [
     {
       "id": 3,
       "type": "text",
       "title": "Как да четем цените",
       "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0},
-      "options": {"mode": "markdown", "content": "**Ден напред**: цената е за доставка на показаната дата и час, определена на търга през предходния ден. За България пазарният интервал е **15 минути** от 01.10.2025 г.; по-старите часови записи не се представят като 15-минутни. Оста на времето е по **българско време (Europe/Sofia)**. Графиката обхваща последните 7 дни и до 2 дни напред **само при публикувани стойности**. GrideX проверява ENTSO-E веднъж на час; това **не** означава, че се формира нова цена всеки час. „Последно успешно обновяване“ е кога GrideX е получил публикуван набор, **не** датата на доставка. Стойностите са борсови **EUR/MWh**, без данъци, мрежови такси и клиентски надбавки."}
+      "options": {"mode": "markdown", "content": "**Ден напред**: цената е за доставка на показаната дата и час, определена на търга през предходния ден. За България пазарният интервал е **15 минути** от 01.10.2025 г.; по-старите часови записи не се представят като 15-минутни. Оста на времето е по **българско време (Europe/Sofia)**. Периодът се избира в GrideX над графиката; показват се **само публикувани стойности**. GrideX проверява ENTSO-E веднъж на час; това **не** означава, че се формира нова цена всеки час. „Последно успешно обновяване“ е кога GrideX е получил публикуван набор, **не** датата на доставка. Стойностите са борсови **EUR/MWh**, без данъци, мрежови такси и клиентски надбавки."}
     },
     {
       "id": 1,
@@ -34,8 +34,9 @@
       "gridPos": {"h": 5, "w": 12, "x": 0, "y": 17},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "table", "rawQuery": true,
-        "rawSql": "SELECT last_success_at AS \"Последно успешно обновяване\" FROM grafana_bg_fetch_status"}],
-      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#1B8062"}, "unit": "dateTimeAsIso"}, "overrides": []}
+        "rawSql": "SELECT to_char(MAX(last_success_at) AT TIME ZONE 'Europe/Sofia', 'DD.MM.YYYY HH24:MI') AS \"Последно успешно обновяване\" FROM grafana_bg_fetch_status"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#1B8062"}, "noValue": "—"}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "graphMode": "none"}
     },
     {
       "id": 4,
@@ -45,8 +46,9 @@
       "gridPos": {"h": 5, "w": 12, "x": 12, "y": 17},
       "datasource": {"type": "postgres", "uid": "gridex-market-ro"},
       "targets": [{"refId": "A", "format": "table", "rawQuery": true,
-        "rawSql": "SELECT MAX(start_utc) AS \"Последен интервал с цена\" FROM grafana_bg_interval_prices"}],
-      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#B9E343"}, "unit": "dateTimeAsIso"}, "overrides": []}
+        "rawSql": "SELECT to_char(MAX(start_utc) AT TIME ZONE 'Europe/Sofia', 'DD.MM.YYYY HH24:MI') AS \"Последен интервал с цена\" FROM grafana_bg_interval_prices"}],
+      "fieldConfig": {"defaults": {"color": {"mode": "fixed", "fixedColor": "#B9E343"}, "noValue": "—"}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "value", "graphMode": "none"}
     }
   ]
 }

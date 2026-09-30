@@ -14,6 +14,7 @@ import { ROCK_METRICS } from "./history-ingest.mjs";
 import { createLoginDiscoveryLimit, normaliseLoginEmail } from './login-discovery.mjs';
 import {idempotencyKey,provisionGateway,provisionSite} from './inventory-provisioning.mjs';
 import { MARKET_ZONES } from './market-prices.mjs';
+import { grafanaTimeRange } from './grafana-range.mjs';
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -208,11 +209,16 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (url.pathname.startsWith('/internal/grafana/')) {
         if (!grafanaLaunch) throw new ApiError(503, 'grafana_unavailable', 'Dashboard access is not configured.');
         if (url.pathname === '/internal/grafana/consume' && req.method === 'GET') {
+          const period = grafanaTimeRange(url.searchParams);
           const result = await grafanaLaunch.consume(url.searchParams.get('ticket'));
           res.setHeader('Set-Cookie', result.cookie);
           res.setHeader('Cache-Control', 'no-store');
           res.setHeader('Referrer-Policy', 'no-referrer');
-          res.writeHead(303, { Location: `${config.grafanaPublicOrigin}/grafana/d/gridex-market-bg/gridex-market-bg?kiosk` });
+          const dashboard = new URL(`${config.grafanaPublicOrigin}/grafana/d/gridex-market-bg/gridex-market-bg`);
+          dashboard.searchParams.set('kiosk', '');
+          dashboard.searchParams.set('from', period.from);
+          dashboard.searchParams.set('to', period.to);
+          res.writeHead(303, { Location: dashboard.toString() });
           return res.end();
         }
         if (url.pathname === '/internal/grafana/check' && req.method === 'GET') {

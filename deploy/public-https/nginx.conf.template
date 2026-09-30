@@ -59,7 +59,7 @@ http {
         location = /grafana { return 404; }
         location = /grafana/launch {
             limit_except GET { deny all; }
-            proxy_pass http://$api_backend/internal/grafana/consume?ticket=$arg_ticket;
+            proxy_pass http://$api_backend/internal/grafana/consume?$args;
         }
         location = /_grafana_authorize {
             internal;

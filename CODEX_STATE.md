@@ -1,5 +1,15 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — Grafana BG range and empty Stats (source gate)
+
+The mobile Market screenshot shows a long mostly empty chart and two “No data”
+Stats. BG Timescale views do contain 192 intervals and a fetch timestamp.
+The source correction narrows the initial chart, renders Stats as Sofia-local
+date strings, validates preset/custom delivery ranges (including DST), and
+forwards the range through the protected proxy launch. No data, service grants,
+database role or standalone Grafana access changes. Backend/frontend/docs
+publication and live mobile owner acceptance remain separate gates; see HANDOFF.
+
 ## 2026-09-30 — customer Site provisioning validation fix
 
 Manager logs for two failed `novacom` Site intents identify missing required
