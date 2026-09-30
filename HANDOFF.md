@@ -1,6 +1,35 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 18:01 UTC — embedded BG Grafana range and empty stats
+
+The owner reports that the mobile Market dashboard spans many empty dates,
+making the available BG prices hard to read, while both status stat panels
+show “No data”. The screenshot proves a price line exists; it does not prove
+that source rows are missing. Affected surface: protected embedded Grafana BG
+dashboard; no evidence of altered prices or cross-tenant disclosure. No
+rollback or production edit yet. Investigate the provisioned dashboard queries,
+real read-only views and embedded time controls. Correct source and add a
+regression check, then deploy the dashboard without changing service grants,
+price history or API credentials. Verify the live mobile view; if the owner's
+session is needed, leave that acceptance explicitly open.
+
+Български: В „Пазар“ графиката включва празни дни, а двата индикатора показват
+„No data“, въпреки че има линия с BG цени. Засега няма промяна в данните или
+правата. Следва проверка на заявките, поправка, тест и внедряване.
+
+Source finding: the BG reader views contain 192 price intervals and a non-null
+successful fetch time; read-only versions of both corrected SQL queries return
+Sofia-local dates. The dashboard used a seven-day default with mostly empty
+history and timestamp-only Stat fields. Source now uses a short delivery
+window and formatted date strings for both Stats. Portal controls offer four
+presets or up to 31 calendar days; the backend validates the range and DST
+boundaries before consuming a one-time ticket. The public proxy template must
+forward the whole launch query; the dedicated updater changes only that line
+with backup, Nginx syntax test and rollback. Neither price data nor grants
+change. Regression covers range validation, proxy contract and mobile controls.
+This is source-ready, not yet deployed or owner-verified.
+
 ## 2026-09-30 — Novacom Site creation rejected by OpenRemote
 
 The customer administrator reported that creating a Site returned the generic

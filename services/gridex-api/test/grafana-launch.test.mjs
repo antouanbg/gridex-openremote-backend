@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { GrafanaLaunch } from '../src/grafana-launch.mjs';
+import { grafanaTimeRange } from '../src/grafana-range.mjs';
+import { createApp } from '../src/app.mjs';
 
 const subject='11111111-1111-4111-8111-111111111111';
 const organisationId='22222222-2222-4222-8222-222222222222';
@@ -16,10 +19,55 @@ test('BG dashboard distinguishes native delivery intervals from fetch time witho
   assert.match(explanation.options.content,/Ден напред/);
   assert.match(explanation.options.content,/предходния ден/);
   assert.match(delivery.targets[0].rawSql,/MAX\(start_utc\).*grafana_bg_interval_prices/);
+  assert.match(delivery.targets[0].rawSql,/to_char\(.*Europe\/Sofia/);
+  assert.match(dashboard.panels.find(panel=>panel.id===2).targets[0].rawSql,/to_char\(.*last_success_at.*Europe\/Sofia/);
+  assert.deepEqual(dashboard.time,{from:'now-24h',to:'now+36h'});
   assert.match(explanation.options.content,/15 минути/);
   for(const panel of dashboard.panels)
     for(const target of panel.targets||[])
       assert.doesNotMatch(target.rawSql,/FROM\s+market_(?:hourly|interval)_prices\b/i);
+});
+
+test('embedded dashboard periods are allowlisted and custom BG delivery days handle DST',()=>{
+  const params = value=>new URLSearchParams(value);
+  assert.deepEqual(grafanaTimeRange(params('range=delivery')),{from:'now-24h',to:'now+36h'});
+  assert.deepEqual(grafanaTimeRange(params('range=week')),{from:'now-7d',to:'now'});
+  const autumn=grafanaTimeRange(params('range=custom&fromDay=2026-10-24&toDay=2026-10-25'));
+  assert.equal(new Date(Number(autumn.from)).toISOString(),'2026-10-23T21:00:00.000Z');
+  assert.equal(new Date(Number(autumn.to)).toISOString(),'2026-10-25T22:00:00.000Z');
+  for(const invalid of ['range=../../manager','range=custom&fromDay=2026-02-30&toDay=2026-03-01',
+    'range=custom&fromDay=2026-10-26&toDay=2026-10-25',
+    'range=custom&fromDay=2026-01-01&toDay=2026-02-01',
+    'range=custom&fromDay=2026-01-01&toDay=2026-03-01'])
+    assert.throws(()=>grafanaTimeRange(params(invalid)),error=>error.code==='grafana_range_invalid');
+});
+
+test('public proxy forwards the validated period with the one-time Grafana ticket',()=>{
+  const proxy=readFileSync(new URL('../../../deploy/public-https/nginx.conf.template',import.meta.url),'utf8');
+  assert.match(proxy,/location = \/grafana\/launch \{[\s\S]*?proxy_pass http:\/\/\$api_backend\/internal\/grafana\/consume\?\$args;/);
+  assert.doesNotMatch(proxy,/grafana\/consume\?ticket=\$arg_ticket/);
+});
+
+test('Grafana launch redirect keeps kiosk protection and applies a validated chart range',async()=>{
+  let consumes=0;
+  const server=createServer(createApp({config:{allowedOrigins:new Set(),grafanaPublicOrigin:'https://api.example.invalid'},
+    grafanaLaunch:{consume:async()=>{consumes++;return {cookie:'fixture-cookie'};}}}));
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  try {
+    const base=`http://127.0.0.1:${server.address().port}`;
+    const invalid=await fetch(`${base}/internal/grafana/consume?ticket=fixture&range=../../manager`,{redirect:'manual'});
+    assert.equal(invalid.status,400);
+    assert.equal(consumes,0);
+    const response=await fetch(`${base}/internal/grafana/consume?ticket=fixture&range=week`,{redirect:'manual'});
+    assert.equal(response.status,303);
+    const target=new URL(response.headers.get('location'));
+    assert.equal(target.origin,'https://api.example.invalid');
+    assert.equal(target.pathname,'/grafana/d/gridex-market-bg/gridex-market-bg');
+    assert.equal(target.searchParams.has('kiosk'),true);
+    assert.equal(target.searchParams.get('from'),'now-7d');
+    assert.equal(target.searchParams.get('to'),'now');
+    assert.equal(consumes,1);
+  } finally { await new Promise(resolve=>server.close(resolve)); }
 });
 
 test('dashboard launch requires two member services and BG zone, never one grant',async()=>{
