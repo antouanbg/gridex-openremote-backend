@@ -1,5 +1,18 @@
 # GrideX OpenRemote backend — Working rules
 
+## Project display name / Име в проекта — owner decision 2026-09-30
+
+Use **Antouan** as the owner's display name in project credits, README and UI,
+in both languages. Do not reintroduce the former full name or titles in new
+project copy. Preserve historical Git commit metadata, existing legal notices
+and bibliographic author names when citing a published work; these are not UI
+display names.
+
+Използвай **Antouan** като публично име на собственика в проекта, README и UI
+на двата езика. Не връщай старото пълно име или титли в нови проектни текстове.
+Не пренаписвай историята на Git, съществуващите правни бележки или имената на
+автори при цитиране на публикуван труд.
+
 ## BG day-ahead price cadence and precision — 2026-09-30
 
 Bulgaria's day-ahead auction has 15-minute market time units for delivery
