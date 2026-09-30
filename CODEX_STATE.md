@@ -9,6 +9,9 @@ date strings, validates preset/custom delivery ranges (including DST), and
 forwards the range through the protected proxy launch. No data, service grants,
 database role or standalone Grafana access changes. Backend/frontend/docs
 publication and live mobile owner acceptance remain separate gates; see HANDOFF.
+Publication gate completed on 2026-09-30: backend/API, restricted proxy,
+frontend Pages and BG/EN docs are live and their automated/route checks passed.
+An authenticated mobile visual check of the two Stat values remains open.
 
 ## 2026-09-30 — customer Site provisioning validation fix
 
