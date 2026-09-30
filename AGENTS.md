@@ -1,5 +1,20 @@
 # GrideX OpenRemote backend — Working rules
 
+## Local website reachability / Достъп до сайта при локални тестове — 2026-09-30
+
+The local website has no direct route through the internal LAN. A VPN is
+required for local tests that depend on reaching the site. Before diagnosing
+an unreachable page as an application, authentication, proxy or deployment
+failure, verify that the VPN is connected and the expected route is
+available. Without VPN or a route, mark the test as network-blocked; do not
+report a website failure from that symptom alone.
+
+Локалният сайт няма директен път през вътрешната мрежа. За локални тестове,
+които изискват достъп до него, е необходим VPN. Преди да приемеш
+недостъпна страница за грешка в сайта, удостоверяването, proxy-то или
+внедряването, провери VPN и маршрута. Ако липсват, отбележи теста като
+блокиран от мрежов достъп, а не като повреда на сайта.
+
 ## Deployment failures and regression evidence / Грешки при внедряване и регресионни тестове
 
 For every deployment, provisioning or production failure, first record a
