@@ -16,15 +16,17 @@ export function mailgunConfig(env = process.env) {
 
 // Internal transport only. No public arbitrary-email endpoint and no automatic retry:
 // a timeout may mean the provider already queued the message.
-export async function sendMailgun(config, { to, cc, subject, text, testMode = false }, fetcher = fetch) {
+export async function sendMailgun(config, { to, cc, replyTo, subject, text, testMode = false }, fetcher = fetch) {
   const validAddress = address => /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(address);
-  if (!validAddress(to) || (cc && !validAddress(cc)) || !subject || /[\r\n]/.test(subject) || !text) {
+  if (!validAddress(to) || (cc && !validAddress(cc)) || (replyTo && !validAddress(replyTo))
+      || !subject || /[\r\n]/.test(subject) || !text) {
     throw new Error('Invalid email message');
   }
   const body = new FormData();
   for (const [name, value] of Object.entries({ from: config.from, to, subject, text,
     'o:tracking': 'no', 'o:tracking-clicks': 'no', 'o:tracking-opens': 'no' })) body.set(name, value);
   if (cc && cc.toLowerCase() !== to.toLowerCase()) body.set('cc', cc);
+  if (replyTo) body.set('h:Reply-To', replyTo);
   if (testMode) body.set('o:testmode', 'yes');
   for (const address of config.bcc || []) if (address.toLowerCase() !== to.toLowerCase()
     && address.toLowerCase() !== cc?.toLowerCase()) body.append('bcc', address);

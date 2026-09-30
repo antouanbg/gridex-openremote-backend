@@ -38,16 +38,24 @@ test('public and verified-user enquiries require a human check and use the confi
     assert.deepEqual(await accepted.json(), { status: 'queued' });
     assert.equal(messages[0].to, 'support@example.invalid');
     assert.equal(messages[0].cc, 'copy@example.invalid');
+    assert.equal(messages[0].replyTo, 'visitor@example.invalid');
     assert.match(messages[0].text, /visitor@example.invalid/);
     const third = await challenge();
     time += 3000;
     assert.equal((await send({ ...body, challengeId: third.id })).status, 429);
     const fourth = await challenge();
     time += 3000;
-    const logged = await send({ ...body, challengeId: fourth.id, email: 'spoof@example.invalid' }, true);
+    const logged = await send({ ...body, challengeId: fourth.id, email: 'spoof@example.invalid',
+      replyEmail: 'alternate@example.invalid' }, true);
     assert.equal(logged.status, 202);
     assert.match(messages[1].text, /member@example.invalid/);
+    assert.match(messages[1].text, /alternate@example.invalid/);
     assert.doesNotMatch(messages[1].text, /spoof@example.invalid/);
+    assert.equal(messages[1].replyTo, 'alternate@example.invalid');
+    const invalid = await challenge();
+    time += 3000;
+    assert.equal((await send({ ...body, challengeId: invalid.id,
+      replyEmail: 'alternate@example.invalid\r\nBcc: attacker@example.invalid' }, true)).status, 400);
     const fifth = await challenge();
     time += 3000;
     assert.equal((await send({ ...body, challengeId: fifth.id, email: 'bot@example.invalid', website: 'https://bot.invalid' })).status, 202);

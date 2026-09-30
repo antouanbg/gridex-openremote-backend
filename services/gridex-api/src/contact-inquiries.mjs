@@ -44,8 +44,10 @@ export class ContactInquiries {
     const topic = String(body.topic || '').trim();
     const message = String(body.message || '').trim();
     const email = identity ? String(identity.email || '').trim().toLowerCase() : String(body.email || '').trim().toLowerCase();
+    const replyEmail = identity ? String(body.replyEmail || email).trim().toLowerCase() : email;
     if (identity && !identity.emailVerified) throw new ApiError(403, 'email_unverified', 'A verified email is required.');
-    if (!emailPattern.test(email) || name.length < 2 || name.length > 100 || /[\r\n]/.test(name)
+    if (!emailPattern.test(email) || !emailPattern.test(replyEmail) || replyEmail.length > 254
+        || name.length < 2 || name.length > 100 || /[\r\n]/.test(name)
         || topic.length < 3 || topic.length > 120 || /[\r\n]/.test(topic)
         || message.length < 20 || message.length > 5000)
       throw new ApiError(400, 'contact_invalid', 'Check the form fields and try again.');
@@ -60,8 +62,8 @@ export class ContactInquiries {
     try {
       const scope = identity ? `Signed-in user · realm: ${identity.realm} · subject: ${identity.subject}` : 'Public demo visitor';
       const result = await this.send(this.mailgun(), {
-        to: this.recipient, cc: this.cc, subject: `[GrideX] ${topic}`,
-        text: `New GrideX enquiry\n\nName: ${name}\nEmail: ${email}\nSource: ${scope}\n\n${message}`,
+        to: this.recipient, cc: this.cc, replyTo: replyEmail, subject: `[GrideX] ${topic}`,
+        text: `New GrideX enquiry\n\nName: ${name}\nAccount email: ${email}\nReply email (entered by sender): ${replyEmail}\nSource: ${scope}\n\n${message}`,
       });
       return { status: result.status === 'queued' ? 'queued' : 'accepted' };
     } catch {

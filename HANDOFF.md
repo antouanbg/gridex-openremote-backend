@@ -1,6 +1,18 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-09-30 — enquiry Reply-To without changing account identity
+
+Owner reported that signed-in users cannot enter a reply email. The contact
+API now accepts a validated `replyEmail` and sets the Mailgun `h:Reply-To`
+header; verified account email remains a separate record and rate-limit key.
+Anonymous contact uses the same supplied email for both fields. CRLF header
+injection is rejected. API suite passed (122 pass, one existing skip) in a
+local port-enabled test run. This branch is not yet published or deployed;
+after merge recreate only `gridex-api` with current Compose layers, verify
+health and one owner-approved browser submission. Do not infer real delivery
+from mocked tests.
+
 ## 2026-09-30 — contact CC live and provider-delivered
 
 PR #74 is merged into `main` (`7db2436`). The single private backend `.env`
