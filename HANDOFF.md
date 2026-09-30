@@ -3,15 +3,22 @@ Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## 2026-09-30 — enquiry Reply-To without changing account identity
 
+Live checkpoint: PR #76 is merged. Only `gridex-api` was rebuilt/recreated
+from the existing five active Compose layers and the one private env; it is
+healthy. Prior API image is tagged
+`gridex-api-rollback:before-reply-email-20260930`. The live contact challenge
+endpoint responded successfully without sending mail. BG/EN guide PR #29 is
+merged and served through the approved docs deploy script. Actual delivery
+and reply to a distinct signed-in address still require an owner browser test.
+
 Owner reported that signed-in users cannot enter a reply email. The contact
 API now accepts a validated `replyEmail` and sets the Mailgun `h:Reply-To`
 header; verified account email remains a separate record and rate-limit key.
 Anonymous contact uses the same supplied email for both fields. CRLF header
 injection is rejected. API suite passed (122 pass, one existing skip) in a
-local port-enabled test run. This branch is not yet published or deployed;
-after merge recreate only `gridex-api` with current Compose layers, verify
-health and one owner-approved browser submission. Do not infer real delivery
-from mocked tests.
+local port-enabled test run. The live API health and challenge endpoint were
+verified; an owner-approved browser submission is still needed to check
+actual Reply-To delivery. Do not infer real delivery from mocked tests.
 
 ## 2026-09-30 — contact CC live and provider-delivered
 
