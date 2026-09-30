@@ -1,5 +1,13 @@
 # CODEX_STATE.md
 
+## 2026-09-30 — separate enquiry reply address
+
+Contact API/Mailgun source now supports a validated `replyEmail` as Reply-To
+without replacing verified identity or changing To/CC/BCC. The 122 passing
+API tests include distinct account/reply addresses and header-injection
+rejection. Pending: merge, deploy only `gridex-api`, check health and real
+owner acceptance. Paired BG/EN public guide lives in the docs repository.
+
 ## 2026-09-30 — contact support CC verified live
 
 Backend PR #74 is merged and deployed only to `gridex-api`, which is healthy.
