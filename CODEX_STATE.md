@@ -1,5 +1,11 @@
 # CODEX_STATE.md
 
+## 2026-10-01 — Google Cloud target costed, not deployed
+
+The bilingual [Google Cloud migration plan](docs/GOOGLE_CLOUD_MIGRATION.md) selects a provisional T2A ARM64 4-vCPU/16-GiB single-VM target in `europe-west4`, with 140 GiB balanced disk and one public IPv4. Its checked on-demand 730-hour predictable subtotal is about $137.15/month before variable charges. Capacity, clean-room restoration, cloud-specific Compose, tenant/security acceptance, cutover and rollback remain open. No cloud infrastructure or live state changed; the current Mac remains authoritative. This plan is distinct from the Google Drive source-workspace move below.
+
+Двуезичният [план за Google Cloud](docs/GOOGLE_CLOUD_MIGRATION.md) предлага T2A ARM64 с 4 vCPU/16 GiB в `europe-west4`, 140 GiB балансирани дискове и един публичен IPv4. Предвидимата основа при 730 часа е около $137.15/месец преди променливите разходи. Измерване на капацитет, restore от чиста среда, облачен Compose, проверка на правата/сигурността, превключване и връщане остават отворени. Не са променени облак или живи данни; Mac остава основният хост. Това е различно от местенето на работния код извън Google Drive.
+
 ## 2026-10-01 — Mac workspace migration plan, not executed
 
 The bilingual [local workspace guide](docs/LOCAL_WORKSPACE_MIGRATION.md) separates fresh Git source clones from private runtime, Docker volumes and active bind mounts. Destination approval, dirty-worktree reconciliation, Codex project repointing and docs/Grafana cutover remain open. Do not assume Google Drive may be disconnected yet. No runtime or file move was performed.

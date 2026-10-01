@@ -3,6 +3,7 @@
 Repository: `antouanbg/gridex-openremote-backend`
 Status: **planning/runbook draft, not a certified clean-room installation**. This document does not authorise production migration, device commissioning or control writes.
 Moving only this Mac's source workspace out of Google Drive is a different operation: see [LOCAL_WORKSPACE_MIGRATION.md](docs/LOCAL_WORKSPACE_MIGRATION.md). It has not been performed.
+For the proposed Google Cloud ARM64 target, cost assumptions and cutover gates, see [GOOGLE_CLOUD_MIGRATION.md](docs/GOOGLE_CLOUD_MIGRATION.md). That cloud move has not been performed either.
 
 ## English
 
@@ -48,6 +49,7 @@ This file is a starting checklist. Before marking it a runnable deployment guide
 ## Български
 
 Преместването само на работния код на този Mac извън Google Drive е отделна операция: виж [LOCAL_WORKSPACE_MIGRATION.md](docs/LOCAL_WORKSPACE_MIGRATION.md). Тя не е изпълнена.
+За предложената ARM64 машина в Google Cloud, ориентировъчната цена и проверките преди преместване виж [GOOGLE_CLOUD_MIGRATION.md](docs/GOOGLE_CLOUD_MIGRATION.md). И това облачно преместване не е изпълнено.
 
 ### Обхват и източници на истина
 
