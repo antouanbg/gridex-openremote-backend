@@ -39,6 +39,17 @@ Git: роли, полета, валидация, състояния, грешк�
 съответствие към API. Свържи го с BG/EN помощта на frontend при внедряване;
 не представяй предложение като публикувана функция.
 
+Implementation gate: commit the proposed backend/rights flow together with
+role-specific frontend screens and form description as DRAFT documentation
+first. Wait for the owner's explicit acceptance of that documented package
+before any schema, API, email or permission implementation. Screen approval
+alone does not approve the complete backend behavior.
+
+Преди schema, API, имейли или права качи като ЧЕРНОВА в Git документацията
+пълната backend логика, отделните frontend екрани по роли и описанието на
+формите. Изчакай изрично одобрение на целия документиран пакет от собственика.
+Само одобрен екран не е одобрение на backend поведението.
+
 ## Local website reachability / Достъп до сайта при локални тестове — 2026-09-30
 
 The local website has no direct route through the internal LAN. A VPN is
