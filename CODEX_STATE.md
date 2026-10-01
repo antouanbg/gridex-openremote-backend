@@ -1,5 +1,11 @@
 # CODEX_STATE.md
 
+## 2026-10-01 — Mac workspace migration plan, not executed
+
+The bilingual [local workspace guide](docs/LOCAL_WORKSPACE_MIGRATION.md) separates fresh Git source clones from private runtime, Docker volumes and active bind mounts. Destination approval, dirty-worktree reconciliation, Codex project repointing and docs/Grafana cutover remain open. Do not assume Google Drive may be disconnected yet. No runtime or file move was performed.
+
+Двуезичният [план за локалната папка](docs/LOCAL_WORKSPACE_MIGRATION.md) отделя чистите Git копия от частния runtime, Docker volumes и активните mounts. Одобрението на целевия път, прегледът на локалните промени, пренасочването на Codex и превключването на docs/Grafana остават отворени. Google Drive още не може да се изключи безопасно. Нищо не е премествано.
+
 ## 2026-09-30 — demo redirect after logout
 
 Platform `gridex-portal` initially rejected `/demo/` as a post-logout URI

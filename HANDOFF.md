@@ -1,6 +1,12 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-01 — local workspace outside Google Drive: plan only
+
+Documented the separate [local source-workspace migration](docs/LOCAL_WORKSPACE_MIGRATION.md), including four repositories, generated dependency/build directories, seven dirty worktrees requiring review, private runtime, live Docker volumes, docs/Grafana bind mounts, Codex project paths, cutover checks and rollback. **No files, service mounts, container, volume or Drive setting were changed.** Next: approve the destination outside CloudStorage, reconcile local changes, take/verify backups, then perform the staged source move and separately approved runtime cutover. Do not mark the Drive copy online-only or disconnect it while live mounts still depend on it.
+
+Описан е отделният [план за преместване на работния код](docs/LOCAL_WORKSPACE_MIGRATION.md): четирите хранилища, генерираните зависимости, седемте копия с промени за преглед, частният runtime, живите Docker volumes, docs/Grafana mounts, пътищата в Codex, проверките и връщането. **Няма преместени файлове, сменени mounts, контейнери, volumes или настройки на Drive.** Следва одобряване на локалната цел извън CloudStorage, преглед на промените и архивите, после поетапно местене на кода и отделно одобрено превключване на услугите. Не прави копието в Drive само онлайн и не спирай Drive, докато живи mounts още го използват.
+
 ## 2026-09-30 — new-cloud deployment knowledge transfer
 
 ### Open task — sanitised deployment configuration matrix

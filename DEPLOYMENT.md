@@ -2,6 +2,7 @@
 
 Repository: `antouanbg/gridex-openremote-backend`
 Status: **planning/runbook draft, not a certified clean-room installation**. This document does not authorise production migration, device commissioning or control writes.
+Moving only this Mac's source workspace out of Google Drive is a different operation: see [LOCAL_WORKSPACE_MIGRATION.md](docs/LOCAL_WORKSPACE_MIGRATION.md). It has not been performed.
 
 ## English
 
@@ -45,6 +46,8 @@ Do not paste secrets, customer data, action URLs or certificates into Git, an AI
 This file is a starting checklist. Before marking it a runnable deployment guide, add a verified cloud-specific Compose profile and network diagram, a complete sanitised environment matrix, a versioned bootstrap/migration sequence, backup/restore instructions, Edge enrolment procedure, rollback commands and an automated clean-room smoke suite. A second operator must execute it from a fresh environment without using this chat as an undocumented dependency. Until then the status remains **not portable by clone-and-start**.
 
 ## Български
+
+Преместването само на работния код на този Mac извън Google Drive е отделна операция: виж [LOCAL_WORKSPACE_MIGRATION.md](docs/LOCAL_WORKSPACE_MIGRATION.md). Тя не е изпълнена.
 
 ### Обхват и източници на истина
 
