@@ -1,5 +1,34 @@
 # GrideX OpenRemote backend — Working rules
 
+## Specify, draw, approve, then implement / Специфицирай, начертай, одобри, после внедрявай — 2026-10-01
+
+Before implementing any new API capability, business rule, permission,
+invitation/service workflow or device behavior, present one complete proposal
+to the owner **before coding**. Draw the role-by-role flow, initiator, recipient,
+decision, state transitions, notifications, failure/retry, revocation and
+authoritative data location. Show the exact existing frontend menu/page and a
+reviewable desktop/mobile screen or wireframe with labels, actions and statuses;
+if no UI changes, state that explicitly. Separate existing behavior from the
+proposed change and list unresolved choices. Do not infer missing behavior or
+implement only a convenient subset. Wait for explicit owner approval of both
+logic and UI placement/visualization, then record the approved scope in
+HANDOFF/CODEX_STATE before implementation. Re-approve material deviations;
+test and document the resulting BG/EN user process. An internal bug fix within
+an already approved contract does not authorize a new function.
+
+Преди нов API, бизнес правило, право, процес за покани/услуги или поведение
+на устройство представи **пълно предложение преди писане на код**. Начертай
+потока по роли: инициатор, получател, решение, състояния, уведомления,
+отказ/повторен опит, отнемане и авторитетно място на данните. Покажи точното
+място в съществуващото frontend меню/страница и прегледен desktop/mobile
+екран или макет с текстове, действия и статуси; ако UI не се променя, кажи
+го изрично. Раздели наличното от предложеното и посочи неуточнените избори.
+Не дописвай липсваща логика сам и не реализирай само удобна част. Изчакай
+изрично потвърждение **на логиката и на мястото/визията на екрана**, после
+запиши обхвата в HANDOFF/CODEX_STATE и чак тогава внедрявай. Съществено
+отклонение иска повторно одобрение; тествай и опиши BG/EN процеса. Вътрешна
+поправка в одобрен договор не дава право за нова функция.
+
 ## Local website reachability / Достъп до сайта при локални тестове — 2026-09-30
 
 The local website has no direct route through the internal LAN. A VPN is
