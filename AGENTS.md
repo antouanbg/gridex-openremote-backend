@@ -29,6 +29,16 @@ an already approved contract does not authorize a new function.
 отклонение иска повторно одобрение; тествай и опиши BG/EN процеса. Вътрешна
 поправка в одобрен договор не дава право за нова функция.
 
+For every owner-approved form, preserve the approved screen and document its
+backend contract in Git: roles, fields, validation, state changes, errors,
+notifications, audit and exact API mapping. Pair it with BG/EN frontend help
+when live; do not describe a proposal as deployed.
+
+За всяка одобрена форма запази одобрения екран и опиши backend договора му в
+Git: роли, полета, валидация, състояния, грешки, уведомления, одит и точно
+съответствие към API. Свържи го с BG/EN помощта на frontend при внедряване;
+не представяй предложение като публикувана функция.
+
 ## Local website reachability / Достъп до сайта при локални тестове — 2026-09-30
 
 The local website has no direct route through the internal LAN. A VPN is
