@@ -1,6 +1,22 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — DRAFT GrideX/OpenRemote rights matrix, owner decision pending
+
+See `docs/ACCESS_RIGHTS_MATRIX_DRAFT.md` for the read-only live role audit,
+role-by-role target, existing approved screens, provisioning/revocation flow,
+and migration/acceptance gates. Pilot admin has `read:assets` plus
+`restricted_user`; `novacom` admin has broad OpenRemote admin/Asset writes;
+`novacom` viewer has no OpenRemote roles. OpenRemote `write:assets` covers
+both user–Asset links and general Asset writes. **No rights or links changed.**
+The owner must approve whether all human Manager sessions become read-only
+and select a backend service-write solution before code or live role changes.
+The member UI remains off in production.
+
+Български: публикувана е чернова на матрицата и поетапния план, но права и
+връзки не са променяни. Нужни са отделни решения за директния Manager и
+по-широкото `write:assets` на служебния backend клиент.
+
 ## 2026-10-02 — member access rollout stopped safely
 
 Owner-approved source is merged in backend PR #85, frontend PR #96 and docs

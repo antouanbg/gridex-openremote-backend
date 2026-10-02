@@ -1,5 +1,18 @@
 # CODEX_STATE.md
 
+## 2026-10-02 — role mapping draft only; no live permission mutation
+
+The current GrideX/OpenRemote human-role audit and proposed mapping are in
+`docs/ACCESS_RIGHTS_MATRIX_DRAFT.md`. It distinguishes the actual three
+membership mappings from the target and documents that OpenRemote
+`write:assets` is broader than link management. Wait for the owner's explicit
+approval of the direct-Manager human rights and the realm-local backend
+write strategy before editing roles, secrets, Asset links, or deploying the
+new member UI. Existing API image remains healthy and the feature is off.
+
+Български: черновата не е внедряване. Не променяй права на живо преди
+потвърждение на двете архитектурни решения в матрицата.
+
 ## 2026-10-02 — member access rollout held; API rolled back
 
 Backend PR #85 was merged and migration 021 added only nullable invitation-name
