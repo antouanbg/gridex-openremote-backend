@@ -368,6 +368,20 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (!onboarding) throw new ApiError(503, 'realm_setup_unavailable', 'New organisation invitations are not configured.');
         return await json(res, 200, await onboarding.resend(principal, resendOrganisation[1]), context);
       }
+      const memberAccess = url.pathname.match(/^\/api\/v1\/(platform\/)?organisations\/([0-9a-f-]{36})\/members(?:\/([^/]+))?$/i);
+      if (memberAccess) {
+        if (!invitations) throw new ApiError(503, 'member_access_unavailable', 'Member access administration is unavailable.');
+        if (req.method === 'GET' && !memberAccess[3]) return await json(res, 200,
+          await invitations.listMembers(principal, memberAccess[2], {
+            platform: Boolean(memberAccess[1]),
+            offset: Number(url.searchParams.get('offset') ?? 0),
+            limit: Number(url.searchParams.get('limit') ?? 25),
+          }), context);
+        if (req.method === 'PUT' && !memberAccess[1] && memberAccess[3]) return await json(res, 200,
+          await invitations.updateMember(principal, memberAccess[2], decodeURIComponent(memberAccess[3]),
+            await readJson(req, 2048)), context);
+        throw new ApiError(404, 'not_found', 'Member access route not found.');
+      }
       if (url.pathname === '/api/v1/me/organisation-onboarding' && req.method === 'GET') {
         if (!onboarding) return await json(res, 200, { invitations: [] }, context);
         return await json(res, 200, { invitations: await onboarding.list(principal) }, context);

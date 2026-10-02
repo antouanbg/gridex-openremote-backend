@@ -1,5 +1,21 @@
 # CODEX_STATE.md
 
+## 2026-10-02 — owner-approved member role/Site scope (implementation in progress)
+
+The owner approved the existing Users & invitations screen expansion: list
+every approved member in the administrator's active realm/organisation,
+show the actual member role, explicitly granted Sites, separate services and
+verified last login, and permit guarded edits of the four non-admin roles
+and Site scope. No member may create Sites or start commissioning; no admin
+delegation via a member invitation or editor. OpenRemote Asset links must be
+verified before Site access is reported. The approved BG/EN contract is in
+`gridex-docs/proposals/service-approval-v2.md`. Source, tests, migration,
+deployment and real-user acceptance are pending.
+
+Български: собственикът одобри списък на всички членове и защитена редакция
+на членска роля/разрешени Обекти без раздаване на администраторска роля.
+Правата върху Обекти се сверяват с OpenRemote; внедряването още тече.
+
 ## 2026-10-01 — Google Cloud target costed, not deployed
 
 The bilingual [Google Cloud migration plan](docs/GOOGLE_CLOUD_MIGRATION.md) selects a provisional T2A ARM64 4-vCPU/16-GiB single-VM target in `europe-west4`, with 140 GiB balanced disk and one public IPv4. Its checked on-demand 730-hour predictable subtotal is about $137.15/month before variable charges. Capacity, clean-room restoration, cloud-specific Compose, tenant/security acceptance, cutover and rollback remain open. No cloud infrastructure or live state changed; the current Mac remains authoritative. This plan is distinct from the Google Drive source-workspace move below.

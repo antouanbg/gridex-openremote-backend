@@ -1,6 +1,21 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — approved member access contract, implementation pending
+
+The owner approved the Users & invitations member roster and guarded edits
+of one non-admin role and explicit Site grants. Active organisation, exact
+realm, verified administrator membership and every Site must be checked on
+each API request. OpenRemote user–Asset links must agree before access is
+reported; services remain independent grants. The BG/EN approved contract is
+`gridex-docs/proposals/service-approval-v2.md`. No migration, API rollout or
+live asset link was performed at this checkpoint. Tests and real multi-realm
+acceptance remain required.
+
+Български: одобрена е логиката за общ списък и защитена редакция на членска
+роля/Обекти, без администраторско делегиране. Предстоят код, тест и жива
+проверка; в този момент няма промяна на OpenRemote Assets.
+
 ## 2026-10-01 — proposed Google Cloud host: costed plan, no migration
 
 The owner requested a monthly estimate and a GitHub migration plan for moving the Mac-hosted backend to Google Cloud. Published the bilingual [Google Cloud migration proposal](docs/GOOGLE_CLOUD_MIGRATION.md): one always-on `t2a-standard-4` ARM64 VM in `europe-west4`, 40+100 GiB `pd-balanced` and one in-use IPv4, approximately **$137.15/month** predictable subtotal at checked on-demand rates (730 hours), **excluding** traffic, backup, monitoring, DNS, tax and optional services. This is an estimate, not a bill or a capacity guarantee. Portal/docs and Site Edge are separate boundaries. **No GCP resource, DNS, secret, container, volume, database or device was changed.** Next: measure actual peaks/growth; prepare a cloud Compose profile and sanitised configuration matrix; test encrypted backup/restore and multi-realm/Edge paths on an isolated host; rehearse cutover/rollback; obtain separate approval for live migration. Current Mac remains authoritative. Cross-chat context checked: project tasks “Continue EMS OpenRemote architecture Phase1” and “Phase2”, plus current Phase3 decisions; current repository AGENTS/DEPLOYMENT takes precedence over historical platform proposals.

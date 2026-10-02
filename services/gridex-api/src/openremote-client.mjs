@@ -104,14 +104,19 @@ export class OpenRemoteClient {
     return this.request("/asset", { token, method: "POST", body: asset, realm });
   }
 
-  linkUserAsset(assetId, subject, token, realm) {
-    return this.request("/asset/user/link", { token, method: "POST", realm,
+  linkUserAsset(assetId, subject, token, realm, apiRealm = realm) {
+    return this.request("/asset/user/link", { token, method: "POST", realm: apiRealm,
       body: [{ id: { realm, userId: subject, assetId } }] });
   }
 
-  userAssetLinks(subject, token, realm) {
+  userAssetLinks(subject, token, realm, apiRealm = realm) {
     return this.request(`/asset/user/link?realm=${encodeURIComponent(realm)}&userId=${encodeURIComponent(subject)}`,
-      { token, realm });
+      { token, realm: apiRealm });
+  }
+
+  deleteUserAssetLink(assetId, subject, token, realm, apiRealm = realm) {
+    return this.request(`/asset/user/link/${encodeURIComponent(realm)}/${encodeURIComponent(subject)}/${encodeURIComponent(assetId)}`,
+      { token, method: "DELETE", realm: apiRealm });
   }
 
   async updateAsset(assetId, asset) {

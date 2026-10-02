@@ -153,7 +153,7 @@ export class OpenRemoteRealmSetup {
       throw new ApiError(503, 'identity_not_verified', 'The invited identity could not be verified.');
     return { subject: users[0].id };
   }
-  async prepareMemberUser(realm, email) {
+  async prepareMemberUser(realm, email, names) {
     const token = await this.token();
     const path = `/${encodeURIComponent(realm)}/users`;
     const lookup = `${path}?email=${encodeURIComponent(email)}&exact=true`;
@@ -162,6 +162,7 @@ export class OpenRemoteRealmSetup {
     let created = false;
     if (!users.length) {
       await this.kc(path, token, 'POST', { username: email, email, enabled: true,
+        firstName: names.firstName, lastName: names.lastName,
         emailVerified: false, requiredActions: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'] });
       created = true;
       users = await this.kc(lookup, token);
