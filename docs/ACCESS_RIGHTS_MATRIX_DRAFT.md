@@ -1,15 +1,18 @@
-# ЧЕРНОВА · Матрица GrideX ↔ OpenRemote / DRAFT · Access-rights matrix
+# Матрица GrideX ↔ OpenRemote / Access-rights matrix
 
-**Статус: одобрена целева матрица на 2026-10-02; живата проверка предстои.**
+**Статус: одобрена и внедрена матрица на 2026-10-02; реалният тест от
+потребител в браузър още предстои.**
 Собственикът одобри отделен служебен Asset клиент за всеки организационен realm
 и Manager само за четене за всички човешки акаунти. Няма ново меню или
 нова функция за клиента. Одобрените екрани в „Клиенти и договори → Потребители
-и покани“ и „Обекти“ остават на същите места. Новият екран за членове още не е
-внедрен на живо (виж `INCIDENT_MEMBER_ACCESS_021.md`).
+и покани“ и „Обекти“ остават на същите места. Новият екран за членове е
+публикуван след решението на `INCIDENT_MEMBER_ACCESS_021.md`.
 
-**Status: approved target on 2026-10-02, not yet verified in production.**
-Existing menu placement and approved member screens remain unchanged. Approval
-does not itself mean the live identity roles or links have been migrated.
+**Status: approved and deployed on 2026-10-02; signed-in real-user acceptance
+still pending.** Existing menu placement is unchanged. Novacom humans were
+migrated and re-audited, and the pilot administrator was already read-only.
+Service-client probes succeeded in both realms; future realms need their
+own acceptance checks.
 
 ## Решение за собственика — български преглед
 
@@ -19,11 +22,11 @@ GrideX има собствени роли и права в backend-а, а OpenRe
 връзка към точните Assets в OpenRemote. Скрит бутон в нашия frontend не
 ограничава директен вход в OpenRemote Manager.
 
-| Човек | Проверено сега в OpenRemote | Цел след одобрение |
+| Човек | Историческо състояние преди миграцията | Одобрено и проверено след нея |
 | --- | --- | --- |
 | Супер администраторът в пилотната организация | `read:assets`, `restricted_user` | Запазва ограничен личен вход; управлява останалите организации само чрез проверени backend действия. |
-| Администратор на Новаком | `read:admin`, `read:assets`, `read:users`, `write:admin`, `write:assets`, `write:attributes`, `write:user`; без `restricted_user` | Личният Manager вход става само за четене и само за разрешените Assets. Създаване на Обект, устройства, покани и права — през GrideX backend. |
-| Наблюдател в Новаком | Няма зададени OpenRemote роли | `read:assets` и `restricted_user`, само изрично свързаните Обекти и разрешените за четене атрибути. |
+| Администратор на Новаком | `read:admin`, `read:assets`, `read:users`, `write:admin`, `write:assets`, `write:attributes`, `write:user`; без `restricted_user` | `read:assets` + `restricted_user`. Създаване на Обект, устройства, покани и права — през GrideX backend. |
+| Наблюдател в Новаком | Няма зададени OpenRemote роли | `read:assets` + `restricted_user`; нула разрешени Обекти до изрично задаване. |
 
 | Роля в GrideX | Какво се прави през GrideX | Директен OpenRemote Manager по целевата схема |
 | --- | --- | --- |
