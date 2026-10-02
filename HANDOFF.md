@@ -1,6 +1,44 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — approved service administration correction, rollout in progress
+
+Live checkpoint: migration 022 committed and API-only recreation is healthy.
+Private backup: `service-admin-WKW2eI` under the existing private-backups
+directory; original image retained. Real read-only probe returned 1 pilot
+and 2 customer members, 5 catalogue entries each, zero grants, verified
+OpenRemote links/profile recipients, wrong-realm denial and customer-viewer
+denial. Mail configuration present. No mail or grant was created by testing.
+Current source test result: 137 passed, one skipped. Frontend/docs and owner
+browser acceptance are still separate pending steps.
+
+Български: API-only внедряването е здраво; архивът и предишният image са
+запазени. Реалната проба потвърди 1/2 членове, 5 услуги без права,
+OpenRemote връзки, mail настройка и откази за чужд realm/наблюдател.
+Без тестово предоставяне на права или изпращане. Frontend/помощ и
+потребителското приемане остават отделни стъпки.
+
+Owner requested immediate verification and completion. All five catalogue
+entries remain visible even without grants. The organisation administrator
+requests organisation approval; only the platform administrator decides it.
+Member requests are decided only by their organisation administrator, after
+organisation approval. Grants take effect immediately; no recipient Accept
+step. Migration 022 adds request scope/cancellation and a transactional mail
+outbox without changing inventory, accounts or existing grants. Current live
+API and databases are healthy. Tests: 137 passed, one skipped; no failures.
+Deploy only API, preserve effective environment, take private DB/image backup,
+then verify real member/catalogue reads, wrong-realm denial and notification
+configuration. Browser real-account acceptance remains a separate open gate.
+
+Български: собственикът поиска незабавна проверка и довършване. Петте услуги
+остават видими без права; организация се одобрява от супер администратора,
+а член — от своя администратор след организационно разрешение. Без второ
+приемане на услугата. Миграция 022 добавя обхват/отмяна и имейл опашка, без
+промяна на инвентар, акаунти или съществуващи права. 137 теста минаха, един
+е пропуснат. Преди API-only внедряване: частен архив и запазени настройки;
+след него — реални четения и отказ при чужд realm. Реалният browser тест
+остава отделно отворен до потвърждение.
+
 ## 2026-10-02 09:03 UTC — reversible Asset-service probe rejected by schema
 
 Environment: live OpenRemote with a temporary, unlinked test Asset; API

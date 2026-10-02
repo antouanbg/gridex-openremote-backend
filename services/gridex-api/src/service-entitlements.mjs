@@ -6,7 +6,7 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const serviceCode = /^[a-z][a-z0-9_]{1,63}$/;
 
 export class ServiceEntitlements {
-  constructor(pool, config) { this.pool = pool; this.config = config; }
+  constructor(pool, config, notifications = null) { this.pool = pool; this.config = config; this.notifications = notifications; }
 
   platform(principal) {
     if (!principal.emailVerified || principal.realm !== this.config.realm
@@ -42,10 +42,12 @@ export class ServiceEntitlements {
     if (platform) await this.platformOrganisation(principal, id);
     else await this.organisation(principal, id);
     const { rows } = await this.pool.query(`SELECT c.code,c.description,c.prerequisites,c.requestable,
-      (g.organisation_id IS NOT NULL) AS enabled
+      (g.organisation_id IS NOT NULL) AS enabled,g.granted_at AS "grantedAt",
+      COALESCE((SELECT json_agg(json_build_object('country',z.country,'zone',z.zone))
+        FROM organisation_market_zones z WHERE z.organisation_id=$1 AND z.service_code=c.code),'[]'::json) AS zones
       FROM service_catalog c LEFT JOIN organisation_services g
       ON g.service_code=c.code AND g.organisation_id=$1
-      WHERE ($2::boolean OR g.organisation_id IS NOT NULL) ORDER BY c.code`, [id,platform]);
+      ORDER BY c.code`, [id]);
     return rows;
   }
 
@@ -63,15 +65,29 @@ export class ServiceEntitlements {
       const found = await db.query('SELECT requestable FROM service_catalog WHERE code=$1', [code]);
       if (!found.rows.length) throw new ApiError(404, 'service_not_found', 'Unknown service.');
       if (enabled && !found.rows[0].requestable) throw new ApiError(403, 'service_unavailable', 'This service is not available yet.');
-      if (enabled) await db.query(`INSERT INTO organisation_services(organisation_id,service_code,granted_by)
-        VALUES($1,$2,$3) ON CONFLICT DO NOTHING`, [id,code,principal.subject]);
-      else await db.query('DELETE FROM organisation_services WHERE organisation_id=$1 AND service_code=$2', [id,code]);
+      const revokedMembers = !enabled && this.notifications ? (await db.query(`SELECT m.subject,o.openremote_realm AS realm
+        FROM member_services m JOIN organisations o ON o.id=m.organisation_id
+        WHERE m.organisation_id=$1 AND m.service_code=$2`, [id,code])).rows : [];
+      const changed = enabled ? await db.query(`INSERT INTO organisation_services(organisation_id,service_code,granted_by)
+        VALUES($1,$2,$3) ON CONFLICT DO NOTHING RETURNING organisation_id`, [id,code,principal.subject])
+        : await db.query('DELETE FROM organisation_services WHERE organisation_id=$1 AND service_code=$2 RETURNING organisation_id', [id,code]);
+      if (changed.rows.length && this.notifications) {
+        const eventKey = randomUUID();
+        await this.notifications.enqueue(db, { eventKey, organisationId:id, serviceCode:code,
+          kind:enabled?'organisation_granted':'organisation_revoked' });
+        for (const member of revokedMembers) await this.notifications.enqueue(db, { eventKey,
+          organisationId:id, serviceCode:code, kind:'member_revoked', ...member });
+      }
       if (enabled) await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
         SELECT gen_random_uuid(),r.id,$3,'platform_approved' FROM service_requests r
         WHERE r.organisation_id=$1 AND r.service_code=$2 AND r.state='open'
           AND (r.service_code<>'day_ahead' OR EXISTS (SELECT 1 FROM organisation_market_zones z
             WHERE z.organisation_id=$1 AND z.service_code='day_ahead' AND z.country='BG' AND z.zone='BG'))
         ON CONFLICT DO NOTHING`, [id,code,principal.subject]);
+      if (enabled) await db.query(`UPDATE service_requests SET state='approved',updated_at=now()
+        WHERE organisation_id=$1 AND service_code=$2 AND request_scope='organisation' AND state='open'
+          AND ($2<>'day_ahead' OR EXISTS (SELECT 1 FROM organisation_market_zones z
+            WHERE z.organisation_id=$1 AND z.service_code='day_ahead' AND z.country='BG' AND z.zone='BG'))`, [id,code]);
       // Revocation cascades to every user grant; re-enabling never restores old access.
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
         VALUES($1,$2,'service',$3,'success',$4)`, [principal.subject,enabled?'service.organisation.enabled':'service.organisation.disabled',`${id}:${code}`,randomUUID()]);
@@ -111,6 +127,9 @@ export class ServiceEntitlements {
         JOIN organisation_services s ON s.organisation_id=r.organisation_id AND s.service_code='day_ahead'
         WHERE r.organisation_id=$1 AND r.service_code='day_ahead' AND r.state='open'
         ON CONFLICT DO NOTHING`, [id,principal.subject]);
+      if (enabled && country === 'BG' && zone === 'BG') await db.query(`UPDATE service_requests
+        SET state='approved',updated_at=now() WHERE organisation_id=$1 AND service_code='day_ahead'
+          AND request_scope='organisation' AND state='open'`, [id]);
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
         VALUES($1,$2,'market_zone',$3,'success',$4)`,
         [principal.subject,enabled?'market.zone.granted':'market.zone.revoked',`${id}:${zone}`,randomUUID()]);
@@ -144,20 +163,29 @@ export class ServiceEntitlements {
       const orgGrant = await db.query(`SELECT 1 FROM organisation_services g
         JOIN service_catalog c ON c.code=g.service_code AND c.requestable=true
         JOIN organisations o ON o.id=g.organisation_id AND o.status='active'
-        WHERE g.organisation_id=$1 AND g.service_code=$2 FOR UPDATE OF g`, [id,code]);
+        WHERE g.organisation_id=$1 AND g.service_code=$2
+          AND ($2<>'day_ahead' OR EXISTS (SELECT 1 FROM organisation_market_zones z
+            WHERE z.organisation_id=$1 AND z.service_code='day_ahead' AND z.country='BG' AND z.zone='BG'))
+        FOR UPDATE OF g`, [id,code]);
       if (!orgGrant.rows.length) throw new ApiError(403, 'service_not_enabled', 'The organisation has not been granted this service.');
+      let changed;
       if (enabled) {
         const member = await db.query(`SELECT 1 FROM organisation_memberships
           WHERE organisation_id=$1 AND subject=$2`, [id,subject]);
         if (!member.rows.length) throw new ApiError(404, 'member_not_found', 'Approved member not found.');
-        await db.query(`INSERT INTO member_services(organisation_id,service_code,subject,granted_by)
-          VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`, [id,code,subject,principal.subject]);
+        changed = await db.query(`INSERT INTO member_services(organisation_id,service_code,subject,granted_by)
+          VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING subject`, [id,code,subject,principal.subject]);
         await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
           SELECT gen_random_uuid(),r.id,$4,'organisation_approved' FROM service_requests r
-          WHERE r.organisation_id=$1 AND r.service_code=$2 AND r.subject=$3 AND r.state='open'
+          WHERE r.organisation_id=$1 AND r.service_code=$2 AND r.subject=$3 AND r.request_scope='member' AND r.state='open'
           ON CONFLICT DO NOTHING`, [id,code,subject,principal.subject]);
-      } else await db.query(`DELETE FROM member_services
-        WHERE organisation_id=$1 AND service_code=$2 AND subject=$3`, [id,code,subject]);
+        await db.query(`UPDATE service_requests SET state='approved',updated_at=now()
+          WHERE organisation_id=$1 AND service_code=$2 AND subject=$3 AND request_scope='member' AND state='open'`, [id,code,subject]);
+      } else changed = await db.query(`DELETE FROM member_services
+        WHERE organisation_id=$1 AND service_code=$2 AND subject=$3 RETURNING subject`, [id,code,subject]);
+      if (changed.rows.length && this.notifications) await this.notifications.enqueue(db,
+        { eventKey:randomUUID(), organisationId:id, serviceCode:code, subject, realm:principal.realm,
+          kind:enabled?'member_granted':'member_revoked' });
       await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
         VALUES($1,$2,'service',$3,'success',$4)`, [principal.subject,enabled?'service.member.enabled':'service.member.disabled',`${id}:${code}:${subject}`,randomUUID()]);
       await db.query('COMMIT');

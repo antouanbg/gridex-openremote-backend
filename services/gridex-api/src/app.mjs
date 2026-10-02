@@ -285,11 +285,15 @@ export function createApp({ config, authenticate, repository, openRemote, invita
           ? await serviceRequests.approvePlatform(principal, platformRequest[1])
           : await serviceRequests.reject(principal, platformRequest[1], null, (await readJson(req, 1024)).note), context);
       }
-      const organisationRequest = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/service-requests(?:\/([0-9a-f-]{36})\/(approve|reject))?$/i);
+      const organisationRequest = url.pathname.match(/^\/api\/v1\/organisations\/([0-9a-f-]{36})\/service-requests(?:\/([0-9a-f-]{36})\/(approve|reject|cancel))?$/i);
       if (organisationRequest && (req.method === 'GET' || req.method === 'POST')) {
         if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
         if (req.method === 'GET' && !organisationRequest[2]) return await json(res, 200,
           { requests: await serviceRequests.list(principal, 'organisation', organisationRequest[1]) }, context);
+        if (req.method === 'POST' && !organisationRequest[2]) return await json(res, 201,
+          await serviceRequests.createOrganisation(principal, organisationRequest[1], await readJson(req, 1024)), context);
+        if (req.method === 'POST' && organisationRequest[3] === 'cancel') return await json(res, 200,
+          await serviceRequests.cancelOrganisation(principal, organisationRequest[1], organisationRequest[2]), context);
         if (req.method === 'POST' && organisationRequest[2]) return await json(res, 200,
           organisationRequest[3] === 'approve'
             ? await serviceRequests.approveOrganisation(principal, organisationRequest[1], organisationRequest[2])
@@ -377,6 +381,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
             platform: Boolean(memberAccess[1]),
             offset: Number(url.searchParams.get('offset') ?? 0),
             limit: Number(url.searchParams.get('limit') ?? 25),
+            search: url.searchParams.get('search') ?? '',
           }), context);
         if (req.method === 'PUT' && !memberAccess[1] && memberAccess[3]) return await json(res, 200,
           await invitations.updateMember(principal, memberAccess[2], decodeURIComponent(memberAccess[3]),

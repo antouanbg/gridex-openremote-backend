@@ -38,16 +38,26 @@ test('platform approval grants only organisation and BG scope, never requester m
   const db = { query: async (query) => {
     sql.push(query);
     if (query.includes('JOIN organisations o ON o.id=r.organisation_id'))
-      return { rows: [{ id: requestId, organisation_id: organisationId, service_code: 'day_ahead', state: 'open', status: 'active' }] };
+      return { rows: [{ id: requestId, organisation_id: organisationId, service_code: 'day_ahead', request_scope:'organisation', state: 'open', status: 'active' }] };
     return { rows: [] };
   }, release() {} };
   const requests = new ServiceRequests({ connect: async () => db }, entitlements,
     { collectionZones: async () => [{ country: 'BG', zone: 'BG', enabled: true }] });
   assert.deepEqual(await requests.approvePlatform(platform, requestId),
-    { id: requestId, stage: 'awaiting_organisation' });
+    { id: requestId, stage: 'organisation_enabled' });
   assert.equal(sql.some(query => query.includes('INSERT INTO organisation_services')), true);
   assert.equal(sql.some(query => query.includes('INSERT INTO organisation_market_zones')), true);
   assert.equal(sql.some(query => query.includes('INSERT INTO member_services')), false);
+});
+
+test('platform cannot bypass organisation administrator by approving a member request',async()=>{
+  const sql=[];
+  const db={query:async query=>{sql.push(query);return {rows:query.includes('JOIN organisations o ON o.id=r.organisation_id')
+    ?[{id:requestId,organisation_id:organisationId,service_code:'visualisations',request_scope:'member',state:'open',status:'active'}]:[]};},release(){}};
+  const requests=new ServiceRequests({connect:async()=>db},entitlements,null);
+  await assert.rejects(requests.approvePlatform(platform,requestId),error=>error.code==='organisation_request_required');
+  assert.equal(sql.some(query=>query.includes('INSERT INTO organisation_services')||query.includes('INSERT INTO member_services')),false);
+  assert.ok(sql.includes('ROLLBACK'));
 });
 
 test('organisation approval requires platform grant, current member and matching organisation', async () => {
