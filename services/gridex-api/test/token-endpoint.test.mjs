@@ -28,3 +28,16 @@ test('customer asset operations use the verified customer realm and user token, 
   assert(calls.every(call=>call.auth==='Bearer user-token'));
   assert.match(calls[1].body,/"realm":"novacom"/);
 });
+test('OpenRemote link lookup filters the realm-wide result to the exact member',async()=>{
+  const calls=[];
+  const client=new OpenRemoteClient({openRemoteBaseUrl:'https://manager.invalid',realm:'gridex',openRemoteRequestTimeoutMs:1000},
+    async(url,init)=>{calls.push({url,auth:init.headers.get('Authorization')});return new Response(JSON.stringify([
+      {id:{realm:'gridex',userId:'requested',assetId:'mine'}},
+      {id:{realm:'gridex',userId:'other',assetId:'other'}},
+      {id:{realm:'novacom',userId:'requested',assetId:'foreign'}},
+    ]));});
+  assert.deepEqual(await client.userAssetLinks('requested','token','gridex'),
+    [{id:{realm:'gridex',userId:'requested',assetId:'mine'}}]);
+  assert.equal(calls[0].url,'https://manager.invalid/api/gridex/asset/user/link?realm=gridex');
+  assert.equal(calls[0].auth,'Bearer token');
+});

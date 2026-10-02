@@ -46,7 +46,7 @@ const enrollment = {
     : pilotEnrollment.inspectMemberUser(subject, email),
 };
 const invitations = config.enrollmentEnabled && repository.pool
-  ? new InvitationService(repository.pool, enrollment, openRemote) : null;
+  ? new InvitationService(repository.pool, enrollment, openRemote, config.memberAccessEnabled) : null;
 const onboarding = repository.pool && config.realmSetupEnabled
   ? new OrganisationOnboarding(repository.pool, realmSetup, config.realm) : null;
 const organisationAccess = onboarding && config.organisationAccessEnabled ? new OrganisationAccess(repository.pool, realmSetup, config,

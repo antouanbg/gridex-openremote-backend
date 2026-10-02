@@ -53,6 +53,7 @@ export function loadConfig(env = process.env) {
     grafanaPublicOrigin: env.GRIDEX_PUBLIC_API_BASE ? new URL(env.GRIDEX_PUBLIC_API_BASE).origin : '',
     platformAdminSubjects,
     organisationAccessEnabled: env.GRIDEX_ORGANISATION_ACCESS_ENABLED === 'true',
+    memberAccessEnabled: env.GRIDEX_MEMBER_ACCESS_ENABLED === 'true',
     reauthOnApiRestart: env.GRIDEX_REAUTH_ON_API_RESTART === 'true',
     enrollmentEnabled: env.GRIDEX_ENROLLMENT_ENABLED === 'true',
     enrollmentClientSecret: env.GRIDEX_ENROLLMENT_CLIENT_SECRET || '',
