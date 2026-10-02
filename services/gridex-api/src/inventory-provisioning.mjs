@@ -9,6 +9,38 @@ const field=(value,name,max=120)=>{
   return value.trim();
 };
 const digest=(value)=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+async function inventoryToken(remote, principal, realm) {
+  // Legacy behavior stays available only while the rollout gate is off.
+  // Once enabled, a browser token must never carry OpenRemote write rights.
+  if (remote.config?.memberAccessEnabled)
+    return (await remote.getAssetServiceCredentials(realm)).token;
+  return principal.accessToken;
+}
+async function linkApprovedMembers(repository, remote, site, assetId, owner) {
+  if (!remote.config?.memberAccessEnabled || !repository.pool) return;
+  const db = await repository.pool.connect();
+  try {
+    await db.query('BEGIN');
+    const { rows } = await db.query(`SELECT m.subject FROM organisation_memberships m
+      WHERE m.organisation_id=$1 AND (m.all_sites OR EXISTS (
+        SELECT 1 FROM membership_site_grants g WHERE g.organisation_id=m.organisation_id
+        AND g.subject=m.subject AND g.site_id=$2)) FOR SHARE OF m`, [site.organisationId, site.id]);
+    const credentials = await remote.getAssetServiceCredentials(site.openremoteRealm);
+    for (const { subject } of rows) {
+      if (subject === owner) continue;
+      const links = await remote.userAssetLinks(subject, credentials.token, site.openremoteRealm, credentials.apiRealm);
+      if (!links.some(link => link?.id?.assetId === assetId))
+        await remote.linkUserAsset(assetId, subject, credentials.token, site.openremoteRealm, credentials.apiRealm);
+      const verified = await remote.userAssetLinks(subject, credentials.token, site.openremoteRealm, credentials.apiRealm);
+      if (!verified.some(link => link?.id?.assetId === assetId))
+        throw new ApiError(409, 'access_reconciliation_required', 'A member Asset link could not be verified.');
+    }
+    await db.query('COMMIT');
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  } finally { db.release(); }
+}
 export function idempotencyKey(req){
   const raw=req.headers['idempotency-key'];
   if(typeof raw!=='string'||!/^[A-Za-z0-9._:-]{8,100}$/.test(raw))
@@ -66,23 +98,28 @@ export async function provisionSite({repository,remote,principal,key,input}){
   const body=validateSiteInput(input);
   if(!principal.emailVerified)throw new ApiError(403,'permission_denied','Verified email is required.');
   const org=await repository.requireOrganisationAdministrator(principal.subject,principal.realm,body.organisationId);
+  const token=await inventoryToken(remote,principal,org.realm);
   const claimed=await repository.claimInventoryIntent({organisationId:org.id,kind:'site',key,payloadHash:digest(body),subject:principal.subject,realm:org.realm});
   const intent=claimed.intent;
   if(claimed.complete){
-    const asset=await remote.getAsset(intent.openremote_asset_id,principal.accessToken,org.realm);
+    const asset=await remote.getAsset(intent.openremote_asset_id,token,org.realm);
     await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:org.realm,kind:'site',siteId:intent.resource_id,parentId:null,
-      subject:principal.subject,token:principal.accessToken,linkIfMissing:false});
-    return repository.requireSite(principal.subject,intent.resource_id,principal.realm);
+      subject:principal.subject,token,linkIfMissing:false});
+    const site = await repository.requireSite(principal.subject,intent.resource_id,principal.realm);
+    await linkApprovedMembers(repository,remote,site,asset.id,principal.subject);
+    return site;
   }
   try{
-    let asset=await findAsset(remote,intent,principal.accessToken,org.realm);
+    let asset=await findAsset(remote,intent,token,org.realm);
     if(!asset)asset=await remote.createUserAsset({name:body.name,type:'ThingAsset',realm:org.realm,attributes:{
       location:{type:'GEO_JSONPoint',value:null,meta:{}},notes:attr('GrideX Site'),gridexResourceKind:attr('site'),
       gridexResourceId:attr(intent.resource_id),gridexSiteId:attr(intent.resource_id),
-    }},principal.accessToken,org.realm);
-    await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:org.realm,kind:'site',siteId:intent.resource_id,parentId:null,subject:principal.subject,token:principal.accessToken});
+    }},token,org.realm);
+    await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:org.realm,kind:'site',siteId:intent.resource_id,parentId:null,subject:principal.subject,token});
     await repository.recordInventoryAsset(intent.id,asset.id);
-    return await repository.completeSiteIntent(intent,body,asset.id);
+    const site = await repository.completeSiteIntent(intent,body,asset.id);
+    await linkApprovedMembers(repository,remote,site,asset.id,principal.subject);
+    return site;
   }catch(error){await repository.failInventoryIntent(intent.id);throw error;}
 }
 
@@ -90,6 +127,7 @@ export async function provisionGateway({repository,remote,principal,site,key,inp
   const body=validateGatewayInput(input);
   if(site.membershipRole!=='administrator'||!principal.emailVerified)
     throw new ApiError(403,'permission_denied','Organisation administrator access is required.');
+  const token=await inventoryToken(remote,principal,site.openremoteRealm);
   const claimed=await repository.claimInventoryIntent({organisationId:site.organisationId,siteId:site.id,kind:'gateway',key,
     payloadHash:digest(body),subject:principal.subject,realm:site.openremoteRealm});
   const intent=claimed.intent;
@@ -97,10 +135,11 @@ export async function provisionGateway({repository,remote,principal,site,key,inp
     const topology=await repository.getTopology(site.id);
     const parent=body.role==='controller'?site.openremoteSiteAssetId:(await repository.getGatewayBindings(site.id))
       .find(binding=>binding.gatewayId===body.parentGatewayId)?.assetId;
-    const asset=await remote.getAsset(intent.openremote_asset_id,principal.accessToken,site.openremoteRealm);
+    const asset=await remote.getAsset(intent.openremote_asset_id,token,site.openremoteRealm);
     await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:site.openremoteRealm,kind:'gateway',siteId:site.id,parentId:parent,
-      subject:principal.subject,token:principal.accessToken,linkIfMissing:false});
+      subject:principal.subject,token,linkIfMissing:false});
     if(!topology.gateways.some(g=>g.id===intent.resource_id))throw new ApiError(409,'inventory_reconciliation_required','Gateway projection is missing.');
+    await linkApprovedMembers(repository,remote,site,asset.id,principal.subject);
     return {id:intent.resource_id,siteId:site.id,name:asset.name,hardwareModel:body.hardwareModel,role:body.role,openremoteAssetId:asset.id};
   }
   try{
@@ -114,15 +153,17 @@ export async function provisionGateway({repository,remote,principal,site,key,inp
     const bindings=await repository.getGatewayBindings(site.id);
     const parentId=body.role==='controller'?site.openremoteSiteAssetId:bindings.find(b=>b.gatewayId===rock.id)?.assetId;
     if(!parentId)throw new ApiError(409,'inventory_reconciliation_required','Parent OpenRemote asset is not verified.');
-    let asset=await findAsset(remote,intent,principal.accessToken,site.openremoteRealm);
+    let asset=await findAsset(remote,intent,token,site.openremoteRealm);
     if(!asset)asset=await remote.createUserAsset({name:body.name,type:'ThingAsset',realm:site.openremoteRealm,parentId,attributes:{
       location:{type:'GEO_JSONPoint',value:null,meta:{}},notes:attr('GrideX gateway'),gridexResourceKind:attr('gateway'),
       gridexResourceId:attr(intent.resource_id),gridexSiteId:attr(site.id),
       gridexGatewayId:attr(intent.resource_id),gatewayRole:attr(body.role),hardwareModel:attr(body.hardwareModel),
-    }},principal.accessToken,site.openremoteRealm);
+    }},token,site.openremoteRealm);
     await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:site.openremoteRealm,kind:'gateway',siteId:site.id,parentId,
-      subject:principal.subject,token:principal.accessToken});
+      subject:principal.subject,token});
     await repository.recordInventoryAsset(intent.id,asset.id);
-    return await repository.completeGatewayIntent(intent,body,asset.id,principal.subject);
+    const result=await repository.completeGatewayIntent(intent,body,asset.id,principal.subject);
+    await linkApprovedMembers(repository,remote,site,asset.id,principal.subject);
+    return result;
   }catch(error){await repository.failInventoryIntent(intent.id);throw error;}
 }

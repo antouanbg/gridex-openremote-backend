@@ -22,14 +22,20 @@ const config = loadConfig();
 validateProductionConfig(config);
 const repository = createRepository(config);
 if (config.autoMigrate) await repository.migrate();
-const openRemote = new OpenRemoteClient(config);
+const realmSetup = config.realmSetupEnabled ? new OpenRemoteRealmSetup(config) : null;
+const openRemote = new OpenRemoteClient(config, fetch, config.memberAccessEnabled
+  ? realm => realmSetup?.assetServiceCredentials(realm)
+    ?? Promise.reject(new Error('Realm Asset service is unavailable'))
+  : null);
 const authenticate = createAuthenticator(config, {
   isAllowedRealm: realm => repository.isAllowedRealm(realm),
 });
-const realmSetup = config.realmSetupEnabled ? new OpenRemoteRealmSetup(config) : null;
 const pilotEnrollment = new EnrollmentIdentity(config);
 const enrollment = {
-  assetLinkCredentials: async realm => realm && realm !== config.realm
+  assetLinkCredentials: async realm => config.memberAccessEnabled
+    ? realmSetup?.assetServiceCredentials(realm)
+      ?? Promise.reject(new Error('Realm Asset service is unavailable'))
+    : realm && realm !== config.realm
     ? { token: await (realmSetup?.token() ?? Promise.reject(new Error('Realm setup is unavailable'))), apiRealm: 'master' }
     : { token: await openRemote.getServiceToken(), apiRealm: config.realm },
   prepareUser: (email, realm, names) => realm && realm !== config.realm
@@ -44,11 +50,13 @@ const enrollment = {
     ? realmSetup?.inspectMemberUser(realm, subject, email)
       ?? Promise.reject(new Error('Realm setup is unavailable'))
     : pilotEnrollment.inspectMemberUser(subject, email),
+  ensureRestrictedReader: (realm, subject) => realmSetup?.ensureRestrictedReader(realm, subject)
+    ?? Promise.reject(new Error('Realm role provisioning is unavailable')),
 };
 const invitations = config.enrollmentEnabled && repository.pool
   ? new InvitationService(repository.pool, enrollment, openRemote, config.memberAccessEnabled) : null;
 const onboarding = repository.pool && config.realmSetupEnabled
-  ? new OrganisationOnboarding(repository.pool, realmSetup, config.realm) : null;
+  ? new OrganisationOnboarding(repository.pool, realmSetup, config.realm, config.memberAccessEnabled) : null;
 const organisationAccess = onboarding && config.organisationAccessEnabled ? new OrganisationAccess(repository.pool, realmSetup, config,
   () => mailgunConfig()) : null;
 const deviceVault=config.deviceVaultDirectory && config.deviceVaultKeyFile ? new DeviceVault(config.deviceVaultDirectory,config.deviceVaultKeyFile):null;

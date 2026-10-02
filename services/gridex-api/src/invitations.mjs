@@ -109,6 +109,21 @@ export class InvitationService {
     await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
       VALUES($1,$2,'invitation',$3,'success',$4)`, [subject, action, id, randomUUID()]);
   }
+  async scopedAssets(db, org, realm) {
+    const { rows } = await db.query(`SELECT s.id AS "siteId",s.openremote_site_asset_id AS "assetId"
+      FROM sites s WHERE s.organisation_id=$1 AND s.openremote_realm=$2 AND s.deleted_at IS NULL
+      UNION ALL SELECT g.site_id AS "siteId",b.openremote_asset_id AS "assetId"
+      FROM gateways g JOIN gateway_openremote_bindings b ON b.gateway_id=g.id
+      JOIN sites s ON s.id=g.site_id
+      WHERE s.organisation_id=$1 AND s.openremote_realm=$2 AND s.deleted_at IS NULL
+      UNION ALL SELECT d.site_id AS "siteId",d.openremote_asset_id AS "assetId"
+      FROM devices d JOIN sites s ON s.id=d.site_id
+      WHERE s.organisation_id=$1 AND s.openremote_realm=$2 AND s.deleted_at IS NULL
+      AND d.deleted_at IS NULL AND d.openremote_asset_id IS NOT NULL`, [org, realm]);
+    if (rows.some(row => !row.assetId))
+      throw new ApiError(409, 'inventory_reconciliation_required', 'A Site has no verified OpenRemote Asset.');
+    return rows;
+  }
   async create(principal, org, body) {
     const input = validateInvitation(body, { requireNames: this.memberAccessEnabled });
     // Authorize before any external identity side effect, then recheck in transaction.
@@ -192,7 +207,10 @@ export class InvitationService {
         LIMIT $2 OFFSET $3`, [org, limit + 1, offset]);
       const sites = await db.query(`SELECT id,name,openremote_site_asset_id AS "assetId" FROM sites
         WHERE organisation_id=$1 AND deleted_at IS NULL ORDER BY name`, [org]);
-      return { members: rows.slice(0, limit), sites: sites.rows,
+      const scoped = await this.scopedAssets(db, org, platform
+        ? (await db.query('SELECT openremote_realm FROM organisations WHERE id=$1', [org])).rows[0]?.openremote_realm
+        : principal.realm);
+      return { members: rows.slice(0, limit), sites: sites.rows, scoped,
         nextOffset: rows.length > limit ? offset + limit : null };
     });
     if (!this.openRemote || !this.identity.assetLinkCredentials)
@@ -200,14 +218,16 @@ export class InvitationService {
     const realm = platform
       ? (await this.pool.query('SELECT openremote_realm FROM organisations WHERE id=$1', [org])).rows[0]?.openremote_realm
       : principal.realm;
-    const credentials = platform ? await this.identity.assetLinkCredentials(realm)
-      : { token: principal.accessToken, apiRealm: realm };
-    const siteByAsset = new Map(page.sites.filter(site => site.assetId).map(site => [site.assetId, site.id]));
+    const credentials = await this.identity.assetLinkCredentials(realm);
+    const scopedBySite = new Map(page.sites.map(site => [site.id,
+      page.scoped.filter(asset => asset.siteId === site.id).map(asset => asset.assetId)]));
     const realmLinks = await this.openRemote.realmUserAssetLinks(credentials.token, realm, credentials.apiRealm);
     const members = [];
     for (const member of page.members) {
       const links = realmLinks.filter(link => link?.id?.userId === member.subject);
-      const verifiedSiteIds = [...new Set(links.map(link => siteByAsset.get(link?.id?.assetId)).filter(Boolean))];
+      const linked = new Set(links.map(link => link?.id?.assetId));
+      const verifiedSiteIds = member.siteIds.filter(siteId =>
+        scopedBySite.get(siteId)?.length && scopedBySite.get(siteId).every(id => linked.has(id)));
       members.push({ ...member, verifiedSiteIds });
     }
     return { members, sites: page.sites.map(({ id, name }) => ({ id, name })), nextOffset: page.nextOffset };
@@ -220,6 +240,7 @@ export class InvitationService {
     const changed = [];
     let assetIds = new Set();
     let realm = null;
+    let credentials = null;
     try {
       return await this.transaction(async db => {
         const admin = await this.admin(db, principal.subject, org, principal.realm);
@@ -229,26 +250,28 @@ export class InvitationService {
         if (!target.rows.length) throw new ApiError(404, 'member_not_found', 'Member not found.');
         if (target.rows[0].role === 'administrator')
           throw new ApiError(403, 'administrator_protected', 'Administrator access is managed separately.');
+        credentials = await this.identity.assetLinkCredentials(realm);
         await this.permittedSites(db, principal.subject, org, input.siteIds, principal.realm);
         const sites = await db.query(`SELECT id,openremote_site_asset_id AS "assetId" FROM sites
           WHERE organisation_id=$1 AND openremote_realm=$2 AND deleted_at IS NULL FOR SHARE`, [org, realm]);
         const byId = new Map(sites.rows.map(site => [site.id, site.assetId]));
         if (input.siteIds.some(id => !byId.get(id)))
           throw new ApiError(409, 'site_not_provisioned', 'A selected Site is not verified in OpenRemote.');
-        assetIds = new Set([...byId.values()].filter(Boolean));
+        const scoped = await this.scopedAssets(db, org, realm);
+        assetIds = new Set(scoped.map(row => row.assetId));
         const readLinks = async () => {
-          const links = await this.openRemote.userAssetLinks(subject, principal.accessToken, realm);
+          const links = await this.openRemote.userAssetLinks(subject, credentials.token, realm, credentials.apiRealm);
           if (!Array.isArray(links)) throw new ApiError(503, 'inventory_unavailable', 'OpenRemote Asset links could not be verified.');
           return new Set(links.map(link => link?.id?.assetId).filter(id => assetIds.has(id)));
         };
         const previous = await readLinks();
-        const desired = new Set(input.siteIds.map(id => byId.get(id)));
+        const desired = new Set(scoped.filter(row => input.siteIds.includes(row.siteId)).map(row => row.assetId));
         for (const id of previous) if (!desired.has(id)) {
-          await this.openRemote.deleteUserAssetLink(id, subject, principal.accessToken, realm);
+          await this.openRemote.deleteUserAssetLink(id, subject, credentials.token, realm, credentials.apiRealm);
           changed.push({ id, action: 'deleted' });
         }
         for (const id of desired) if (!previous.has(id)) {
-          await this.openRemote.linkUserAsset(id, subject, principal.accessToken, realm);
+          await this.openRemote.linkUserAsset(id, subject, credentials.token, realm, credentials.apiRealm);
           changed.push({ id, action: 'linked' });
         }
         const actual = await readLinks();
@@ -265,8 +288,8 @@ export class InvitationService {
     } catch (error) {
       try {
         for (const operation of changed.reverse()) {
-          if (operation.action === 'linked') await this.openRemote.deleteUserAssetLink(operation.id, subject, principal.accessToken, realm);
-          else await this.openRemote.linkUserAsset(operation.id, subject, principal.accessToken, realm);
+          if (operation.action === 'linked') await this.openRemote.deleteUserAssetLink(operation.id, subject, credentials.token, realm, credentials.apiRealm);
+          else await this.openRemote.linkUserAsset(operation.id, subject, credentials.token, realm, credentials.apiRealm);
         }
       } catch {
         throw new ApiError(503, 'access_reconciliation_required', 'OpenRemote access needs reconciliation; no success was reported.');
@@ -346,6 +369,11 @@ export class InvitationService {
           g.organisation_id=$1 AND g.subject=$4 AND g.site_id=sites.id))
         FOR SHARE`, [invite.organisation_id, invite.site_ids, admin.all_sites, invite.created_by]);
       if (sites.rows.length !== invite.site_ids.length) throw new ApiError(409, 'invalid_sites', 'Invited sites changed.');
+      if (this.memberAccessEnabled) {
+        if (!this.identity.ensureRestrictedReader)
+          throw new ApiError(503, 'human_roles_unavailable', 'OpenRemote role provisioning is unavailable.');
+        await this.identity.ensureRestrictedReader(realm, principal.subject);
+      }
       if (this.memberAccessEnabled && invite.site_ids.length) {
         if (!this.openRemote || !this.identity.assetLinkCredentials)
           throw new ApiError(503, 'inventory_unavailable', 'OpenRemote access verification is unavailable.');
@@ -354,16 +382,18 @@ export class InvitationService {
         [invite.organisation_id, realm, invite.site_ids]);
         if (assets.rows.length !== invite.site_ids.length || assets.rows.some(site => !site.assetId))
           throw new ApiError(409, 'site_not_provisioned', 'Invited Sites are not provisioned in OpenRemote.');
+        const scoped = await this.scopedAssets(db, invite.organisation_id, realm);
+        const desired = new Set(scoped.filter(row => invite.site_ids.includes(row.siteId)).map(row => row.assetId));
         credentials = await this.identity.assetLinkCredentials(realm);
         const before = await this.openRemote.userAssetLinks(principal.subject, credentials.token, realm, credentials.apiRealm);
         if (!Array.isArray(before)) throw new ApiError(503, 'inventory_unavailable', 'OpenRemote Asset links could not be verified.');
         const previous = new Set(before.map(link => link?.id?.assetId));
-        for (const site of assets.rows) if (!previous.has(site.assetId)) {
-          await this.openRemote.linkUserAsset(site.assetId, principal.subject, credentials.token, realm, credentials.apiRealm);
-          newlyLinked.push(site.assetId);
+        for (const assetId of desired) if (!previous.has(assetId)) {
+          await this.openRemote.linkUserAsset(assetId, principal.subject, credentials.token, realm, credentials.apiRealm);
+          newlyLinked.push(assetId);
         }
         const after = await this.openRemote.userAssetLinks(principal.subject, credentials.token, realm, credentials.apiRealm);
-        if (!Array.isArray(after) || assets.rows.some(site => !after.some(link => link?.id?.assetId === site.assetId)))
+        if (!Array.isArray(after) || [...desired].some(id => !after.some(link => link?.id?.assetId === id)))
           throw new ApiError(409, 'access_reconciliation_required', 'OpenRemote Asset links did not match the invitation.');
       }
       const inserted = await db.query(`INSERT INTO organisation_memberships(organisation_id,subject,role,all_sites)

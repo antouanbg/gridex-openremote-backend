@@ -2,6 +2,52 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRemoteRealmSetup, OrganisationOnboarding, validateOrganisationInvitation } from '../src/organisation-onboarding.mjs';
 
+test('realm Asset service refuses any OpenRemote permission beyond read/write Assets', async () => {
+  const setup = new OpenRemoteRealmSetup({});
+  setup.kc = async path => {
+    if (path.endsWith('/clients?clientId=gridex-realm-assets')) return [{ id:'service', clientId:'gridex-realm-assets', enabled:true,
+      publicClient:false, serviceAccountsEnabled:true, standardFlowEnabled:false, directAccessGrantsEnabled:false }];
+    if (path.endsWith('/clients?clientId=openremote')) return [{ id:'openremote' }];
+    if (path.endsWith('/service-account-user')) return { id:'service-user' };
+    if (path.endsWith('/role-mappings/realm/composite')) return [];
+    if (path.endsWith('/role-mappings/clients/openremote/composite'))
+      return ['read:assets','write:assets','write:admin'].map(name => ({ name }));
+    throw new Error(`Unexpected path ${path}`);
+  };
+  await assert.rejects(setup.assetServiceIdentity('novacom','token'),{code:'asset_service_scope_invalid'});
+});
+
+test('human migration removes only reviewed legacy roles and invalidates sessions', async () => {
+  const subject = '11111111-1111-4111-8111-111111111111';
+  const setup = new OpenRemoteRealmSetup({});
+  const roles = new Map([['read:assets',{ id:'read',name:'read:assets' }],
+    ['write:assets',{ id:'write',name:'write:assets' }]]);
+  const calls = [];
+  setup.token = async () => 'token';
+  setup.ensureRestrictedReader = async () => ({ verified:true });
+  setup.kc = async (path, _token, method = 'GET', body) => {
+    calls.push([path, method]);
+    if (path.endsWith(`/users/${subject}`)) return { id:subject, enabled:true };
+    if (path.endsWith('/clients?clientId=openremote')) return [{ id:'or' }];
+    if (path.endsWith('/role-mappings/realm/composite')) return [{ name:'restricted_user' }];
+    if (path.endsWith('/role-mappings/clients/or/composite') || path.endsWith('/role-mappings/clients/or')) {
+      if (method === 'DELETE') { for (const role of body) roles.delete(role.name); return null; }
+      return [...roles.values()];
+    }
+    if (path.endsWith(`/users/${subject}/logout`) && method === 'POST') return null;
+    throw new Error(`Unexpected Keycloak path ${path}`);
+  };
+  const plan = await setup.migrateHumanReader('novacom', subject);
+  assert.deepEqual(plan.remove, ['write:assets']);
+  assert.equal(roles.has('write:assets'), true);
+  const result = await setup.migrateHumanReader('novacom', subject, true);
+  assert.equal(result.verified, true);
+  assert.deepEqual([...roles.keys()], ['read:assets']);
+  assert.ok(calls.some(([path, method]) => path.endsWith('/logout') && method === 'POST'));
+  roles.set('write:users', { name:'write:users' });
+  await assert.rejects(setup.migrateHumanReader('novacom', subject, true), { code:'human_roles_conflict' });
+});
+
 test('Manager callback provisioning preserves existing customer client settings', async () => {
   const setup = new OpenRemoteRealmSetup({ managerPublicOrigin: 'https://auth.example.test' });
   let client = { id: 'client-1', clientId: 'openremote', enabled: true, publicClient: true,

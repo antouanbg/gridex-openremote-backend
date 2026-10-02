@@ -1,10 +1,11 @@
 import { ApiError } from "./errors.mjs";
 
 export class OpenRemoteClient {
-  constructor(config, fetchImplementation = fetch) {
+  constructor(config, fetchImplementation = fetch, assetServiceCredentials = null) {
     this.config = config;
     this.fetch = fetchImplementation;
     this.serviceToken = null;
+    this.assetServiceCredentials = assetServiceCredentials;
   }
 
   async health() {
@@ -46,8 +47,18 @@ export class OpenRemoteClient {
 
   async getUserLinkedAssets(ids, subject, { realm, token } = {}) {
     if (!ids.length) return [];
+    if (this.config.memberAccessEnabled) {
+      const credentials = await this.getAssetServiceCredentials(realm || this.config.realm);
+      return this.queryAssets({ ids, userIds: [subject] }, credentials.token, realm || this.config.realm);
+    }
     const pilotRealm=!realm||realm===this.config.realm;
     return this.queryAssets({ ids, userIds: [subject] },pilotRealm?await this.getServiceToken():token,realm);
+  }
+
+  async getAssetServiceCredentials(realm) {
+    if (!this.assetServiceCredentials)
+      throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service is not configured.');
+    return this.assetServiceCredentials(realm);
   }
 
   queryAssets(query, token, realm) {

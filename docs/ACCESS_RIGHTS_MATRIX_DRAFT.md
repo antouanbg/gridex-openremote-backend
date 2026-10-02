@@ -1,14 +1,15 @@
 # ЧЕРНОВА · Матрица GrideX ↔ OpenRemote / DRAFT · Access-rights matrix
 
-**Статус: за одобрение; не е приложена на живо.** Това е проверен проект за
-съгласуване на правата, не разрешение за промяна на роли. Няма ново меню или
+**Статус: одобрена целева матрица на 2026-10-02; живата проверка предстои.**
+Собственикът одобри отделен служебен Asset клиент за всеки организационен realm
+и Manager само за четене за всички човешки акаунти. Няма ново меню или
 нова функция за клиента. Одобрените екрани в „Клиенти и договори → Потребители
 и покани“ и „Обекти“ остават на същите места. Новият екран за членове още не е
 внедрен на живо (виж `INCIDENT_MEMBER_ACCESS_021.md`).
 
-**Status: draft for owner approval; not applied in production.** Existing menu
-placement and approved member screens remain unchanged. No identity, realm,
-role, Asset or user–Asset link was changed by this audit.
+**Status: approved target on 2026-10-02, not yet verified in production.**
+Existing menu placement and approved member screens remain unchanged. Approval
+does not itself mean the live identity roles or links have been migrated.
 
 ## Решение за собственика — български преглед
 
@@ -42,20 +43,19 @@ GrideX има собствени роли и права в backend-а, а OpenRe
 супер админът преглежда по организация, организационният админ редактира
 роля/Обекти, обикновеният потребител няма администраторска форма.
 
-**Оставащите две решения:**
+**Двете решения са одобрени:**
 
-1. Да стане ли директният OpenRemote Manager **само за четене за всички
-   човешки акаунти**, включително администраторите на организации?
-2. За запис в OpenRemote разрешаваш ли отделен служебен клиент във всеки
-   realm с `read:assets` и `write:assets`? Последното право позволява и
+1. Директният OpenRemote Manager става **само за четене за всички
+   човешки акаунти**, включително администраторите на организации.
+2. За запис в OpenRemote има отделен служебен клиент във всеки
+   realm с `read:assets` и `write:assets`. Последното право позволява и
    обща редакция на Assets, макар GrideX backend да ограничава обичайните
-   заявки. Това право е нужно и за създаването на самите Обекти и устройства
-   от backend-а, ако човешкият Manager стане само за четене. Ако рискът е
-   неприемлив, първо е нужна отделна, тясна OpenRemote интеграция за
-   **двете** операции: провизиране на одобрени Assets и управление на връзки.
+   заявки. Собственикът изрично прие този остатъчен риск за backend-only
+   клиента. Правото е нужно и за създаване на Обекти и устройства.
 
-Без изричен отговор на двете точки не се променят живи права и не се
-включва новият екран.
+Преди отнемане на живи човешки права трябва да се докажат API записът,
+връзките към Обект **и дочерните Assets**, четенето в Manager и отказът за
+директен запис с човешки токен. При провал миграцията спира.
 
 ## Проверени източници и факти / Verified sources and facts
 
@@ -83,10 +83,10 @@ This is a snapshot, not a claim that all future accounts have the same roles.
 Check every account before migration. `novacom` and the pilot realm are
 isolated; never use one as a catch-all tenant.
 
-## Целева матрица за одобрение / Proposed human-role matrix
+## Одобрена целева матрица / Approved human-role matrix
 
 The GrideX role and explicit Site grants remain the browser/API authority.
-For **every human account**, OpenRemote would have only `read:assets` and
+For **every human account**, OpenRemote will have only `read:assets` and
 realm role `restricted_user`, plus links to the exact permitted Site and
 required child Assets. No human receives `write:assets`, `write:admin`,
 `write:user` or `write:attributes` solely because of their GrideX role.
@@ -121,7 +121,7 @@ OpenRemote and GrideX. Assets created directly in Manager do **not** appear
 automatically in GrideX because the Site/device projection and binding are
 absent; they must be reconciled, never silently imported.
 
-## Служебен достъп: неразрешено решение / Service permission: unresolved choice
+## Служебен достъп: одобрена цел / Service permission: approved target
 
 OpenRemote requires `write:assets` for both user–Asset links and general
 Asset writes. A backend-only service client per organisation realm with
@@ -129,9 +129,9 @@ Asset writes. A backend-only service client per organisation realm with
 would never enter the browser, but its OpenRemote privilege is **broader than
 link management**. GrideX API checks and audit would constrain ordinary
 requests; compromise of the service credential would still allow wider
-Asset changes inside that realm. The owner's previous approval explicitly
-excluded such a broad permission. **Do not provision or deploy it without a
-new explicit choice.** Do not expand the master setup client or a human role.
+Asset changes inside that realm. The owner explicitly approved this broader
+backend-only permission on 2026-10-02. Do not expand the master setup client
+or any human role.
 
 The same service-write capability is also required to provision approved
 Site/gateway Assets once the human administrator's direct write role is
@@ -139,8 +139,9 @@ removed. A link-only role would therefore solve only half the flow.
 Alternative: implement/review a custom OpenRemote authorization mechanism
 covering **both** GrideX-approved Asset provisioning and user–Asset links
 with narrower checks (or an equivalent upstream-supported mechanism).
-That is a separate OpenRemote change, test and deployment, not an assumed
-existing role. No write path may claim least privilege before this decision.
+That remains a possible future hardening project, not the approach selected
+for this rollout. The service token must stay realm-local, server-only and
+auditable; `write:assets` is **not** link-only least privilege.
 
 ## Процес по роли / Role-by-role process (proposed)
 
@@ -192,12 +193,13 @@ flowchart LR
 These are the already approved page locations; this draft adds no navigation
 item or new form. Existing form documentation remains authoritative for
 labels and layout. Direct OpenRemote Manager would become read-only for human
-organisation admins after migration; this difference needs owner approval.
+organisation admins after migration; this difference was approved by the owner
+on 2026-10-02. The live role migration remains a separate acceptance gate.
 
 ## План и критерии за приемане / Migration and acceptance gates
 
-1. Owner approves the human-role target **and** chooses the service-write
-   solution. Record that decision here and in `HANDOFF.md` before code.
+1. **Approved on 2026-10-02:** read-only human Manager and realm-local
+   backend Asset service with its documented `write:assets` residual risk.
 2. Implement future realm/member provisioning with explicit role mapping;
    never silently inherit/default `write:*` roles. Refactor Site/gateway
    creation, member link changes and first-admin setup to backend-authorized
@@ -219,13 +221,5 @@ organisation admins after migration; this difference needs owner approval.
    onboarding. Backend feature gate stays off until all checks pass. Deploy
    backend, then frontend and BG/EN help; verify live with owner.
 
-### Exact decisions requested from owner
-
-1. Should direct OpenRemote Manager be **read-only for every human account,
-   including organisation administrators**, with all changes through GrideX?
-2. For backend writes, approve the realm-local `read:assets` +
-   `write:assets` service client with the documented residual risk, **or**
-   require custom narrower OpenRemote authorization for both approved Asset
-   provisioning and user–Asset links before rollout?
-
-No live rights should change until both decisions are explicit.
+Both architectural decisions are explicit and approved. Do not mark the
+production migration complete until the remaining gates above pass.
