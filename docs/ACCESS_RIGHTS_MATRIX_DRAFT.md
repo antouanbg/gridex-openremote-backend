@@ -49,8 +49,10 @@ GrideX има собствени роли и права в backend-а, а OpenRe
 2. За запис в OpenRemote разрешаваш ли отделен служебен клиент във всеки
    realm с `read:assets` и `write:assets`? Последното право позволява и
    обща редакция на Assets, макар GrideX backend да ограничава обичайните
-   заявки. Ако този риск е неприемлив, първо е нужна отделна, тясна
-   възможност за връзки в OpenRemote; вградено такова право не е потвърдено.
+   заявки. Това право е нужно и за създаването на самите Обекти и устройства
+   от backend-а, ако човешкият Manager стане само за четене. Ако рискът е
+   неприемлив, първо е нужна отделна, тясна OpenRemote интеграция за
+   **двете** операции: провизиране на одобрени Assets и управление на връзки.
 
 Без изричен отговор на двете точки не се променят живи права и не се
 включва новият екран.
@@ -131,11 +133,14 @@ Asset changes inside that realm. The owner's previous approval explicitly
 excluded such a broad permission. **Do not provision or deploy it without a
 new explicit choice.** Do not expand the master setup client or a human role.
 
-Alternative: implement/review a custom OpenRemote link-only authorization
-capability (or equivalent upstream-supported mechanism), then use it for the
-backend. That is a separate OpenRemote change, test and deployment, not an
-assumed existing role. No link-writing path may claim least privilege before
-this decision.
+The same service-write capability is also required to provision approved
+Site/gateway Assets once the human administrator's direct write role is
+removed. A link-only role would therefore solve only half the flow.
+Alternative: implement/review a custom OpenRemote authorization mechanism
+covering **both** GrideX-approved Asset provisioning and user–Asset links
+with narrower checks (or an equivalent upstream-supported mechanism).
+That is a separate OpenRemote change, test and deployment, not an assumed
+existing role. No write path may claim least privilege before this decision.
 
 ## Процес по роли / Role-by-role process (proposed)
 
@@ -220,6 +225,7 @@ organisation admins after migration; this difference needs owner approval.
    including organisation administrators**, with all changes through GrideX?
 2. For backend writes, approve the realm-local `read:assets` +
    `write:assets` service client with the documented residual risk, **or**
-   require a custom link-only OpenRemote permission before rollout?
+   require custom narrower OpenRemote authorization for both approved Asset
+   provisioning and user–Asset links before rollout?
 
 No live rights should change until both decisions are explicit.
