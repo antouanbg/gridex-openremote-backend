@@ -1,8 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validateInvitation, validateMemberAccess, EnrollmentIdentity, InvitationService } from '../src/invitations.mjs';
+import { loadConfig } from '../src/config.mjs';
 const site = '11111111-1111-4111-8111-111111111111';
 const names = {firstName:'Мария',lastName:'Петрова'};
+test('unverified live member access stays disabled by default', () => {
+  assert.equal(loadConfig({}).memberAccessEnabled,false);
+  assert.equal(loadConfig({GRIDEX_MEMBER_ACCESS_ENABLED:'true'}).memberAccessEnabled,true);
+});
 test('invitation validates email, explicit site scope and non-administrator role', () => {
   assert.deepEqual(validateInvitation({ ...names,email: ' User@example.invalid ', role: 'viewer', siteIds: [site, site] }),
     { ...names,email: 'user@example.invalid', role: 'viewer', siteIds: [site] });
@@ -11,6 +16,7 @@ test('invitation validates email, explicit site scope and non-administrator role
     assert.throws(() => validateInvitation({ ...names,email: 'user@example.invalid', role: 'viewer', siteIds: [site], ...patch }));
   }
   assert.throws(()=>validateInvitation({email:'user@example.invalid',role:'viewer',siteIds:[]}),{code:'invalid_invitation'});
+  assert.deepEqual(validateInvitation({email:'user@example.invalid',role:'viewer',siteIds:[]},{requireNames:false}).firstName,'');
   assert.deepEqual(validateMemberAccess({role:'operator',siteIds:[site,site]}),{role:'operator',siteIds:[site]});
   assert.throws(()=>validateMemberAccess({role:'administrator',siteIds:[]}),{code:'invalid_member_access'});
 });
@@ -72,6 +78,23 @@ test('only an organisation administrator may read its member roster', async () =
   },release(){}};
   const service=new InvitationService({connect:async()=>db},{});
   await assert.rejects(service.listMembers({subject:'viewer',realm:'customer'},'org'),{code:'permission_denied'});
+});
+
+test('member roster verifies exact user and Site links once per realm',async()=>{
+  const db={async query(sql){
+    if(sql.includes('SELECT m.role,m.all_sites'))return {rows:[{role:'administrator',all_sites:true,realm:'customer'}]};
+    if(sql.includes('SELECT m.subject,m.role'))return {rows:[{subject:'member',role:'viewer',siteIds:[site],services:[]}]};
+    if(sql.includes('SELECT id,name,openremote_site_asset_id'))return {rows:[{id:site,name:'Site',assetId:'asset'}]};
+    return {rows:[]};
+  },release(){}};
+  let reads=0;
+  const remote={realmUserAssetLinks:async()=>{reads++;return [
+    {id:{realm:'customer',userId:'member',assetId:'asset'}},
+    {id:{realm:'customer',userId:'other',assetId:'foreign'}}];}};
+  const service=new InvitationService({connect:async()=>db},{assetLinkCredentials:async()=>({token:'token',apiRealm:'master'})},remote);
+  const result=await service.listMembers({subject:'admin',realm:'customer',accessToken:'user-token'},'org');
+  assert.deepEqual(result.members[0].verifiedSiteIds,[site]);
+  assert.equal(reads,1);
 });
 
 test('administrator membership cannot be edited through ordinary member access', async () => {

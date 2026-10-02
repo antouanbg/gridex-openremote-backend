@@ -370,6 +370,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       }
       const memberAccess = url.pathname.match(/^\/api\/v1\/(platform\/)?organisations\/([0-9a-f-]{36})\/members(?:\/([^/]+))?$/i);
       if (memberAccess) {
+        if (!config.memberAccessEnabled) throw new ApiError(503, 'member_access_unavailable', 'Member access requires verified OpenRemote provisioning.');
         if (!invitations) throw new ApiError(503, 'member_access_unavailable', 'Member access administration is unavailable.');
         if (req.method === 'GET' && !memberAccess[3]) return await json(res, 200,
           await invitations.listMembers(principal, memberAccess[2], {

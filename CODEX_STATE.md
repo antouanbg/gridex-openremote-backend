@@ -1,5 +1,25 @@
 # CODEX_STATE.md
 
+## 2026-10-02 — member access rollout held; API rolled back
+
+Backend PR #85 was merged and migration 021 added only nullable invitation-name
+fields. A readable 4.2 MB PostgreSQL archive is in
+`/Users/antouan/GrideX-runtime/private-backups/member-access-021.xHUkzX/`.
+Counts remained 2 organisations, 3 memberships and 1 invitation. The new API
+image started healthy, but a live read-only OpenRemote check returned 403 for
+filtered user–Asset links in both realms. The pilot Site Asset read succeeded;
+unfiltered links returned 200 and `userId`-filtered links returned 403. The
+master setup service has admin but no asset roles. **The old API image was
+restored and is healthy** (`gridex-api-rollback:before-member-access-021-20261002`).
+Frontend/docs source is merged, not live. New code has a default-off
+`GRIDEX_MEMBER_ACCESS_ENABLED` gate; merge it before any future API rebuild.
+Do not enable until scoped provisioning and live verification. See
+`docs/INCIDENT_MEMBER_ACCESS_021.md`.
+
+Български: миграция 021 и проверен архив са налице, но OpenRemote отказа
+филтрираното четене на връзки човек–Обект. Старият API образ е върнат и е
+здрав. Новият екран **не е внедрен на сайта**.
+
 ## 2026-10-02 — owner-approved member role/Site scope (implementation in progress)
 
 The owner approved the existing Users & invitations screen expansion: list

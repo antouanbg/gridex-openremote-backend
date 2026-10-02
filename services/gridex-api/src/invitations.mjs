@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { ApiError } from './errors.mjs';
 
-export function validateInvitation(input) {
+export function validateInvitation(input, { requireNames = true } = {}) {
   const email = typeof input?.email === 'string' ? input.email.trim().toLowerCase() : '';
   const firstName = typeof input?.firstName === 'string' ? input.firstName.trim().normalize('NFC') : '';
   const lastName = typeof input?.lastName === 'string' ? input.lastName.trim().normalize('NFC') : '';
   const siteIds = input?.siteIds;
   const validName = name => name.length <= 80 && /^[\p{L}\p{M}][\p{L}\p{M} .'-]*$/u.test(name);
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      || !validName(firstName) || !validName(lastName)
+      || ((requireNames || firstName || lastName) && (!validName(firstName) || !validName(lastName)))
       || !['viewer', 'operator', 'energy_manager', 'integrator'].includes(input?.role)
       || !Array.isArray(siteIds) || siteIds.length > 100
       || siteIds.some(id => typeof id !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))) {
@@ -51,7 +51,7 @@ export class EnrollmentIdentity {
     let created = false;
     if (!users.length) {
       await this.request('/users', { method: 'POST', body: JSON.stringify({ username: email, email,
-        firstName: names.firstName, lastName: names.lastName,
+        ...(names?.firstName && names?.lastName ? {firstName:names.firstName,lastName:names.lastName} : {}),
         enabled: true, emailVerified: false, requiredActions: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'] }) });
       created = true;
       users = await this.request(`/users?email=${encodeURIComponent(email)}&exact=true`);
@@ -77,7 +77,10 @@ export class EnrollmentIdentity {
 }
 
 export class InvitationService {
-  constructor(pool, identity, openRemote = null) { this.pool = pool; this.identity = identity; this.openRemote = openRemote; }
+  constructor(pool, identity, openRemote = null, memberAccessEnabled = false) {
+    this.pool = pool; this.identity = identity; this.openRemote = openRemote;
+    this.memberAccessEnabled = memberAccessEnabled;
+  }
   async transaction(action) {
     const db = await this.pool.connect();
     try { await db.query('BEGIN'); const result = await action(db); await db.query('COMMIT'); return result; }
@@ -107,7 +110,7 @@ export class InvitationService {
       VALUES($1,$2,'invitation',$3,'success',$4)`, [subject, action, id, randomUUID()]);
   }
   async create(principal, org, body) {
-    const input = validateInvitation(body);
+    const input = validateInvitation(body, { requireNames: this.memberAccessEnabled });
     // Authorize before any external identity side effect, then recheck in transaction.
     const realm = await this.transaction(db => this.permittedSites(db, principal.subject, org, input.siteIds, principal.realm));
     const user = await this.identity.prepareUser(input.email, realm, input);
@@ -116,7 +119,7 @@ export class InvitationService {
       await this.permittedSites(db, principal.subject, org, input.siteIds, principal.realm);
       await db.query(`INSERT INTO organisation_invitations(id,organisation_id,email,subject,role,site_ids,state,created_by,expires_at,first_name,last_name)
         VALUES($1,$2,$3,$4,$5,$6,'pending_delivery',$7,now()+interval '24 hours',$8,$9)`,
-      [id, org, input.email, user.subject, input.role, input.siteIds, principal.subject,input.firstName,input.lastName]);
+      [id, org, input.email, user.subject, input.role, input.siteIds, principal.subject,input.firstName||null,input.lastName||null]);
       await this.audit(db, principal.subject, id, 'invitation.created');
     });
     try {
@@ -200,10 +203,10 @@ export class InvitationService {
     const credentials = platform ? await this.identity.assetLinkCredentials(realm)
       : { token: principal.accessToken, apiRealm: realm };
     const siteByAsset = new Map(page.sites.filter(site => site.assetId).map(site => [site.assetId, site.id]));
+    const realmLinks = await this.openRemote.realmUserAssetLinks(credentials.token, realm, credentials.apiRealm);
     const members = [];
     for (const member of page.members) {
-      const links = await this.openRemote.userAssetLinks(member.subject, credentials.token, realm, credentials.apiRealm);
-      if (!Array.isArray(links)) throw new ApiError(503, 'inventory_unavailable', 'OpenRemote Asset links could not be verified.');
+      const links = realmLinks.filter(link => link?.id?.userId === member.subject);
       const verifiedSiteIds = [...new Set(links.map(link => siteByAsset.get(link?.id?.assetId)).filter(Boolean))];
       members.push({ ...member, verifiedSiteIds });
     }
@@ -343,7 +346,7 @@ export class InvitationService {
           g.organisation_id=$1 AND g.subject=$4 AND g.site_id=sites.id))
         FOR SHARE`, [invite.organisation_id, invite.site_ids, admin.all_sites, invite.created_by]);
       if (sites.rows.length !== invite.site_ids.length) throw new ApiError(409, 'invalid_sites', 'Invited sites changed.');
-      if (invite.site_ids.length) {
+      if (this.memberAccessEnabled && invite.site_ids.length) {
         if (!this.openRemote || !this.identity.assetLinkCredentials)
           throw new ApiError(503, 'inventory_unavailable', 'OpenRemote access verification is unavailable.');
         const assets = await db.query(`SELECT id,openremote_site_asset_id AS "assetId" FROM sites

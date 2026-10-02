@@ -1,6 +1,26 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — member access rollout stopped safely
+
+Owner-approved source is merged in backend PR #85, frontend PR #96 and docs
+PR #38. Migration 021 (nullable `first_name`, `last_name`) was applied after
+a verified custom-format `pg_dump` in
+`/Users/antouan/GrideX-runtime/private-backups/member-access-021.xHUkzX/`;
+2 organisations/3 memberships/1 invitation remained unchanged. The candidate
+API was healthy but failed the live read-only user–Asset link check (403 in
+pilot and customer realms). The exact previous API image was restored and is
+healthy; tag `gridex-api-rollback:before-member-access-021-20261002`.
+No frontend or Docusaurus live deployment followed. The follow-up source
+change defaults `GRIDEX_MEMBER_ACCESS_ENABLED` to false. Merge it before any
+future API rebuild; do not set the flag until a scoped OpenRemote client
+design is owner-approved, provisioned, and checked against both realms and
+a new tenant. See `docs/INCIDENT_MEMBER_ACCESS_021.md`.
+
+Български: кодът е публикуван, но live включването е спряно след отказ 403
+от OpenRemote. Старият API е възстановен. Миграцията добавя само празни
+колони; архивът е проверен. Екранът още не е внедрен на живия сайт.
+
 ## 2026-10-02 — approved member access contract, implementation pending
 
 The owner approved the Users & invitations member roster and guarded edits

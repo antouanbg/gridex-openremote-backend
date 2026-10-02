@@ -109,9 +109,19 @@ export class OpenRemoteClient {
       body: [{ id: { realm, userId: subject, assetId } }] });
   }
 
-  userAssetLinks(subject, token, realm, apiRealm = realm) {
-    return this.request(`/asset/user/link?realm=${encodeURIComponent(realm)}&userId=${encodeURIComponent(subject)}`,
+  async realmUserAssetLinks(token, realm, apiRealm = realm) {
+    // The installed OpenRemote accepts a realm-scoped list but rejects its
+    // userId query parameter. Filter the authoritative response in-process;
+    // never expose the full link list to the browser.
+    const links = await this.request(`/asset/user/link?realm=${encodeURIComponent(realm)}`,
       { token, realm: apiRealm });
+    if (!Array.isArray(links)) throw new ApiError(503, 'inventory_unavailable', 'OpenRemote Asset links could not be verified.');
+    return links.filter(link => link?.id?.realm === realm);
+  }
+
+  async userAssetLinks(subject, token, realm, apiRealm = realm) {
+    return (await this.realmUserAssetLinks(token, realm, apiRealm))
+      .filter(link => link?.id?.userId === subject);
   }
 
   deleteUserAssetLink(assetId, subject, token, realm, apiRealm = realm) {
