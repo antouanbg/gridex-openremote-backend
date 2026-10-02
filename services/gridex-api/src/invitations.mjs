@@ -176,9 +176,11 @@ export class InvitationService {
       return rows;
     });
   }
-  async listMembers(principal, org, { offset = 0, limit = 25, platform = false } = {}) {
+  async listMembers(principal, org, { offset = 0, limit = 25, platform = false, search = '' } = {}) {
     if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(limit) || limit < 1 || limit > 100)
       throw new ApiError(400, 'invalid_page', 'Choose a valid member page.');
+    if (typeof search !== 'string' || search.length > 120)
+      throw new ApiError(400, 'invalid_search', 'Choose a valid member search.');
     const page = await this.transaction(async db => {
       if (platform) {
         if (!principal.emailVerified || !principal.permissions?.includes('platform:manage'))
@@ -186,7 +188,7 @@ export class InvitationService {
         const organisation = await db.query(`SELECT 1 FROM organisations WHERE id=$1 AND status='active' FOR SHARE`, [org]);
         if (!organisation.rows.length) throw new ApiError(404, 'organisation_unavailable', 'Organisation unavailable.');
       } else await this.admin(db, principal.subject, org, principal.realm);
-      const { rows } = await db.query(`SELECT m.subject,m.role,m.all_sites AS "allSites",
+      const { rows } = await db.query(`SELECT m.subject,m.role,m.all_sites AS "allSites",COUNT(*) OVER() AS total,
         COALESCE(i.email,oi.email) AS email,i.first_name AS "firstName",i.last_name AS "lastName",
         CASE WHEN m.all_sites THEN ARRAY(SELECT s.id FROM sites s WHERE s.organisation_id=m.organisation_id
           AND s.deleted_at IS NULL ORDER BY s.name)
@@ -203,14 +205,15 @@ export class InvitationService {
           WHERE organisation_id=m.organisation_id AND subject=m.subject AND state='accepted'
           ORDER BY accepted_at DESC LIMIT 1) oi ON true
         LEFT JOIN user_login_activity a ON a.realm=o.openremote_realm AND a.subject=m.subject
-        WHERE m.organisation_id=$1 ORDER BY COALESCE(i.email,oi.email,m.subject),m.subject
-        LIMIT $2 OFFSET $3`, [org, limit + 1, offset]);
+        WHERE m.organisation_id=$1 AND ($4='' OR strpos(lower(concat_ws(' ',i.first_name,i.last_name,i.email,oi.email)),lower($4))>0)
+        ORDER BY COALESCE(i.email,oi.email,m.subject),m.subject
+        LIMIT $2 OFFSET $3`, [org, limit + 1, offset, search.trim()]);
       const sites = await db.query(`SELECT id,name,openremote_site_asset_id AS "assetId" FROM sites
         WHERE organisation_id=$1 AND deleted_at IS NULL ORDER BY name`, [org]);
       const scoped = await this.scopedAssets(db, org, platform
         ? (await db.query('SELECT openremote_realm FROM organisations WHERE id=$1', [org])).rows[0]?.openremote_realm
         : principal.realm);
-      return { members: rows.slice(0, limit), sites: sites.rows, scoped,
+      return { members: rows.slice(0, limit).map(({total,...member})=>member), total:Number(rows[0]?.total || 0), sites: sites.rows, scoped,
         nextOffset: rows.length > limit ? offset + limit : null };
     });
     if (!this.openRemote || !this.identity.assetLinkCredentials)
@@ -230,7 +233,7 @@ export class InvitationService {
         scopedBySite.get(siteId)?.length && scopedBySite.get(siteId).every(id => linked.has(id)));
       members.push({ ...member, verifiedSiteIds });
     }
-    return { members, sites: page.sites.map(({ id, name }) => ({ id, name })), nextOffset: page.nextOffset };
+    return { members, sites: page.sites.map(({ id, name }) => ({ id, name })), nextOffset: page.nextOffset, total:page.total };
   }
 
   async updateMember(principal, org, subject, body) {

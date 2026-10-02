@@ -351,6 +351,15 @@ export class OpenRemoteRealmSetup {
       throw new ApiError(409, 'identity_conflict', 'The invited identity no longer matches.');
     return { needsPassword: user.requiredActions?.includes('UPDATE_PASSWORD') === true };
   }
+  async verifiedNotificationProfile(realm, subject) {
+    if (!/^[a-z][a-z0-9-]{2,30}$/.test(realm) || !subject || subject.length > 256)
+      throw new ApiError(400, 'identity_invalid', 'Valid recipient identity required.');
+    const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
+    if (user?.id !== subject || !user.enabled || !user.emailVerified
+        || !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(user.email || ''))
+      throw new ApiError(409, 'identity_not_verified', 'Notification recipient is not verified.');
+    return { email: user.email.toLowerCase(), firstName: user.firstName || '', lastName: user.lastName || '' };
+  }
   async verifyUser(realm, subject, email) {
     const user = await this.kc(`/${encodeURIComponent(realm)}/users/${encodeURIComponent(subject)}`, await this.token());
     if (user?.id !== subject || !user.enabled || !user.emailVerified || user.email?.toLowerCase() !== email)
