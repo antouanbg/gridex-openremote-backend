@@ -35,6 +35,29 @@ but no asset roles. No user–Asset link was changed by this check.
 
 ## Required before activation / Условия преди включване
 
+### 2026-10-02 follow-up: write scope exceeds the approved limit
+
+The owner approved a test using the existing platform administrator and a
+backend-only per-realm client **only if** its permission is limited to
+user–Asset link management. A read-only inspection of the live Keycloak role
+mapping found that the platform administrator has `read:assets` but not
+`write:assets`. OpenRemote's `POST /asset/user/link` and targeted link DELETE
+require `WRITE_ASSETS_ROLE`; its general Asset update endpoint uses the same
+role. The published OpenRemote API does not establish a link-only role. Thus
+granting `write:assets` to either the person or a new service client would
+exceed the approved scope. No roles or links were changed, and the feature
+remains off. Obtain separate owner approval for the broader realm-local role
+or design and approve a narrower server-side mechanism before provisioning.
+
+Source: https://github.com/openremote/openremote/blob/master/model/src/main/java/org/openremote/model/asset/AssetResource.java
+
+Собственикът одобри теста само при право, ограничено до връзките
+потребител–Обект. Живият супер администратор има `read:assets`, но няма
+`write:assets`. OpenRemote изисква `write:assets` за създаване/изтриване на
+връзки, а същото право позволява и редакция на Assets. Това надхвърля
+одобреното. Не са променяни права или връзки; функцията остава изключена.
+Нужно е отделно решение за този по-широк обхват или друг ограничен механизъм.
+
 1. Approve a backend-only, per-realm OpenRemote client or another
    least-privilege method to read/create/delete user–Asset links after
    verified invitation acceptance. Do not silently expand the global master
