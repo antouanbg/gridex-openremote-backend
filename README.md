@@ -41,7 +41,10 @@ The Compose files define a **core stack** and **optional integrations**. An over
 
 Core services are defined in [`compose.mac.yml`](compose.mac.yml); MQTT, workers, email, public access and other optional services have separate `compose.*.yml` files. Persistent volumes hold the databases and service state. Certificates, credentials and the single operator backend environment file live outside Git.
 
+The [Google Cloud migration proposal](docs/GOOGLE_CLOUD_MIGRATION.md) prices an ARM64 pilot and lists the portability, backup and acceptance gates. It is a plan, not a deployed cloud environment.
+
 For a new host or cloud, start with the [deployment and knowledge-transfer baseline](DEPLOYMENT.md). It identifies the remaining portability gates; this repository is not yet a verified clone-and-start installation.
+For moving only the current Mac's development files out of Google Drive, use the separate [local workspace migration plan](docs/LOCAL_WORKSPACE_MIGRATION.md). It does not move the live databases or private runtime.
 
 Market collection is controlled by the allowlist in the market TimescaleDB: `BG` is the only default. The platform-only `/api/v1/platform/market/zones` API manages collection; `/api/v1/platform/organisations/{id}/market-zones` separately manages each active organisation's zone grants. Migration 018 stores organisation grants in GrideX PostgreSQL and revokes them when its day-ahead service grant is removed. Member rights remain separate. Direct price-history API **currently** remains platform-only; the embedded BG Grafana view requires both service grants and BG zone scope for a customer. Disabling collection stops new writes without deleting old rows. The guarded dashboard, datasource restrictions and activation checks are in [`observability/README.md`](observability/README.md).
 
@@ -94,6 +97,8 @@ Compose файловете описват **основен стек** и **до�
 Основните услуги са в [`compose.mac.yml`](compose.mac.yml); MQTT, обработващите услуги, имейлът, публичният достъп и другите допълнения са в отделни `compose.*.yml` файлове. Постоянните volumes пазят базите и състоянието на услугите. Сертификатите, тайните и единният операторски `.env` на backend-а са извън Git.
 
 За нов хост или облак започни от [плана за внедряване и предаване на знания](DEPLOYMENT.md). Той посочва оставащите проверки за преносимост; хранилището още не е проверена инсталация „свали и стартирай“.
+За преместване само на работния код на този Mac извън Google Drive виж отделния [план за локалната работна папка](docs/LOCAL_WORKSPACE_MIGRATION.md). Той не мести живите бази или частния runtime.
+За предложена облачна машина, цена и проверки преди преместване виж [плана за Google Cloud](docs/GOOGLE_CLOUD_MIGRATION.md). Облачна среда още не е внедрена.
 
 Събирането на цени се управлява от allowlist в пазарната TimescaleDB: само `BG` е включена по подразбиране. Само супер администраторът управлява зоните чрез `/api/v1/platform/market/zones` и отделно разрешава зона за активна организация чрез `/api/v1/platform/organisations/{id}/market-zones`. Миграция 018 пази тези организационни права в GrideX PostgreSQL и ги отнема при спиране на услугата „ден напред“. Личните права са отделни. Директният API за ценовата история **в момента** остава само за супер администратора; вграденият BG Grafana изглед проверява и двете услуги плюс BG зона за клиент. Изключването на зона спира новите записи без изтриване на старите. Защитеният dashboard и условията за бъдещи източници са в [`observability/README.md`](observability/README.md).
 

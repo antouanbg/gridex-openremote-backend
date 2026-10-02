@@ -29,10 +29,13 @@ const authenticate = createAuthenticator(config, {
 const realmSetup = config.realmSetupEnabled ? new OpenRemoteRealmSetup(config) : null;
 const pilotEnrollment = new EnrollmentIdentity(config);
 const enrollment = {
-  prepareUser: (email, realm) => realm && realm !== config.realm
-    ? realmSetup?.prepareMemberUser(realm, email)
+  assetLinkCredentials: async realm => realm && realm !== config.realm
+    ? { token: await (realmSetup?.token() ?? Promise.reject(new Error('Realm setup is unavailable'))), apiRealm: 'master' }
+    : { token: await openRemote.getServiceToken(), apiRealm: config.realm },
+  prepareUser: (email, realm, names) => realm && realm !== config.realm
+    ? realmSetup?.prepareMemberUser(realm, email, names)
       ?? Promise.reject(new Error('Realm setup is unavailable'))
-    : pilotEnrollment.prepareUser(email),
+    : pilotEnrollment.prepareUser(email, names),
   sendActions: (subject, created, realm) => realm && realm !== config.realm
     ? realmSetup?.sendMemberActions(realm, subject, created)
       ?? Promise.reject(new Error('Realm setup is unavailable'))
@@ -43,7 +46,7 @@ const enrollment = {
     : pilotEnrollment.inspectMemberUser(subject, email),
 };
 const invitations = config.enrollmentEnabled && repository.pool
-  ? new InvitationService(repository.pool, enrollment) : null;
+  ? new InvitationService(repository.pool, enrollment, openRemote) : null;
 const onboarding = repository.pool && config.realmSetupEnabled
   ? new OrganisationOnboarding(repository.pool, realmSetup, config.realm) : null;
 const organisationAccess = onboarding && config.organisationAccessEnabled ? new OrganisationAccess(repository.pool, realmSetup, config,

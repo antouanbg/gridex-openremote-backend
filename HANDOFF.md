@@ -1,6 +1,33 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — approved member access contract, implementation pending
+
+The owner approved the Users & invitations member roster and guarded edits
+of one non-admin role and explicit Site grants. Active organisation, exact
+realm, verified administrator membership and every Site must be checked on
+each API request. OpenRemote user–Asset links must agree before access is
+reported; services remain independent grants. The BG/EN approved contract is
+`gridex-docs/proposals/service-approval-v2.md`. No migration, API rollout or
+live asset link was performed at this checkpoint. Tests and real multi-realm
+acceptance remain required.
+
+Български: одобрена е логиката за общ списък и защитена редакция на членска
+роля/Обекти, без администраторско делегиране. Предстоят код, тест и жива
+проверка; в този момент няма промяна на OpenRemote Assets.
+
+## 2026-10-01 — proposed Google Cloud host: costed plan, no migration
+
+The owner requested a monthly estimate and a GitHub migration plan for moving the Mac-hosted backend to Google Cloud. Published the bilingual [Google Cloud migration proposal](docs/GOOGLE_CLOUD_MIGRATION.md): one always-on `t2a-standard-4` ARM64 VM in `europe-west4`, 40+100 GiB `pd-balanced` and one in-use IPv4, approximately **$137.15/month** predictable subtotal at checked on-demand rates (730 hours), **excluding** traffic, backup, monitoring, DNS, tax and optional services. This is an estimate, not a bill or a capacity guarantee. Portal/docs and Site Edge are separate boundaries. **No GCP resource, DNS, secret, container, volume, database or device was changed.** Next: measure actual peaks/growth; prepare a cloud Compose profile and sanitised configuration matrix; test encrypted backup/restore and multi-realm/Edge paths on an isolated host; rehearse cutover/rollback; obtain separate approval for live migration. Current Mac remains authoritative. Cross-chat context checked: project tasks “Continue EMS OpenRemote architecture Phase1” and “Phase2”, plus current Phase3 decisions; current repository AGENTS/DEPLOYMENT takes precedence over historical platform proposals.
+
+Собственикът поиска цена и GitHub план за преместване на backend-а от Mac към Google Cloud. Публикуван е двуезичният [план за Google Cloud](docs/GOOGLE_CLOUD_MIGRATION.md): постоянно работеща ARM64 `t2a-standard-4` в `europe-west4`, 40+100 GiB `pd-balanced` и един използван IPv4, около **$137.15/месец** предвидима основа при 730 часа, **без** трафик, архиви, наблюдение, DNS, данъци и незадължителни услуги. Това не е фактура или гаранция за капацитет. Порталът/docs и Edge по Обектите са отделни граници. **Няма създадени GCP ресурси или променени DNS, тайни, контейнери, volumes, бази или устройства.** Следват измерване на пиковете/ръста, облачен Compose и матрица на настройките, тест на криптиран backup/restore и многоорганизационни/Edge пътища на изолиран хост, упражнение на превключване/връщане и отделно разрешение за жива миграция. Mac остава основната система. Проверен е контекстът на другите проектни задачи Phase1/Phase2 и текущите решения Phase3; актуалните AGENTS/DEPLOYMENT имат предимство пред старите предложения.
+
+## 2026-10-01 — local workspace outside Google Drive: plan only
+
+Documented the separate [local source-workspace migration](docs/LOCAL_WORKSPACE_MIGRATION.md), including four repositories, generated dependency/build directories, seven dirty worktrees requiring review, private runtime, live Docker volumes, docs/Grafana bind mounts, Codex project paths, cutover checks and rollback. **No files, service mounts, container, volume or Drive setting were changed.** Next: approve the destination outside CloudStorage, reconcile local changes, take/verify backups, then perform the staged source move and separately approved runtime cutover. Do not mark the Drive copy online-only or disconnect it while live mounts still depend on it.
+
+Описан е отделният [план за преместване на работния код](docs/LOCAL_WORKSPACE_MIGRATION.md): четирите хранилища, генерираните зависимости, седемте копия с промени за преглед, частният runtime, живите Docker volumes, docs/Grafana mounts, пътищата в Codex, проверките и връщането. **Няма преместени файлове, сменени mounts, контейнери, volumes или настройки на Drive.** Следва одобряване на локалната цел извън CloudStorage, преглед на промените и архивите, после поетапно местене на кода и отделно одобрено превключване на услугите. Не прави копието в Drive само онлайн и не спирай Drive, докато живи mounts още го използват.
+
 ## 2026-09-30 — new-cloud deployment knowledge transfer
 
 ### Open task — sanitised deployment configuration matrix
