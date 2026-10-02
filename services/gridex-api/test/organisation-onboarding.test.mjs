@@ -2,6 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { OpenRemoteRealmSetup, OrganisationOnboarding, validateOrganisationInvitation } from '../src/organisation-onboarding.mjs';
 
+test('first organisation administrator requires two names before any provisioning', () => {
+  const input={name:'Example Energy',realm:'example-energy',email:'admin@example.com',firstName:'Example',lastName:'Administrator'};
+  for(const fields of [{firstName:''},{lastName:''},{firstName:' '.repeat(3)},{lastName:'a'.repeat(81)}])
+    assert.throws(()=>validateOrganisationInvitation({...input,...fields}),{code:'invalid_organisation_invitation'});
+});
+
+test('first administrator names are written and verified in Keycloak without replacing an identity', async () => {
+  const setup=new OpenRemoteRealmSetup({});let stored;let reads=0;
+  setup.token=async()=> 'fixture';
+  setup.kc=async(path,token,method='GET',body)=>{
+    if(method==='POST'){stored=body;return null;}
+    reads++;return reads===1?[]:[{...stored,id:'new-admin'}];
+  };
+  assert.deepEqual(await setup.prepareUser('example-energy','admin@example.com',{firstName:'Example',lastName:'Administrator'}),{subject:'new-admin'});
+  assert.equal(stored.firstName,'Example');assert.equal(stored.lastName,'Administrator');
+  await assert.rejects(setup.prepareUser('example-energy','admin@example.com',{firstName:'Other',lastName:'Person'}),{code:'identity_conflict'});
+});
+
 test('realm Asset service refuses any OpenRemote permission beyond read/write Assets', async () => {
   const setup = new OpenRemoteRealmSetup({});
   setup.kc = async path => {
@@ -143,21 +161,21 @@ function fixture({ failAt } = {}) {
 }
 
 test('new-organisation request validates realm and exact platform authority before side effects', async () => {
-  assert.deepEqual(validateOrganisationInvitation({ name: 'Example Energy', realm: 'example-energy',
-    email: ' ADMIN@EXAMPLE.COM ' }), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  assert.deepEqual(validateOrganisationInvitation({ name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy',
+    email: ' ADMIN@EXAMPLE.COM ' }), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'admin@example.com' });
   for (const realm of ['gridex', 'master', 'XX', 'bad_name'])
-    assert.throws(() => validateOrganisationInvitation({ name: 'Example Energy', realm, email: 'a@example.com' }));
+    assert.throws(() => validateOrganisationInvitation({ name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm, email: 'a@example.com' }));
   const { service, calls } = fixture();
   await assert.rejects(service.create({ ...owner(), realm: 'other' },
-    { name: 'Example Energy', realm: 'example-energy', email: 'a@example.com' }), { code: 'permission_denied' });
+    { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'a@example.com' }), { code: 'permission_denied' });
   await assert.rejects(service.create({ ...owner(), authTime: Date.now()/1000-700 },
-    { name: 'Example Energy', realm: 'example-energy', email: 'a@example.com' }), { code: 'recent_login_required' });
+    { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'a@example.com' }), { code: 'recent_login_required' });
   assert.equal(calls.length, 0);
 });
 
 test('realm, identity and email are verified before acceptance activates membership', async () => {
   const f = fixture();
-  const result = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  const result = await f.service.create(owner(), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'admin@example.com' });
   assert.equal(result.state, 'sent');
   assert.deepEqual(f.calls.map(([name]) => name), ['createRealm','configurePortalClient','prepareUser','sendActions']);
   assert.equal(f.organisations.size, 0);
@@ -175,7 +193,7 @@ test('realm, identity and email are verified before acceptance activates members
 
 test('provider failure leaves no active organisation and never reports a sent invitation', async () => {
   const f = fixture({ failAt: 'sendActions' });
-  await assert.rejects(f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy',
+  await assert.rejects(f.service.create(owner(), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy',
     email: 'admin@example.com' }), { code: 'organisation_onboarding_incomplete' });
   assert.equal([...f.records.values()][0].state, 'delivery_failed');
   assert.equal(f.organisations.size, 0);
@@ -184,7 +202,7 @@ test('provider failure leaves no active organisation and never reports a sent in
 
 test('only platform admin can resend the same sent identity; new link extends expiry without a new realm or user', async () => {
   const f = fixture();
-  const created = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  const created = await f.service.create(owner(), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'admin@example.com' });
   f.calls.length = 0;
   await assert.rejects(f.service.resend({ ...owner(), realm: 'example-energy' }, created.id), { code: 'permission_denied' });
   const result = await f.service.resend(owner(), created.id);
@@ -199,7 +217,7 @@ test('only platform admin can resend the same sent identity; new link extends ex
 
 test('uncertain resend never loops or returns sent and must be reconciled', async () => {
   const f = fixture();
-  const created = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy', email: 'admin@example.com' });
+  const created = await f.service.create(owner(), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy', email: 'admin@example.com' });
   f.service.setup.sendActions = async () => { throw new Error('provider timeout'); };
   await assert.rejects(f.service.resend(owner(), created.id), { code: 'organisation_resend_unconfirmed' });
   assert.equal(f.records.get(created.id).state, 'delivery_failed');
@@ -209,7 +227,7 @@ test('uncertain resend never loops or returns sent and must be reconciled', asyn
 
 test('OpenRemote role failure keeps the organisation suspended and no portal access', async () => {
   const f = fixture({ failAt: 'grantAdministrator' });
-  const result = await f.service.create(owner(), { name: 'Example Energy', realm: 'example-energy',
+  const result = await f.service.create(owner(), { name: 'Example Energy', firstName:'Example', lastName:'Administrator', realm: 'example-energy',
     email: 'admin@example.com' });
   await assert.rejects(f.service.accept({ subject: 'tenant-user', realm: 'example-energy',
     email: 'admin@example.com', emailVerified: true }, result.id), { code: 'organisation_activation_incomplete' });

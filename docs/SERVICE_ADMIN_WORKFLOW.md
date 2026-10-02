@@ -2,6 +2,13 @@
 
 ## English
 
+Layout clarification 2026-10-02: one continuous GrideX administration page,
+not tabs. Catalogue precedes invitations/history and the member editor; the
+platform administrator first selects an approved organisation. All roles share
+one visual design. New organisation invitations require firstName and lastName
+(trimmed, 1–80 characters, no control characters), stored and verified in
+Keycloak alongside email. Existing identities are never overwritten.
+
 Owner-approved contract: the existing `/customers/users/` page lists all five
 services, regardless of grants. Only `day_ahead` (BG/BG) and `visualisations`
 are requestable. Future entries remain visible but disabled. An organisation
@@ -42,6 +49,13 @@ membership/OpenRemote checks; it does not prove browser authentication or mail
 delivery. Record live acceptance separately in HANDOFF.
 
 ## Български
+
+Уточнение за лейаута 2026-10-02: общ непрекъснат екран, без табове.
+Каталогът е преди поканите/историята и редактора; супер администраторът
+първо избира одобрена организация. Всички роли имат един дизайн. Новите
+организационни покани изискват firstName и lastName (подрязани интервали,
+1–80 символа, без контролни символи), записани и проверени в Keycloak с
+имейла. Съществуващите самоличности не се презаписват.
 
 Одобрен договор: съществуващата `/customers/users/` показва петте услуги
 независимо от права. Заявяеми са само `day_ahead` (BG/BG) и `visualisations`;
