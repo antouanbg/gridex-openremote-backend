@@ -10,11 +10,15 @@ export function validateOrganisationInvitation(input, reservedRealm = 'gridex') 
   const name = typeof input?.name === 'string' ? input.name.trim() : '';
   const realm = typeof input?.realm === 'string' ? input.realm.trim().toLowerCase() : '';
   const email = typeof input?.email === 'string' ? input.email.trim().toLowerCase() : '';
+  const firstName = typeof input?.firstName === 'string' ? input.firstName.trim() : '';
+  const lastName = typeof input?.lastName === 'string' ? input.lastName.trim() : '';
   if (name.length < 3 || name.length > 120 || !realmPattern.test(realm)
-      || ['master', reservedRealm].includes(realm) || email.length > 254 || !emailPattern.test(email)) {
-    throw new ApiError(400, 'invalid_organisation_invitation', 'Organisation name, unique realm and administrator email are required.');
+      || ['master', reservedRealm].includes(realm) || email.length > 254 || !emailPattern.test(email)
+      || !firstName || firstName.length>80 || !lastName || lastName.length>80
+      || /[\x00-\x1f\x7f]/.test(firstName+lastName)) {
+    throw new ApiError(400, 'invalid_organisation_invitation', 'Organisation name, unique realm, administrator email, first name and last name are required.');
   }
-  return { name, realm, email };
+  return { name, realm, email, firstName, lastName };
 }
 
 // Only the backend holds this credential. It must be a dedicated, audited
@@ -312,17 +316,19 @@ export class OpenRemoteRealmSetup {
     if (!Array.isArray(created) || created.length !== 1 || !created[0].enabled)
       throw new ApiError(503, 'portal_client_not_verified', 'The realm portal client could not be verified.');
   }
-  async prepareUser(realm, email) {
+  async prepareUser(realm, email, names) {
     const token = await this.token();
     const path = `/${encodeURIComponent(realm)}/users`;
     const lookup = `${path}?email=${encodeURIComponent(email)}&exact=true`;
     let users = await this.kc(lookup, token);
     if (!Array.isArray(users) || users.length) throw new ApiError(409, 'identity_conflict', 'Invited identity already exists in this realm.');
     await this.kc(path, token, 'POST', { username: email, email, enabled: true,
+      firstName:names.firstName, lastName:names.lastName,
       emailVerified: false, requiredActions: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'] });
     users = await this.kc(lookup, token);
     if (!Array.isArray(users) || users.length !== 1 || !users[0].enabled
-        || users[0].email?.toLowerCase() !== email || !users[0].id)
+        || users[0].email?.toLowerCase() !== email || !users[0].id
+        || users[0].firstName!==names.firstName || users[0].lastName!==names.lastName)
       throw new ApiError(503, 'identity_not_verified', 'The invited identity could not be verified.');
     return { subject: users[0].id };
   }
@@ -474,7 +480,7 @@ export class OrganisationOnboarding {
       await this.move(id, state, 'realm_ready'); state = 'realm_ready';
       await this.setup.configurePortalClient(input.realm);
       if (this.scopedAssetsEnabled) await this.setup.provisionAssetServiceClient(input.realm);
-      const user = await this.setup.prepareUser(input.realm, input.email);
+      const user = await this.setup.prepareUser(input.realm, input.email, input);
       await this.move(id, state, 'identity_ready', { subject: user.subject }); state = 'identity_ready';
       await this.setup.sendActions(input.realm, user.subject);
       await this.move(id, state, 'sent', { delivered_at: new Date() }); state = 'sent';
