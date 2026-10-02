@@ -1,6 +1,26 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 — publication and verification checkpoint
+
+Merged PR [#92](https://github.com/antouanbg/gridex-openremote-backend/pull/92) into main at `355f233a96d9dcd7edfb551900a59234eabc1c34`.
+Migration 022 and API-only rollout are healthy. The read-only production probe confirmed one pilot member, two customer members, five catalogue rows per organisation, no service grants, OpenRemote links, wrong-realm and viewer denial. 137 tests passed, one skipped; the probe sent no email and changed no permissions.
+Paired releases: frontend #100, backend #92, documentation #43.
+Status: source tested, published and deployed; owner acceptance remains open.
+Next acceptance: signed-in organisation administrator reviews the roster and
+all five service rows, requests an unapproved active service, then verifies
+the platform decision, individual member grant and actual notification delivery.
+Do not fabricate grants or treat test fixtures/mail configuration as delivered mail.
+
+Български: PR #92 е слят в main (355f233a96d9dcd7edfb551900a59234eabc1c34).
+Миграция 022 и внедряването само на API са успешни. Проверка само с четене потвърди един пилотен и двама клиентски членове, пет услуги на организация без разрешения, OpenRemote връзки и отказ за чужд realm/наблюдател. 137 теста минаха, един е пропуснат; пробата не изпраща мейл и не променя права.
+Кодът е проверен, публикуван и внедрен; приемането от собственика остава отворено.
+Следва реален тест: администраторът вижда списъка и петте услуги, заявява
+неодобрена активна услуга; проверяват се решението на супер администратора,
+личното разрешение и действително полученият мейл. Без примерни права и без
+приравняване на тестови данни/мейл настройки с реална доставка.
+
+
 ## 2026-10-02 — approved service administration correction, rollout in progress
 
 Live checkpoint: migration 022 committed and API-only recreation is healthy.
