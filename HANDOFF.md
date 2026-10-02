@@ -32,6 +32,19 @@ skipped; frontend Pages build/typecheck and BG/EN Docusaurus build/typecheck
 pass. The frontend and docs source have the approved permission explanation
 and reciprocal help anchors; public deployment is a separate gate.
 
+Live checkpoint (2026-10-02): private GrideX/OpenRemote database backups and
+the previous API image were saved. Only `gridex-api` was recreated with
+`GRIDEX_MEMBER_ACCESS_ENABLED=true`; internal health is 200/ready and the
+anonymous member endpoint denies with 401. The `novacom` viewer and admin
+were migrated to `read:assets` plus `restricted_user`; the admin's six
+legacy Manager write/admin roles were removed, then sessions invalidated.
+A fresh read-only audit shows no remaining changes for either Novacom human.
+Pilot admin was already read-only. Historical ROCK child and Novacom personal
+ConsoleAsset links were preserved. No account, Site or Asset was deleted.
+Real signed-in browser acceptance of member editing and Manager remains open.
+Public API DNS times out from this Mac without the VPN route; internal API
+health and provider checks succeeded.
+
 Owner approved the documented `docs/ACCESS_RIGHTS_MATRIX_DRAFT.md` target:
 one backend-only Asset service client per organisation realm with OpenRemote
 `read:assets` + `write:assets`, acknowledging that `write:assets` also permits

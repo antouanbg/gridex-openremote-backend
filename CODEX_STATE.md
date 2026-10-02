@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## 2026-10-02 — live scoped member access, real-user acceptance pending
+
+Backend PR #90 merged. The realm-local Asset service clients in `gridex`
+and `novacom` passed disposable create/read/link/unlink and cross-realm
+denial checks; all probe Assets were cleaned. Private backups of both DBs
+and the previous API image were taken. `gridex-api` now runs healthy with
+`GRIDEX_MEMBER_ACCESS_ENABLED=true`. Existing `novacom` human accounts were
+migrated to `read:assets` + `restricted_user` and audited afterward; pilot
+human admin already had these roles. Historical admin-only ROCK telemetry
+child and personal Console links were preserved. Frontend PR #98 deployed
+through Pages; BG/EN docs were deployed through the Docusaurus script.
+The signed-in real-account test of member role/Site editing and Manager is
+still pending; do not call this user-accepted. No change to menu structure.
+
+Български: кодът, API и помощта са внедрени; права на хората са ограничени
+и проверени. Очаква се реален тест от администратор на Новаком през сайта.
+
 ## 2026-10-02 — scoped service decision approved; implementation gated
 
 Owner approved the per-organisation backend-only `read:assets` +
