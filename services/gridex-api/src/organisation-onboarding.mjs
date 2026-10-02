@@ -1,8 +1,10 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomBytes } from 'node:crypto';
 import { ApiError } from './errors.mjs';
 
 const realmPattern = /^[a-z][a-z0-9-]{2,30}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const assetServiceClientId = 'gridex-realm-assets';
+const assetServiceRoles = ['read:assets', 'write:assets'];
 
 export function validateOrganisationInvitation(input, reservedRealm = 'gridex') {
   const name = typeof input?.name === 'string' ? input.name.trim() : '';
@@ -18,7 +20,9 @@ export function validateOrganisationInvitation(input, reservedRealm = 'gridex') 
 // Only the backend holds this credential. It must be a dedicated, audited
 // setup client in the master realm; never a browser token or realm password.
 export class OpenRemoteRealmSetup {
-  constructor(config, fetchImplementation = fetch) { this.config = config; this.fetch = fetchImplementation; }
+  constructor(config, fetchImplementation = fetch) {
+    this.config = config; this.fetch = fetchImplementation; this.assetTokens = new Map();
+  }
   async token() {
     const config = this.config;
     if (!config.realmSetupEnabled || !config.realmSetupClientSecret)
@@ -55,6 +59,175 @@ export class OpenRemoteRealmSetup {
   }
   async kc(path, token, method = 'GET', body) {
     return this.request(this.config.realmSetupAdminBaseUrl, path, token, method, body);
+  }
+  async assetServiceIdentity(realm, token) {
+    if (!realmPattern.test(realm) || realm === 'master')
+      throw new ApiError(400, 'invalid_realm', 'Asset service requires an organisation realm.');
+    const prefix = `/${encodeURIComponent(realm)}`;
+    const clients = await this.kc(`${prefix}/clients?clientId=${assetServiceClientId}`, token);
+    if (!Array.isArray(clients) || clients.length !== 1 || clients[0].clientId !== assetServiceClientId
+        || !clients[0].id || !clients[0].enabled || clients[0].publicClient
+        || !clients[0].serviceAccountsEnabled || clients[0].standardFlowEnabled
+        || clients[0].directAccessGrantsEnabled)
+      throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service is not safely configured.');
+    const orClients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(orClients) || orClients.length !== 1 || !orClients[0].id)
+      throw new ApiError(503, 'asset_service_unavailable', 'OpenRemote role client is unavailable.');
+    const serviceUser = await this.kc(`${prefix}/clients/${clients[0].id}/service-account-user`, token);
+    if (!serviceUser?.id) throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service identity is unavailable.');
+    const roles = await this.kc(`${prefix}/users/${serviceUser.id}/role-mappings/clients/${orClients[0].id}/composite`, token);
+    const realmRoles = await this.kc(`${prefix}/users/${serviceUser.id}/role-mappings/realm/composite`, token);
+    const names = new Set(Array.isArray(roles) ? roles.map(role => role.name) : []);
+    if (assetServiceRoles.some(name => !names.has(name))
+        || [...names].some(name => !assetServiceRoles.includes(name))
+        || !Array.isArray(realmRoles) || realmRoles.some(role => ['admin', 'superuser', 'restricted_user'].includes(role.name)))
+      throw new ApiError(503, 'asset_service_scope_invalid', 'Realm Asset service roles do not match the approved scope.');
+    return { prefix, client: clients[0], openRemoteClient: orClients[0], serviceUser };
+  }
+  async provisionAssetServiceClient(realm) {
+    const token = await this.token();
+    await this.verifyRealm(realm, token);
+    const prefix = `/${encodeURIComponent(realm)}`;
+    let clients = await this.kc(`${prefix}/clients?clientId=${assetServiceClientId}`, token);
+    if (!Array.isArray(clients) || clients.length > 1)
+      throw new ApiError(503, 'asset_service_conflict', 'Realm Asset service requires manual reconciliation.');
+    if (!clients.length) {
+      await this.kc(`${prefix}/clients`, token, 'POST', {
+        clientId: assetServiceClientId, protocol: 'openid-connect', enabled: true,
+        secret: randomBytes(32).toString('hex'), publicClient: false,
+        serviceAccountsEnabled: true, standardFlowEnabled: false,
+        directAccessGrantsEnabled: false, fullScopeAllowed: true,
+        protocolMappers: [{ name: 'openremote-audience', protocol: 'openid-connect',
+          protocolMapper: 'oidc-audience-mapper', config: {
+            'included.client.audience': 'openremote', 'access.token.claim': 'true',
+            'id.token.claim': 'false',
+          } }],
+      });
+      clients = await this.kc(`${prefix}/clients?clientId=${assetServiceClientId}`, token);
+    }
+    if (clients.length !== 1 || clients[0].clientId !== assetServiceClientId || !clients[0].id
+        || !clients[0].enabled || clients[0].publicClient || !clients[0].serviceAccountsEnabled
+        || clients[0].standardFlowEnabled || clients[0].directAccessGrantsEnabled)
+      throw new ApiError(503, 'asset_service_conflict', 'Existing realm Asset client is not approved.');
+    const orClients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(orClients) || orClients.length !== 1 || !orClients[0].id)
+      throw new ApiError(503, 'asset_service_unavailable', 'OpenRemote role client is unavailable.');
+    const serviceUser = await this.kc(`${prefix}/clients/${clients[0].id}/service-account-user`, token);
+    if (!serviceUser?.id) throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service identity is unavailable.');
+    const rolePath = `${prefix}/users/${serviceUser.id}/role-mappings/clients/${orClients[0].id}`;
+    const before = await this.kc(`${rolePath}/composite`, token);
+    if (!Array.isArray(before) || before.some(role => !assetServiceRoles.includes(role.name)))
+      throw new ApiError(503, 'asset_service_scope_invalid', 'Existing realm Asset client has unexpected roles.');
+    const missing = assetServiceRoles.filter(name => !before.some(role => role.name === name));
+    if (missing.length) {
+      const roles = await Promise.all(missing.map(name => this.kc(
+        `${prefix}/clients/${orClients[0].id}/roles/${encodeURIComponent(name)}`, token)));
+      await this.kc(rolePath, token, 'POST', roles);
+    }
+    await this.assetServiceIdentity(realm, token);
+    this.assetTokens.delete(realm);
+    return { realm, clientId: assetServiceClientId, verified: true };
+  }
+  async assetServiceCredentials(realm) {
+    const cached = this.assetTokens.get(realm);
+    if (cached && cached.expiresAt > Date.now() + 30000)
+      return { token: cached.token, apiRealm: realm };
+    const adminToken = await this.token();
+    const identity = await this.assetServiceIdentity(realm, adminToken);
+    const secret = await this.kc(`${identity.prefix}/clients/${identity.client.id}/client-secret`, adminToken);
+    if (!secret?.value) throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service secret is unavailable.');
+    const tokenUrl = this.config.realmSetupTokenUrl.replace('/realms/master/', `/realms/${encodeURIComponent(realm)}/`);
+    if (tokenUrl === this.config.realmSetupTokenUrl)
+      throw new ApiError(503, 'asset_service_unavailable', 'Realm token endpoint is not configured.');
+    const response = await this.fetch(tokenUrl, {
+      method: 'POST', body: new URLSearchParams({ grant_type: 'client_credentials',
+        client_id: assetServiceClientId, client_secret: secret.value }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service authentication failed.');
+    const payload = await response.json();
+    if (!payload.access_token) throw new ApiError(503, 'asset_service_unavailable', 'Realm Asset service returned no token.');
+    let claims;
+    try { claims = JSON.parse(Buffer.from(payload.access_token.split('.')[1] || '', 'base64url').toString('utf8')); }
+    catch { throw new ApiError(503, 'asset_service_scope_invalid', 'Realm Asset token could not be verified.'); }
+    const roles = claims.resource_access?.openremote?.roles || [];
+    const issuerRealm = claims.iss?.split('/realms/')[1];
+    if (issuerRealm !== realm || claims.azp !== assetServiceClientId
+        || !assetServiceRoles.every(role => roles.includes(role))
+        || roles.some(role => !assetServiceRoles.includes(role)))
+      throw new ApiError(503, 'asset_service_scope_invalid', 'Realm Asset token scope was not verified.');
+    this.assetTokens.set(realm, { token: payload.access_token,
+      expiresAt: Date.now() + Number(payload.expires_in || 60) * 1000 });
+    return { token: payload.access_token, apiRealm: realm };
+  }
+  async ensureRestrictedReader(realm, subject) {
+    if (!realmPattern.test(realm) || !/^[0-9a-f-]{36}$/i.test(subject))
+      throw new ApiError(400, 'invalid_identity', 'A realm and verified user are required.');
+    const token = await this.token();
+    const prefix = `/${encodeURIComponent(realm)}`;
+    const user = await this.kc(`${prefix}/users/${encodeURIComponent(subject)}`, token);
+    if (user?.id !== subject || !user.enabled)
+      throw new ApiError(409, 'identity_conflict', 'The member identity cannot be verified.');
+    const clients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(clients) || clients.length !== 1 || !clients[0].id)
+      throw new ApiError(503, 'openremote_client_missing', 'OpenRemote roles are unavailable.');
+    const realmPath = `${prefix}/users/${subject}/role-mappings/realm`;
+    const realmRoles = await this.kc(`${realmPath}/composite`, token);
+    const clientPath = `${prefix}/users/${subject}/role-mappings/clients/${clients[0].id}`;
+    const clientRoles = await this.kc(`${clientPath}/composite`, token);
+    if (!Array.isArray(realmRoles) || !Array.isArray(clientRoles)
+        || clientRoles.some(role => role.name !== 'read:assets')
+        || realmRoles.some(role => ['admin', 'superuser'].includes(role.name)))
+      throw new ApiError(409, 'human_roles_conflict', 'The member has direct OpenRemote write or admin roles.');
+    if (!realmRoles.some(role => role.name === 'restricted_user')) {
+      const restricted = await this.kc(`${prefix}/roles/restricted_user`, token);
+      await this.kc(realmPath, token, 'POST', [restricted]);
+    }
+    if (!clientRoles.some(role => role.name === 'read:assets')) {
+      const read = await this.kc(`${prefix}/clients/${clients[0].id}/roles/read%3Aassets`, token);
+      await this.kc(clientPath, token, 'POST', [read]);
+    }
+    const actualRealm = await this.kc(`${realmPath}/composite`, token);
+    const actualClient = await this.kc(`${clientPath}/composite`, token);
+    if (!actualRealm.some(role => role.name === 'restricted_user')
+        || !actualClient.some(role => role.name === 'read:assets')
+        || actualClient.some(role => role.name !== 'read:assets'))
+      throw new ApiError(503, 'human_roles_not_verified', 'Restricted OpenRemote read access was not verified.');
+    return { realm, subject, verified: true };
+  }
+  async migrateHumanReader(realm, subject, apply = false) {
+    if (!realmPattern.test(realm) || !/^[0-9a-f-]{36}$/i.test(subject))
+      throw new ApiError(400, 'invalid_identity', 'A realm and verified user are required.');
+    const token = await this.token();
+    const prefix = `/${encodeURIComponent(realm)}`;
+    const user = await this.kc(`${prefix}/users/${subject}`, token);
+    if (user?.id !== subject || !user.enabled || user.serviceAccountClientId)
+      throw new ApiError(409, 'identity_conflict', 'Expected an active human identity.');
+    const clients = await this.kc(`${prefix}/clients?clientId=openremote`, token);
+    if (!Array.isArray(clients) || clients.length !== 1 || !clients[0].id)
+      throw new ApiError(503, 'openremote_client_missing', 'OpenRemote roles are unavailable.');
+    const path = `${prefix}/users/${subject}/role-mappings/clients/${clients[0].id}`;
+    const direct = await this.kc(path, token);
+    const composite = await this.kc(`${path}/composite`, token);
+    const realmComposite = await this.kc(`${prefix}/users/${subject}/role-mappings/realm/composite`, token);
+    const legacy = new Set(['read:admin', 'read:users', 'write:admin', 'write:assets',
+      'write:attributes', 'write:user']);
+    if (!Array.isArray(direct) || !Array.isArray(composite) || !Array.isArray(realmComposite)
+        || direct.some(role => role.name !== 'read:assets' && !legacy.has(role.name))
+        || realmComposite.some(role => ['admin', 'superuser'].includes(role.name)))
+      throw new ApiError(409, 'human_roles_conflict', 'Human roles require manual review before migration.');
+    const removal = direct.filter(role => legacy.has(role.name));
+    if (!apply) return { realm, subject, remove: removal.map(role => role.name),
+      addRead: !composite.some(role => role.name === 'read:assets'),
+      addRestricted: !realmComposite.some(role => role.name === 'restricted_user') };
+    if (removal.length) await this.kc(path, token, 'DELETE', removal);
+    await this.ensureRestrictedReader(realm, subject);
+    const actual = await this.kc(`${path}/composite`, token);
+    if (!Array.isArray(actual) || actual.some(role => role.name !== 'read:assets'))
+      throw new ApiError(503, 'human_roles_not_verified', 'Human OpenRemote roles are not read-only.');
+    // Existing Manager and portal sessions must not keep the old write token.
+    await this.kc(`${prefix}/users/${subject}/logout`, token, 'POST');
+    return { realm, subject, verified: true, removed: removal.map(role => role.name) };
   }
   async setOrganisationAccess(realm, enabled) {
     if (!realmPattern.test(realm) || ['master', this.config.realm].includes(realm))
@@ -244,8 +417,9 @@ export class OpenRemoteRealmSetup {
 }
 
 export class OrganisationOnboarding {
-  constructor(pool, setup, platformRealm = 'gridex') {
+  constructor(pool, setup, platformRealm = 'gridex', scopedAssetsEnabled = false) {
     this.pool = pool; this.setup = setup; this.platformRealm = platformRealm;
+    this.scopedAssetsEnabled = scopedAssetsEnabled;
   }
   requirePlatform(principal, recent = true) {
     if (principal.realm !== this.platformRealm || !principal.emailVerified
@@ -290,6 +464,7 @@ export class OrganisationOnboarding {
       await this.setup.createRealm(input);
       await this.move(id, state, 'realm_ready'); state = 'realm_ready';
       await this.setup.configurePortalClient(input.realm);
+      if (this.scopedAssetsEnabled) await this.setup.provisionAssetServiceClient(input.realm);
       const user = await this.setup.prepareUser(input.realm, input.email);
       await this.move(id, state, 'identity_ready', { subject: user.subject }); state = 'identity_ready';
       await this.setup.sendActions(input.realm, user.subject);
@@ -412,7 +587,8 @@ export class OrganisationOnboarding {
       await this.audit(db, principal.subject, id, 'organisation_invitation.activation_started', 'pending');
     });
     try {
-      await this.setup.grantAdministrator(invite.realm, principal.subject);
+      if (this.scopedAssetsEnabled) await this.setup.ensureRestrictedReader(invite.realm, principal.subject);
+      else await this.setup.grantAdministrator(invite.realm, principal.subject);
       await this.setup.verifyRealm(invite.realm);
       await this.transaction(async db => {
         const result = await db.query(`UPDATE organisation_onboarding_invitations

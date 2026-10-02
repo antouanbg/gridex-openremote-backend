@@ -1,0 +1,6 @@
+# Activate only after the realm-local Asset service and human-role migration
+# checks in docs/ACCESS_RIGHTS_MATRIX_DRAFT.md have passed.
+services:
+  gridex-api:
+    environment:
+      GRIDEX_MEMBER_ACCESS_ENABLED: ${GRIDEX_MEMBER_ACCESS_ENABLED:-false}

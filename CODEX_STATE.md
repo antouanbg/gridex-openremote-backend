@@ -1,5 +1,18 @@
 # CODEX_STATE.md
 
+## 2026-10-02 — scoped service decision approved; implementation gated
+
+Owner approved the per-organisation backend-only `read:assets` +
+`write:assets` service client and read-only direct OpenRemote Manager for
+all human accounts. This is the explicit decision on
+`docs/ACCESS_RIGHTS_MATRIX_DRAFT.md`; its `write:assets` residual risk was
+disclosed. Implement behind a default-off gate, verify portal provisioning
+and all member roles first, then narrow human roles and deploy. Do not
+remove existing writes before the new API path is proven.
+
+Български: одобрена е матрицата, не е автоматично внедрена. Първо тестове,
+после стесняване на човешките права и live включване.
+
 ## 2026-10-02 — role mapping draft only; no live permission mutation
 
 The current GrideX/OpenRemote human-role audit and proposed mapping are in

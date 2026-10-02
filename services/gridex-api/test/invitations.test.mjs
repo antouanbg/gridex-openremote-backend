@@ -85,6 +85,7 @@ test('member roster verifies exact user and Site links once per realm',async()=>
     if(sql.includes('SELECT m.role,m.all_sites'))return {rows:[{role:'administrator',all_sites:true,realm:'customer'}]};
     if(sql.includes('SELECT m.subject,m.role'))return {rows:[{subject:'member',role:'viewer',siteIds:[site],services:[]}]};
     if(sql.includes('SELECT id,name,openremote_site_asset_id'))return {rows:[{id:site,name:'Site',assetId:'asset'}]};
+    if(sql.includes('SELECT s.id AS "siteId"'))return {rows:[{siteId:site,assetId:'asset'}]};
     return {rows:[]};
   },release(){}};
   let reads=0;
@@ -118,15 +119,18 @@ test('member Site access is verified in OpenRemote before the local grant is com
     if(sql.includes('SELECT role FROM organisation_memberships'))return {rows:[{role:'viewer'}]};
     if(sql.includes('SELECT id FROM sites'))return {rows:[{id:site}]};
     if(sql.includes('SELECT id,openremote_site_asset_id'))return {rows:[{id:site,assetId:'site-asset'}]};
+    if(sql.includes('SELECT s.id AS "siteId"'))return {rows:[
+      {siteId:site,assetId:'site-asset'}, {siteId:site,assetId:'rock-asset'},
+      {siteId:site,assetId:'esp-asset'}]};
     return {rows:[]};
   },release(){}};
-  let linked=false;
-  const remote={userAssetLinks:async()=>linked?[{id:{assetId:'site-asset'}}]:[],
-    linkUserAsset:async()=>{linked=true;},deleteUserAssetLink:async()=>{linked=false;}};
-  const service=new InvitationService({connect:async()=>db},{},remote);
+  const linked=new Set();
+  const remote={userAssetLinks:async()=>[...linked].map(assetId=>({id:{assetId}})),
+    linkUserAsset:async id=>{linked.add(id);},deleteUserAssetLink:async id=>{linked.delete(id);}};
+  const service=new InvitationService({connect:async()=>db},{assetLinkCredentials:async()=>({token:'service-token',apiRealm:'customer'})},remote);
   const result=await service.updateMember({subject:'admin',realm:'customer',accessToken:'token'},'org','member',
     {role:'operator',siteIds:[site]});
   assert.deepEqual(result,{subject:'member',role:'operator',siteIds:[site]});
-  assert.equal(linked,true);
+  assert.deepEqual([...linked].sort(),['esp-asset','rock-asset','site-asset']);
   assert.equal(calls.some(item=>item.sql.includes('UPDATE organisation_memberships')),true);
 });

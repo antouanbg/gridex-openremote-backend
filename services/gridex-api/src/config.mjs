@@ -108,6 +108,9 @@ export function validateProductionConfig(config) {
   if (!config.openRemoteServiceClientSecret) {
     throw new Error("OPENREMOTE_SERVICE_CLIENT_SECRET is required for managed Asset reads and writes");
   }
+  if (config.memberAccessEnabled && (!config.realmSetupEnabled || !config.realmSetupClientSecret)) {
+    throw new Error('Member access requires the dedicated realm setup credential for scoped Asset services');
+  }
 }
 
 export function assertAllowedOrigin(config, origin) {

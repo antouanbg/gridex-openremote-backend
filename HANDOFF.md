@@ -1,6 +1,53 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-02 09:03 UTC — reversible Asset-service probe rejected by schema
+
+Environment: live OpenRemote with a temporary, unlinked test Asset; API
+container remained healthy and unchanged. The first probe returned an
+OpenRemote validation error because `ThingAsset` requires `notes` and
+`location`. No Asset was created (the response had no Asset ID), no account,
+existing Asset, link or human role was changed. The probe source now includes
+the required attributes and will be rebuilt and rerun. Keep the member gate
+off until write, link and cross-realm checks succeed. This is a test-payload
+defect, not evidence that the scoped service permission is denied.
+
+Български: първият обратим тест не създаде Asset, защото липсваха две
+задължителни полета на `ThingAsset`; поправени са в тестовия код. Живият API
+и човешките права не са променени. Следва повторение на теста.
+
+## 2026-10-02 — owner approved scoped realm service and read-only human Manager
+
+Follow-up (2026-10-02): both active realm-local service clients were provisioned
+and independently tested with disposable Asset create/read, link/unlink and
+cross-realm denial. All probe Assets were deleted; one first-attempt orphan was
+found and removed with the exact recovery script. The dry-run human migration
+found historical links outside the Site projection: six ROCK telemetry child
+Assets in `gridex` and one personal ConsoleAsset in `novacom`. Preserve them;
+do not silently remove account data. The migration tool now reports these as
+administrator-only reconciliation items, fails closed for a non-admin, and
+does not change roles without `--apply --realm=… --backup-confirmed`. The
+live API and human roles are **not yet migrated**. Tests: 132 passed, one
+skipped; frontend Pages build/typecheck and BG/EN Docusaurus build/typecheck
+pass. The frontend and docs source have the approved permission explanation
+and reciprocal help anchors; public deployment is a separate gate.
+
+Owner approved the documented `docs/ACCESS_RIGHTS_MATRIX_DRAFT.md` target:
+one backend-only Asset service client per organisation realm with OpenRemote
+`read:assets` + `write:assets`, acknowledging that `write:assets` also permits
+general Asset writes inside that realm. All human accounts, including
+organisation administrators, are to be read-only in direct OpenRemote
+Manager; Site/device provisioning and member–Site links move behind verified
+GrideX API actions. Do not grant the service role to human users or extend
+the master setup client. Keep this rollout gated until current and future
+realms, direct Manager denial, member roles, link verification, BG/EN docs
+and live portal acceptance pass. Never remove the existing administrator's
+write roles before the replacement portal path is proven.
+
+Български: одобрен е отделен служебен клиент за всеки realm с описания
+по-широк вътрешен `write:assets`; човешкият Manager става само за четене.
+Внедряване на живо — само след реалните проверки и безопасна миграция.
+
 ## 2026-10-02 — DRAFT GrideX/OpenRemote rights matrix, owner decision pending
 
 See `docs/ACCESS_RIGHTS_MATRIX_DRAFT.md` for the read-only live role audit,
