@@ -4,6 +4,10 @@ GrideX is an energy-management platform for sites, equipment and measured data. 
 
 ## Architecture
 
+The [navigation and permissions contract](docs/NAVIGATION_CATALOG.md) describes
+the database-backed menu catalogue, identity-scoped API and migration 023 rollout.
+Menu visibility never replaces backend authorization or OpenRemote inventory.
+
 ```text
 GrideX portal → HTTPS proxy → GrideX API → OpenRemote Manager / Keycloak
                                   │                 │

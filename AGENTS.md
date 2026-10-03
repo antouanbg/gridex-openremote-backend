@@ -1,5 +1,62 @@
 # GrideX OpenRemote backend — Working rules
 
+## Approved dynamic navigation, access feedback and i18n — 2026-10-03
+
+This owner-approved contract supersedes older navigation names and the matrix
+implementation hold ONLY within the approved scope. Follow
+`docs/NAVIGATION_CONTRACT_2026_10_03.md` in the frontend repository.
+
+- OpenRemote remains authoritative for identity, inventory and Site access.
+  Reuse PostgreSQL service catalogue, organisation/member grants and requests.
+  Add versioned navigation metadata and requirement references, not a second
+  inventory or independently maintained copy of Site permissions.
+- Backend computes navigation for the verified realm + subject + organisation.
+  Every API action independently enforces permissions. Visibility is not authority.
+  Discard cached access/menu data on logout or identity/organisation change.
+- Distinguish missing permission (denied), pending request, coming soon,
+  missing infrastructure/inventory, and failed/unavailable verification.
+  Explain each to the user in the selected language. Never silently fail,
+  show a blank screen, substitute demo data, or label a database/API outage
+  as a confirmed missing grant. Only offer request/retry actions already approved.
+  No automatic email for every denial is authorised by this instruction.
+- UI labels/help references use stable translation keys; API errors expose
+  stable safe reason codes, not raw SQL, internals or another tenant's data.
+  BG and EN are mandatory in the same change. Use separate locale resources,
+  BCP 47 locale tags and Intl for dates/numbers/units. Add languages through
+  locale registration and matching resources, not binary BG/EN conditionals.
+  Test key parity, fallback, interpolation, formats and both locales.
+  Docusaurus retains its native i18n. Browser machine translation is not a
+  substitute. No new localization SaaS or automatic external translation.
+- Required hierarchy: Overview; Sites; Energy assets (Battery, Inverter,
+  Charging station, Consumer/load); Infrastructure (ONE page); Services
+  (Day-ahead, Graphs, Analysis, Meteorology, Forecasting); Mode (Logic, Schedule,
+  Alarm); Settings (Users, Plan/subscription, Market [Tariff/settlement,
+  Balancing], Profile [Documentation]); About us.
+- Users is ONE administrative page. Personal service requests/approvals are
+  in Services. Admins can grant without a request. Organisation grant alone
+  never grants all members. Super admin has no self-approval requirement.
+  Preserve approved five-column member register and mobile detail expansion.
+  Do not invent unresolved tariff fields, balancing/alarm write permissions.
+- Migrations, seeds, tests and BG/EN documentation are versioned in Git.
+  Record source-ready, published, migrated, deployed and verified separately.
+
+Български: това е одобреното правило, не доказателство за внедряване.
+Менюто се изчислява от backend за проверения потребител и организация;
+OpenRemote остава източник за самоличност, инвентар и достъп до Обекти.
+PostgreSQL пази каталога/разрешенията за услуги и версионираната структура
+на менюто. Не създавай втори регистър на инвентара или дублирани права.
+При липсващо право уведомявай в интерфейса; при непроверим достъп съобщавай
+„Не успяхме да проверим достъпа“, не „Нямате права“. Отказ, чакаща заявка,
+предстояща услуга и липсваща инфраструктура са различни състояния.
+Не добавяй автоматични имейли за всеки отказ. Всички нови текстове са
+в общ i18n каталог с BG/EN ключове; нов език се добавя с ресурси и регистрация.
+Датите, числата и единиците използват Intl; Docusaurus пази собствената си i18n.
+Разделите са точно по одобрения договор: Преглед; Обекти; Енергийни активи;
+Инфраструктура; Услуги; Режим; Настройки; За нас. „Настройки → Потребители“
+управлява организациите/хората/поканите/Обектите/услугите. Личните заявки са
+в „Услуги“. Всяко отклонение по логика/екрани изисква ново одобрение.
+
+
 ## Ask before resolving contradictions / Питай преди разрешаване на противоречия — 2026-10-02
 
 If an approved template, another approved screen, workflow, permission, API

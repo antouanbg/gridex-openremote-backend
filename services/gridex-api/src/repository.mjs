@@ -7,6 +7,8 @@ import { ApiError } from "./errors.mjs";
 const { Pool } = pg;
 const migrationNames = ['001_gridex_core.sql', '002_olimex_edge_hardware.sql', '003_membership_site_scope.sql', '004_invitations.sql', '009_gateway_openremote_bindings.sql', '012_organisation_onboarding.sql', '013_organisation_access.sql', '014_manager_launch.sql', '015_inventory_provisioning.sql', '016_invitation_login_activity.sql', '017_service_entitlements.sql', '018_market_zone_grants.sql', '019_visualisations.sql', '020_service_requests.sql', '021_member_access.sql', '022_service_admin_workflow.sql'];
 
+migrationNames.push('023_navigation_catalog.sql');
+
 const siteRow = (row) => ({
   id: row.id,
   organisationId: row.organisation_id,
@@ -53,6 +55,14 @@ export class PostgresRepository {
   }
 
   async close() { await this.pool.end(); }
+
+  async navigationCatalog() {
+    const {rows} = await this.pool.query(`SELECT id,parent_id AS "parentId",path,
+      label_key AS "labelKey",sort_order AS "sortOrder",requirement,
+      service_code AS "serviceCode",revision FROM navigation_catalog ORDER BY sort_order,id`);
+    if (!rows.length) throw new ApiError(503,'navigation_unavailable','Navigation catalogue is unavailable.');
+    return rows;
+  }
 
   async isAllowedRealm(realm) {
     const { rows } = await this.pool.query(`SELECT 1 FROM organisations
