@@ -1,5 +1,22 @@
 # CODEX_STATE.md
 
+## Current release — 2026-10-03 / Текущо внедряване
+
+Supersedes earlier “not deployed” notes below. Backend PR #98 merged as
+160191f494cb938b9ee04a6d4625ac3f2679bdda. API-only rollout completed using
+scripts/deploy-personal-services.mjs, with private database/runtime backup and
+rollback image. API healthy; no new migration, environment drift or other
+container changes. Personal cancel/stop endpoints are deployed.
+Read-only live probe: gridex 1 member, novacom 2; catalogue 5 each, OpenRemote
+links verified and wrong-realm access denied. Navigation without auth returns 401.
+148 API tests pass, 1 skipped. No real grants, invitations or email tests executed.
+An unauthenticated live POST stop probe was not executed by the safety guard;
+negative mutation coverage remains automated, not a claimed live acceptance.
+Three-account interactive acceptance remains pending. Frontend implementation
+merged in energy-os PR #105; its separate Pages publication must be verified.
+БГ: API е внедрен с резервно копие. Личното спиране не променя организационни
+права, чужди разрешения или Обекти. Няма тестови промени по реалните акаунти.
+
 ## 2026-10-03 — confirmed personal cancel/stop
 
 Owner confirmed: cancel only own pending request; stop only own active grant.
