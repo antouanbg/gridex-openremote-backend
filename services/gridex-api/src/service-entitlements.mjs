@@ -194,6 +194,38 @@ export class ServiceEntitlements {
     finally { db.release(); }
   }
 
+  async stopOwn(principal, id, code) {
+    if (!principal.emailVerified) throw new ApiError(403, 'permission_denied', 'Verified member required.');
+    if (!uuid.test(id) || !['day_ahead','visualisations'].includes(code))
+      throw new ApiError(400, 'service_invalid', 'Valid organisation and service required.');
+    // Platform access is not a personal grant and cannot be self-revoked here.
+    if (principal.permissions?.includes('platform:manage'))
+      throw new ApiError(403, 'permission_denied', 'Platform access is not a personal service grant.');
+    const db = await this.pool.connect();
+    try {
+      await db.query('BEGIN');
+      const member = await db.query(`SELECT m.subject FROM organisation_memberships m
+        JOIN organisations o ON o.id=m.organisation_id
+        WHERE o.id=$1 AND m.subject=$2 AND o.openremote_realm=$3 AND o.status='active'
+        FOR SHARE OF o,m`, [id, principal.subject, principal.realm]);
+      if (!member.rows.length) throw new ApiError(403, 'permission_denied', 'Active membership required.');
+      const changed = await db.query(`DELETE FROM member_services
+        WHERE organisation_id=$1 AND service_code=$2 AND subject=$3 RETURNING subject`,
+      [id, code, principal.subject]);
+      if (changed.rows.length) {
+        await db.query(`INSERT INTO audit_events(subject,action,resource_type,resource_id,result,request_id)
+          VALUES($1,'service.member.self_stopped','service',$2,'success',$3)`,
+        [principal.subject, id+':'+code+':'+principal.subject, randomUUID()]);
+        if (this.notifications) await this.notifications.enqueue(db, {
+          eventKey:randomUUID(), organisationId:id, serviceCode:code, subject:principal.subject,
+          realm:principal.realm, kind:'member_revoked' });
+      }
+      await db.query('COMMIT');
+      return { code, enabled:false, changed:changed.rows.length>0 };
+    } catch (error) { await db.query('ROLLBACK'); throw error; }
+    finally { db.release(); }
+  }
+
   async mine(principal) {
     if (!principal.emailVerified) return [];
     const { rows } = await this.pool.query(`SELECT g.organisation_id AS "organisationId",g.service_code AS code FROM member_services g

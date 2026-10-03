@@ -220,6 +220,31 @@ export class ServiceRequests {
     finally { db.release(); }
   }
 
+  async cancelMember(principal, requestId) {
+    if (!principal.emailVerified) throw new ApiError(403, 'permission_denied', 'Verified member required.');
+    if (!uuid.test(requestId)) throw new ApiError(400, 'service_request_invalid', 'Invalid request.');
+    const db = await this.pool.connect();
+    try {
+      await db.query('BEGIN');
+      const { rows } = await db.query(`SELECT r.* FROM service_requests r
+        JOIN organisations o ON o.id=r.organisation_id AND o.openremote_realm=r.realm AND o.status='active'
+        JOIN organisation_memberships m ON m.organisation_id=o.id AND m.subject=r.subject
+        WHERE r.id=$1 AND r.subject=$2 AND r.realm=$3 AND r.request_scope='member'
+        AND r.state='open' FOR UPDATE OF r`, [requestId, principal.subject, principal.realm]);
+      const request = rows[0];
+      if (!request) throw new ApiError(409, 'service_request_unavailable', 'Only your pending member request can be cancelled.');
+      const active = await db.query('SELECT 1 FROM member_services WHERE organisation_id=$1 AND subject=$2 AND service_code=$3',
+        [request.organisation_id, principal.subject, request.service_code]);
+      if (active.rows.length) throw new ApiError(409, 'service_already_enabled', 'Stop an active service separately.');
+      await db.query("UPDATE service_requests SET state='cancelled',updated_at=now() WHERE id=$1", [requestId]);
+      await db.query(`INSERT INTO service_request_events(id,request_id,actor_subject,action)
+        VALUES($1,$2,$3,'cancelled')`, [randomUUID(), requestId, principal.subject]);
+      await db.query('COMMIT');
+      return { id:requestId, stage:'cancelled' };
+    } catch (error) { await db.query('ROLLBACK'); throw error; }
+    finally { db.release(); }
+  }
+
   async cancelOrganisation(principal, organisationId, requestId) {
     await this.entitlements.organisation(principal, organisationId);
     if (!uuid.test(requestId)) throw new ApiError(400, 'service_request_invalid', 'Invalid request.');
