@@ -1,4 +1,5 @@
 # Handoff — GrideX OpenRemote backend
+Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
 ## 2026-10-03 implementation checkpoint / проверка на реализацията
 
@@ -21,7 +22,14 @@ NOT claimed fully migrated. Do not call this a completed production rollout.
 са проверени. Пробата на миграцията е върната назад. Пълният браузърен набор,
 живото внедряване и приемането остават отделни стъпки. Не разширявай права
 и не представяй неприключените екрани/преводи като готови.
-Repository / GitHub: `antouanbg/gridex-openremote-backend`
+
+Follow-up regression evidence: initial full browser run 57/79, next 74/79.
+Failures exposed a real navigation-shell regression when catalogue verification
+failed and stale test expectations for renamed routes/collapsed member details.
+Fixed safe shell links and anonymous-only demo navigation; last nine targeted
+tests pass, including all five remaining failures. Full rerun is required.
+БГ: отстранено е скриване на основните връзки при непроверим каталог и показване
+на демо навигация след неуспешна проверка на вход. Последните 9 теста са успешни.
 
 ## 2026-10-03 — approved dynamic navigation / динамична навигация
 
