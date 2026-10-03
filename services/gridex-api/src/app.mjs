@@ -285,6 +285,17 @@ export function createApp({ config, authenticate, repository, openRemote, invita
         if (req.method === 'GET') return await json(res, 200, { requests: await serviceRequests.list(principal, 'mine') }, context);
         return await json(res, 201, await serviceRequests.create(principal, await readJson(req, 1024)), context);
       }
+      const cancelOwnRequest = url.pathname.match(/^\/api\/v1\/me\/service-requests\/([0-9a-f-]{36})\/cancel$/i);
+      if (cancelOwnRequest && req.method === 'POST') {
+        if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
+        return await json(res, 200, await serviceRequests.cancelMember(principal, cancelOwnRequest[1]), context);
+      }
+      const stopOwnService = url.pathname.match(/^\/api\/v1\/me\/services\/([a-z][a-z0-9_]{1,63})\/stop$/);
+      if (stopOwnService && req.method === 'POST') {
+        if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Services are unavailable.');
+        const body = await readJson(req, 512);
+        return await json(res, 200, await serviceEntitlements.stopOwn(principal, body.organisationId, stopOwnService[1]), context);
+      }
       if (url.pathname === '/api/v1/platform/service-requests' && req.method === 'GET') {
         if (!serviceRequests) throw new ApiError(503, 'services_unavailable', 'Service requests are unavailable.');
         return await json(res, 200, { requests: await serviceRequests.list(principal, 'platform') }, context);

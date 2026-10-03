@@ -1,6 +1,23 @@
 # Handoff — GrideX OpenRemote backend
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
 
+## 2026-10-03 — three Users screens approved / три одобрени екрана
+
+Owner approved Settings → Users three-role mockup and requested documentation.
+Canonical public reference: gridex-docs /approved-users-screens/ (BG) and
+/en/approved-users-screens/ (EN); static/approved/users-three-roles.html retains
+the layout with sanitized example identities. Six screenshots cover three
+roles at 1024/390px. Backend action mapping: docs/APPROVED_USERS_LAYOUT_API.md
+in backend repository. Latest suite: 148 pass, 1 skipped; no new live grants/mail.
+Owner confirmed personal-only cancel/stop and new admin approval to re-enable.
+Source includes two protected endpoints, five backend regression tests and BG/EN
+controls with confirmation. Typecheck, frontend build and four targeted browser
+tests passed. New portal layout and endpoints remain undeployed.
+БГ: трите екрана са одобрени; публичните копия са с примерни самоличности.
+Пазят се desktop/mobile и съответствието с API. Макетът не доказва живо
+внедряване. Отмени/Спри записва само личния ефект; ново включване изисква
+админско одобрение. Има код и тестове, без промяна на реални права.
+
 ## 2026-10-03 — approved migration 023 applied / миграция 023 приложена
 
 Verification update: Docusaurus BG/EN deployed with scripts/deploy-local.sh;
