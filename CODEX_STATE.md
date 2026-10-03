@@ -1,5 +1,26 @@
 # CODEX_STATE.md
 
+## 2026-10-03 — approved migration 023 applied / миграция 023 приложена
+
+Owner explicitly approved migration 023 and restart of gridex-api in this chat.
+Backup created in the private runtime backup directory; no credentials published.
+Deployment returned NAVIGATION_API_HEALTHY. Read-only verification: 27 rows,
+revision 1; API healthy, anonymous navigation request returns 401. API started
+2026-10-03T18:54:45Z. Existing environment and other containers preserved.
+Backend PR #96 merged to main (4649ce1). Frontend PR #105 is not deployed yet;
+do not claim the new menu is live merely because its API is ready.
+The full BG/EN menu-role-account-data matrix and OpenRemote responsibility
+matrix are in docs navigation-and-permissions, with approvals/revocation,
+infrastructure prerequisites, five-column member design and unresolved items.
+Previous pending-approval notes below are historical and superseded here.
+
+БГ: изрично одобрената миграция 023 е приложена след частен backup.
+Потвърдени са 27 записа, revision 1, здрав API и отказ 401 без вход.
+Рестартиран е само gridex-api; другите контейнери и настройки са запазени.
+Backend #96 е в main. Frontend #105 още не е внедрен. Пълната матрица BG/EN
+и отговорностите на OpenRemote са описани; бъдещи услуги/драйвери,
+неуточнени права и целият стар i18n не се обявяват за готови.
+
 ## 2026-10-03 — owner-approved dynamic matrix and localization
 
 The owner approved database-backed navigation metadata, reusing existing
