@@ -1,5 +1,20 @@
 # CODEX_STATE.md
 
+## 2026-10-03 — owner-approved dynamic matrix and localization
+
+The owner approved database-backed navigation metadata, reusing existing
+service grants and OpenRemote authority. Supersedes the older blanket hold.
+AGENTS now records required navigation, access-state feedback and BG/EN i18n.
+Implementation is IN PROGRESS: no navigation migration applied or live
+release verified. Do not report the old static menus as dynamic.
+Next: versioned schema/seed + authenticated effective-navigation endpoint,
+frontend consumption, denied/unavailable feedback, translation-key parity
+and realm/role/direct-URL/cache-invalidation tests before deployment.
+
+Одобрено е динамично меню от базата с преизползване на правата и OpenRemote.
+Правилата са в AGENTS. Реализацията продължава; миграцията и живото внедряване
+НЕ са потвърдени. Старите бележки за общо изчакване са исторически.
+
 ## 2026-10-02 — continuous layout publication checkpoint
 
 Published and merged: frontend PR #102 (main 07a792147820d3e26db775493bc89bffdde4e0f4),

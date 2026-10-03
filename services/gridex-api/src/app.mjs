@@ -15,6 +15,7 @@ import { createLoginDiscoveryLimit, normaliseLoginEmail } from './login-discover
 import {idempotencyKey,provisionGateway,provisionSite} from './inventory-provisioning.mjs';
 import { MARKET_ZONES } from './market-prices.mjs';
 import { grafanaTimeRange } from './grafana-range.mjs';
+import { effectiveNavigation } from './navigation.mjs';
 
 const CONFIGURATION_SECTIONS = new Set(["battery-asset", "tariff", "forecast", "grid", "evse", "notifications", "trader-schedule", "balancing"]);
 const STRATEGY_CATALOG = STRATEGY_CODES.map((code) => ({
@@ -241,6 +242,16 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       res.setHeader('Cache-Control', 'no-store');
       const memberships = await repository.getMemberships(identity.subject, identity.realm);
       let principal = withMembershipRoles(identity, memberships.map((m) => m.role), config.platformAdminSubjects, config.realm);
+
+      if (url.pathname === '/api/v1/me/navigation' && req.method === 'GET') {
+        if (!serviceEntitlements || !repository.navigationCatalog)
+          throw new ApiError(503,'navigation_unavailable','Navigation cannot be verified.');
+        const [rows, grants] = await Promise.all([
+          repository.navigationCatalog(), serviceEntitlements.mine(principal),
+        ]);
+        return await json(res,200,{realm:principal.realm,subject:principal.subject,
+          items:effectiveNavigation(rows,principal,memberships,grants)},context);
+      }
 
       if (url.pathname === '/api/v1/me/manager-launch' && req.method === 'POST') {
         if (!managerLaunch) throw new ApiError(503, 'manager_unavailable', 'Manager access is not configured.');

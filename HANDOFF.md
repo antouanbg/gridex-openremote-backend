@@ -1,5 +1,49 @@
 # Handoff — GrideX OpenRemote backend
+
+## 2026-10-03 implementation checkpoint / проверка на реализацията
+
+Navigation migration 023 seeds 27 approved entries; authenticated
+GET /api/v1/me/navigation returns identity-bound presentation states, no-store.
+Existing resource authorization remains mandatory. Frontend consumes catalogue
+order/visibility; known route/component mapping remains in source. Asset presence
+still comes from authorised inventory requests, not new local inventory records.
+Keyed BG/EN navigation resources and the five-column member register are implemented.
+Database migration dry-run succeeded with ROLLBACK (27 rows); not yet applied.
+Backend suite: 142 pass, 1 skip before extra HTTP test; all four navigation
+unit/HTTP tests pass. Frontend TypeScript/build pass, eight invitation/member
+tests pass; demo checks pass at 360/390/430, new route tests at 390/1440 pass.
+Full 79-browser regression suite running at this checkpoint.
+Docusaurus BG/EN typecheck/build pass. Live migration/API/frontend acceptance
+still pending. Older inline translations and remaining view integration are
+NOT claimed fully migrated. Do not call this a completed production rollout.
+
+БГ: има работещ локален каталог/API и петколонна таблица; тестовете по-горе
+са проверени. Пробата на миграцията е върната назад. Пълният браузърен набор,
+живото внедряване и приемането остават отделни стъпки. Не разширявай права
+и не представяй неприключените екрани/преводи като готови.
 Repository / GitHub: `antouanbg/gridex-openremote-backend`
+
+## 2026-10-03 — approved dynamic navigation / динамична навигация
+
+Owner approved PostgreSQL navigation metadata with existing service grants;
+OpenRemote remains inventory/identity/Site authority. AGENTS contains the
+binding hierarchy, user feedback for denied versus unverifiable access,
+BG/EN locale resources and future-language extension rule. No blanket email
+notification on denial, new rights or fallback demo data is authorised.
+Status: LOCAL / implementation ongoing, not migrated or deployed.
+Frontend navigation labels now use keyed BG/EN resources; legacy inline
+translations still need migration. Full effective-navigation API, database
+seed/migration, access feedback wiring and end-to-end role/tenant tests remain.
+Test incident: localhost preview initially blocked by sandbox (EPERM), not a
+website outage. JSON imports in Node tests required type:json attributes;
+source corrected. Re-run localization suite and TypeScript before publication.
+
+БГ: одобрено е динамично меню от PostgreSQL с текущите разрешения за услуги;
+OpenRemote остава единствен източник за инвентар и Обекти. Липсващо право,
+чакаща заявка и непроверим достъп се съобщават различно. AGENTS е актуализиран.
+Само локална подготовка: няма приложена миграция/жив release. Менютата вече
+ползват BG/EN ключове; останалите inline преводи, API и цялостните тестове
+предстоят. Не представяй подготовката като завършено внедряване.
 
 ## 2026-10-02 — continuous layout publication checkpoint
 
