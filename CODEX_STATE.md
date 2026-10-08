@@ -1,5 +1,45 @@
 # CODEX_STATE.md
 
+## 2026-10-08 — audit API/proxy rollout completed, external acceptance pending
+
+Owner explicitly approved restart. API-only rollout used the existing backup,
+environment-drift guard and rollback procedure. API healthy, image
+7c57c286ae203e068700a04405ede8c56f2ce15eb07e659314e96b24767cc94b.
+app.mjs and manager-launch.mjs runtime hashes match tested local source.
+Proxy changed exactly one read-only route line to match the Git template;
+nginx syntax passed and graceful reload completed. All other container uptimes
+unchanged; no migration, account/grant/inventory/mail writes. Private backups:
+personal-services-3Fl1UK and audit-proxy-DYYDKj.
+Read-only probe: gridex 1 member, novacom 2; catalogue 5 each, OpenRemote links
+checked, wrong realm denied, organisation viewer admin access denied.
+Local master issuer/admin console/fresh login pass. Forced local public ingress:
+gridex discovery 200, master/admin/health/metrics 404; anonymous Manager and
+new alarm/userRealmRoles paths 401. Normal-DNS public probes fail from this LAN;
+local probes do not establish external reachability or authenticated acceptance.
+Frontend/docs audit changes are still local, not published/deployed in this
+restart operation. Backend source is uncommitted; do not claim a main release.
+Next: publish reviewed code and frontend/docs; external three-role retest of
+Site graphs and Novacom Manager details. Diagnostic grant workflow not deployed.
+БГ: рестартиран е само API, proxy е презареден. Локалните проверки са успешни;
+останалите контейнери не са рестартирани. Няма промени по права/данни. Frontend
+и документацията още не са публикувани; външното приемане остава непроверено.
+
+## 2026-10-08 — Claude audit follow-up (source only)
+
+All 13 private evidence screenshots reviewed. Owner confirmed platform charts
+only for already-authorised Sites, never automatic access to other organisations.
+Chart entitlement fix preserves OpenRemote Site/measurement gates. Platform
+roster is read-only; organisation editor unchanged. Country rows and viewer
+mobile spacing corrected. Manager route fixes await approved API/proxy rollout
+and external browser acceptance. No real rights, inventory or mail changes.
+N1 Site summaries and D6 help/telemetry presentation now have source corrections;
+deployment and external acceptance remain open. Duplicate metric rows merge
+only identical sources, never different sensors. Browser console assets remain
+untouched and are explained in BG/EN help.
+Owner confirmed customer diagnostic access: selected Sites, read-only, expiry,
+immediate organisation-admin revocation and audit. Workflow/screens not deployed.
+БГ: поправките са в кода, не са внедрени; не обявявайте целия одит за приключен.
+
 ## Current release — 2026-10-03 / Текущо внедряване
 
 Supersedes earlier “not deployed” notes below. Backend PR #98 merged as

@@ -1,5 +1,44 @@
 # Handoff — GrideX OpenRemote backend
 
+## 2026-10-08 — audit API/proxy rollout completed, external acceptance pending
+
+Owner explicitly approved restart. API-only rollout used the existing backup,
+environment-drift guard and rollback procedure. API healthy, image
+7c57c286ae203e068700a04405ede8c56f2ce15eb07e659314e96b24767cc94b.
+app.mjs and manager-launch.mjs runtime hashes match tested local source.
+Proxy changed exactly one read-only route line to match the Git template;
+nginx syntax passed and graceful reload completed. All other container uptimes
+unchanged; no migration, account/grant/inventory/mail writes. Private backups:
+personal-services-3Fl1UK and audit-proxy-DYYDKj.
+Read-only probe: gridex 1 member, novacom 2; catalogue 5 each, OpenRemote links
+checked, wrong realm denied, organisation viewer admin access denied.
+Local master issuer/admin console/fresh login pass. Forced local public ingress:
+gridex discovery 200, master/admin/health/metrics 404; anonymous Manager and
+new alarm/userRealmRoles paths 401. Normal-DNS public probes fail from this LAN;
+local probes do not establish external reachability or authenticated acceptance.
+Frontend/docs audit changes are still local, not published/deployed in this
+restart operation. Backend source is uncommitted; do not claim a main release.
+Next: publish reviewed code and frontend/docs; external three-role retest of
+Site graphs and Novacom Manager details. Diagnostic grant workflow not deployed.
+БГ: рестартиран е само API, proxy е презареден. Локалните проверки са успешни;
+останалите контейнери не са рестартирани. Няма промени по права/данни. Frontend
+и документацията още не са публикувани; външното приемане остава непроверено.
+
+## 2026-10-08 — external audit D1/D4 corrections, not deployed
+
+Owner confirmed platform chart access only to already-authorised Sites.
+D1 root cause: site-scoped principal lost platform permission before chart
+entitlement check. Retain verified platform permission solely for that check,
+after requireSite, with unchanged OpenRemote Site and measurement link gates.
+D4: proxy lacks exact nested realm-role and alarm read routes used by Manager.
+Add authenticated GET-only routes, check nested/query realms, and permit only
+encoded spaces in the bounded shared font path (not arbitrary encoded paths).
+No runtime rollout or inventory/grant changes. External empty-detail acceptance
+still required; route failures alone do not establish the entire rendering cause.
+БГ: D1 пази само одобрения достъп до вече разрешен Обект. D4 поправя тесни
+маршрути за четене без master/admin/запис. Кодът не е внедрен; нужна е външна
+повторна проверка. Няма промени по реални права, измервания или инвентар.
+
 ## 2026-10-08 — organisation name API rollout completed
 
 Owner explicitly approved restart of gridex-api only. Deployed API source matches
