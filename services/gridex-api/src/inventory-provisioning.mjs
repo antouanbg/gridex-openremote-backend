@@ -112,7 +112,8 @@ export async function provisionSite({repository,remote,principal,key,input}){
   try{
     let asset=await findAsset(remote,intent,token,org.realm);
     if(!asset)asset=await remote.createUserAsset({name:body.name,type:'ThingAsset',realm:org.realm,attributes:{
-      location:{type:'GEO_JSONPoint',value:null,meta:{}},notes:attr('GrideX Site'),gridexResourceKind:attr('site'),
+      location:{type:'GEO_JSONPoint',value:null,meta:{readRestricted:true,writeRestricted:false}},
+      notes:{...attr('GrideX Site'),meta:{readRestricted:true,writeRestricted:false}},gridexResourceKind:attr('site'),
       gridexResourceId:attr(intent.resource_id),gridexSiteId:attr(intent.resource_id),
     }},token,org.realm);
     await verifyAsset(remote,asset,{resourceId:intent.resource_id,realm:org.realm,kind:'site',siteId:intent.resource_id,parentId:null,subject:principal.subject,token});

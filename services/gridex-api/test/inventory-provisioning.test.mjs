@@ -25,6 +25,8 @@ test('customer administrator provisions an OpenRemote Site before local projecti
   assert.equal(site.openremoteRealm,env.principal.realm);
   assert.equal(env.assets[0].attributes.gridexResourceId.value,site.id);
   assert.equal(env.assets[0].attributes.notes.value,'GrideX Site');
+  for(const name of ['notes','location'])assert.deepEqual(env.assets[0].attributes[name].meta,{readRestricted:true,writeRestricted:false});
+  for(const name of ['gridexResourceId','gridexResourceKind','gridexSiteId'])assert.deepEqual(env.assets[0].attributes[name].meta,{});
   assert.equal(env.assets[0].id,site.openremoteSiteAssetId);
   assert.equal(env.repository.sites.length,1);
   const retry=await provisionSite({repository:env.repository,remote:env.remote,principal:env.principal,key:'customer-site-001',input});

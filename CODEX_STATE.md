@@ -1,5 +1,28 @@
 # CODEX_STATE.md
 
+## 2026-10-08 — current visibility deployment
+
+Owner approved notes/location visibility and API-only restart; both completed.
+New Site provisioning policy and narrow icon-font allowlist are running.
+Existing test Site repaired and readback verified, no role/link/alarm changes.
+10 unit tests and read-only live isolation checks pass. External browser retest
+pending; see latest HANDOFF entry. Older awaiting-approval notes are historical.
+БГ: одобрено и внедрено; само API рестарт. Тестовият Обект е поправен и проверен.
+Външното визуално приемане още предстои.
+
+## 2026-10-08 — retest 2 corrections, not deployed
+
+See HANDOFF and docs/RETEST_2026_10_08.md. Frontend duplicate chart options,
+English Demo strings and Site 404 feedback corrected locally; Manager icon font
+allowlist fixed with negative tests. 10 render tests, 5 Manager tests and the
+desktop/mobile chart browser test passed; frontend TypeScript/build and docs
+BG/EN consistency/typecheck/build passed. No account changes or rollout.
+Read-only production check confirms Site notes/location lack readRestricted.
+Awaiting owner's explicit approval for only those attributes' read visibility.
+Do not grant alarm rights to silence upstream's handled 403. D4 remains open.
+БГ: локални поправки и тестове, без внедряване. Чака се одобрение за видимост
+само на описание/местоположение; Д4 не е приключен. Правата са непроменени.
+
 ## 2026-10-08 — audit API/proxy rollout completed, external acceptance pending
 
 Owner explicitly approved restart. API-only rollout used the existing backup,
