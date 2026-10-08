@@ -1,5 +1,14 @@
 # CODEX_STATE.md
 
+## 2026-10-08 — login identity deployed
+
+OpenRemote theme compatibility fix prepared; see docs/LOGIN_IDENTITY_2026_10_08.md.
+Do not weaken prompt/login or override the bound identity with a login_hint.
+Owner explicitly approved Keycloak-only rollout; completed healthy with private
+backup, unchanged environment and other containers. External session test pending.
+БГ: поправката е внедрена след отделно разрешение само за Keycloak; има частен
+backup и успешни тестове. Реалният външен вход още изисква потвърждение.
+
 ## 2026-10-08 — current visibility deployment
 
 Owner approved notes/location visibility and API-only restart; both completed.
