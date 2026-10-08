@@ -1,5 +1,18 @@
 # GrideX OpenRemote backend — Working rules
 
+## Confirmed diagnostic scope — 2026-10-08
+
+Platform administrators need no service self-approval on their own authorised
+Sites. Customer diagnosis requires explicit organisation-admin approval for
+selected Sites, read-only, time-limited, immediately revocable and audited.
+This approved policy is NOT a deployed cross-realm grant workflow. Preserve
+existing denial until its complete screen/API/expiry/revocation flow is approved
+and tested. Never read every customer Site merely because of platform authority.
+БГ: без самоодобрение за услуги на собствените разрешени Обекти. За клиентски
+Обекти: изрично одобрение от организационния админ, избрани Обекти, само четене,
+срок, незабавно отнемане и одит. Политиката е одобрена, механизмът не е внедрен.
+Пази текущия отказ до одобрен и проверен цялостен процес; без общ достъп.
+
 ## Approved Users reference — 2026-10-03 / Одобрен визуален шаблон
 
 ### Confirmed personal cancellation / Потвърдена лична отмяна

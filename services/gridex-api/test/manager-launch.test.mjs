@@ -61,6 +61,13 @@ test('one-time ticket becomes an HttpOnly host-only session and rejects another 
   await assert.rejects(access.check(cookie, '/api/master/asset/query'), { status: 403 });
   await assert.rejects(access.check(cookie, '/api/master/configuration/other'), { status: 403 });
   assert.equal(await access.check(cookie, '/api/novacom/asset/query'), 'novacom');
+  assert.equal(await access.check(cookie, '/api/novacom/user/novacom/userRealmRoles/test-user'), 'novacom');
+  assert.equal(await access.check(cookie, '/api/novacom/alarm?realm=novacom'), 'novacom');
+  assert.equal(await access.check(cookie, '/shared/fonts/Open%20Sans%20Regular/0-255.pbf'), 'novacom');
+  await assert.rejects(access.check(cookie, '/api/novacom/user/gridex/userRealmRoles/test-user'), {status:403});
+  await assert.rejects(access.check(cookie, '/api/novacom/alarm?realm=gridex'), {status:403});
+  await assert.rejects(access.check(cookie, '/shared/fonts/Open%2fSans/0-255.pbf'), {status:403});
+  await assert.rejects(access.check(cookie, '/shared/fonts/Open%2520Sans/0-255.pbf'), {status:403});
   await assert.rejects(access.check('', '/manager/?realm=novacom'), { status: 401 });
 });
 

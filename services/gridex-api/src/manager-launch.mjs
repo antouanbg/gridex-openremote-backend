@@ -70,7 +70,8 @@ export class ManagerLaunch {
     const uri = new URL(originalUri || '/', this.origin);
     // The proxy's route matcher normalises escaped path segments. Reject them
     // instead of interpreting the unnormalised original differently here.
-    if (uri.pathname.includes('%')) throw new ApiError(403, 'manager_path_denied', 'Encoded Manager path is not allowed.');
+    const fontPath = /^\/shared\/fonts\/(?:[A-Za-z0-9,_-]|%20)+\/\d+-\d+\.pbf$/.test(uri.pathname);
+    if (uri.pathname.includes('%') && !fontPath) throw new ApiError(403, 'manager_path_denied', 'Encoded Manager path is not allowed.');
     if (!uri.pathname.startsWith('/manager/') && !uri.pathname.startsWith('/shared/')
         && uri.pathname !== '/websocket/events'
         && uri.pathname !== '/api/master/info'
@@ -85,6 +86,10 @@ export class ManagerLaunch {
       || uri.pathname === '/api/master/configuration/manager';
     const apiRealm = uri.pathname.match(/^\/api\/([a-z][a-z0-9-]{2,30})\//)?.[1];
     if (apiRealm && !bootstrapPath && (apiRealm === 'master' || apiRealm !== realm))
+      throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
+    const userRealm=uri.pathname.match(/^\/api\/[^/]+\/user\/([^/]+)\/userRealmRoles\//)?.[1];
+    if ((userRealm && userRealm !== realm) ||
+        (apiRealm && uri.searchParams.has('realm') && uri.searchParams.get('realm') !== realm))
       throw new ApiError(403, 'manager_realm_denied', 'Wrong organisation.');
     return realm;
   }

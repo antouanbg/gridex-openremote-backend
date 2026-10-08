@@ -591,7 +591,10 @@ export function createApp({ config, authenticate, repository, openRemote, invita
       if (req.method === 'GET' && suffix === '/visualisations/history') {
         requirePermission(principal, 'site:read');
         if (!serviceEntitlements) throw new ApiError(503, 'services_unavailable', 'Service access is unavailable.');
-        await serviceEntitlements.requireSiteVisualisations(principal, site.organisationId);
+        // Retain verified platform service access only here, after requireSite.
+        // Site/asset links below remain mandatory; no cross-realm expansion.
+        const chartPrincipal = withMembershipRoles(identity, [site.membershipRole], config.platformAdminSubjects, config.realm);
+        await serviceEntitlements.requireSiteVisualisations(chartPrincipal, site.organisationId);
         const authoritative = await authoritativeSites([site], openRemote, principal.subject,
           { realm: principal.realm, token: principal.accessToken });
         if (authoritative.length !== 1) throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');
@@ -613,7 +616,7 @@ export function createApp({ config, authenticate, repository, openRemote, invita
             { fromTimestamp: from, toTimestamp: to })).filter(point => point.x >= from && point.x <= to &&
               point.y >= ROCK_METRICS[binding.metric].minimum && point.y <= ROCK_METRICS[binding.metric].maximum),
         })));
-        await serviceEntitlements.requireSiteVisualisations(principal, site.organisationId);
+        await serviceEntitlements.requireSiteVisualisations(chartPrincipal, site.organisationId);
         if ((await authoritativeSites([site], openRemote, principal.subject,
           { realm: principal.realm, token: principal.accessToken })).length !== 1)
           throw new ApiError(403, 'permission_denied', 'OpenRemote Site access is required.');

@@ -34,3 +34,16 @@ test('Manager accepts only the configured public origin without re-running setup
   assert.match(compose, /OR_SETUP_RUN_ON_RESTART: 'false'/);
   assert.doesNotMatch(compose, /OR_WEBSERVER_ALLOWED_ORIGINS: ['"]?\*/);
 });
+
+test('Manager detail routes are explicit read-only paths behind the session guard',()=>{
+  const config=readFileSync(new URL('../deploy/public-https/nginx.conf.template',import.meta.url),'utf8');
+  const line=config.split('\n').find(line=>line.includes('userRealmRoles/[a-zA-Z0-9-]'));
+  assert.ok(line);
+  const pattern=new RegExp(line.match(/location ~ "(.*)"/)[1]);
+  for(const path of ['/api/novacom/user/novacom/userRealmRoles/test-user','/api/solar-west/alarm'])assert.ok(pattern.test(path));
+  for(const path of ['/api/novacom/user/novacom/admin','/api/novacom/alarm/delete','/api/novacom/user/novacom/userRealmRoles/id/other'])assert.equal(pattern.test(path),false);
+  const block=config.split(line)[1].split('\n        }')[0];
+  assert.match(block,/auth_request \/_manager_authorize;/);
+  assert.match(block,/limit_except GET \{ deny all; \}/);
+  assert.match(config,/location \^~ \/api\/master\/ \{ return 404; \}/);
+});
