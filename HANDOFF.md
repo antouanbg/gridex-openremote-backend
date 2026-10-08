@@ -2,6 +2,19 @@
 
 Repository / GitHub: antouanbg/gridex-openremote-backend
 
+## 2026-10-08 — login identity regression deployed, external acceptance pending
+
+See docs/LOGIN_IDENTITY_2026_10_08.md. Pinned OpenRemote theme ignores
+usernameHidden and renders empty login.username for reauthentication.
+Fix preserves server-bound identity and all authentication checks. Owner approved
+Keycloak-only rollout; image 1072596eb5e5 healthy, other containers unchanged.
+FreeMarker reproduces original blank field and passes repaired cases; Mailgun
+tests pass. Local auth and forced-local fresh forms/denial checks pass.
+Private backup login-theme-74jtXg; external authenticated re-login still pending.
+БГ: поправката е внедрена само в Keycloak след изрично одобрение; тестовете
+минават, останалите контейнери са непроменени. Външният реален вход предстои.
+Причина, тестове и оставащо приемане са в свързания документ.
+
 ## 2026-10-08 — approved visibility rule deployed (supersedes pending notes)
 
 Owner approved API-only restart. Deployment completed with environment-drift

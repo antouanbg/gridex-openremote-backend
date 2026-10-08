@@ -3,7 +3,7 @@ networks:
   email-egress: {}
 services:
   keycloak:
-    image: gridex-keycloak-mailgun:26.7.3-v1
+    image: gridex-keycloak-mailgun:26.7.3-login-identity-v2
     build: ./services/keycloak-mailgun
     networks: [backend, email-egress]
     environment:
