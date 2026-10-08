@@ -64,6 +64,14 @@ test('one-time ticket becomes an HttpOnly host-only session and rejects another 
   assert.equal(await access.check(cookie, '/api/novacom/user/novacom/userRealmRoles/test-user'), 'novacom');
   assert.equal(await access.check(cookie, '/api/novacom/alarm?realm=novacom'), 'novacom');
   assert.equal(await access.check(cookie, '/shared/fonts/Open%20Sans%20Regular/0-255.pbf'), 'novacom');
+  for (const extension of ['woff2', 'woff', 'ttf']) {
+    const path = `/shared/fonts/Material%20Design%20Icons/fonts/materialdesignicons-webfont.${extension}`;
+    assert.equal(await access.check(cookie, path), 'novacom');
+    await assert.rejects(access.check('', path), {status:401});
+  }
+  await assert.rejects(access.check(cookie, '/shared/fonts/Material%2520Design%20Icons/fonts/materialdesignicons-webfont.woff2'), {status:403});
+  await assert.rejects(access.check(cookie, '/shared/fonts/Material%20Design%20Icons%2ffonts/materialdesignicons-webfont.woff2'), {status:403});
+  await assert.rejects(access.check(cookie, '/shared/fonts/Material%20Design%20Icons/fonts/other.woff2'), {status:403});
   await assert.rejects(access.check(cookie, '/api/novacom/user/gridex/userRealmRoles/test-user'), {status:403});
   await assert.rejects(access.check(cookie, '/api/novacom/alarm?realm=gridex'), {status:403});
   await assert.rejects(access.check(cookie, '/shared/fonts/Open%2fSans/0-255.pbf'), {status:403});

@@ -1,5 +1,62 @@
 # Handoff — GrideX OpenRemote backend
 
+Repository / GitHub: antouanbg/gridex-openremote-backend
+
+## 2026-10-08 — approved visibility rule deployed (supersedes pending notes)
+
+Owner approved API-only restart. Deployment completed with environment-drift
+guard, DB backup and rollback image (private backup personal-services-Pyd41G).
+Only gridex-api recreated. Provisioning and Manager font source hashes match
+runtime. Real read-only roster/isolation checks pass (pilot 1, customer 2 users).
+Targeted Site readback: notes/location readRestricted=true, writeRestricted=false;
+all three internal gridex attributes remain restricted-hidden. No links/roles
+changed. Ten provisioning/Manager tests pass. Local auth issuer/console/login
+checks pass; normal public DNS probes are network-blocked from this LAN.
+External Manager detail/font acceptance is still pending. No read:alarms grant.
+БГ: правилото за нови Обекти и шрифтът са внедрени; само API е рестартиран.
+Съществуващият тестов Обект е проверен; права и връзки не са променяни.
+Локалните тестове са успешни; външният визуален тест остава за потвърждение.
+
+## 2026-10-08 — Site metadata visibility approved and targeted repair verified
+
+Owner explicitly approved notes/location readRestricted=true, writeRestricted=false
+for new Sites and the existing customer test Site. Internal identifiers remain
+hidden; no roles, alarm rights or user–Asset links changed. Targeted repair used
+OpenRemote API, with private before.json copied outside Drive before PUT.
+Readback verified values, types, other metadata and hierarchy unchanged.
+Initial verifier rejected OpenRemote's server-updated timestamp; follow-up
+read-only semantic verification passed, no second PUT. Backup retained under
+private runtime backups/site-visibility-20261008-afELIJ. Do not publish it.
+New provisioning code/tests and AGENTS updated; API rollout awaits explicit
+API-only restart approval. Real Manager browser acceptance remains pending.
+БГ: одобрено е занапред само четене на описание/местоположение за вече свързани
+потребители. Тестовият Обект е поправен през OpenRemote с частно резервно копие
+и потвърден readback; без нови роли/връзки/аларми. Първият verifier спря заради
+автоматично обновен timestamp; повторната проверка само за четене е успешна.
+За новите Обекти кодът и тестовете са готови; чакаме одобрение за API рестарт.
+
+Repository / GitHub: antouanbg/gridex-openremote-backend
+
+## 2026-10-08 — external retest 2, follow-up in source only
+
+External report in Claude_2026-10-08_retest was read through Drive. It confirms
+D1/D2/D3/D5/D6/N1 and three identity-isolated login cycles on 1b1c2c6.
+Current corrections: exact source/metric/unit chart options, English Demo copy,
+404 access feedback, and narrowly allowed authenticated Material Design fonts.
+Local tests: 10 overview renders, 5 Manager session tests and one desktop/mobile
+chart browser regression passed; TypeScript and Pages build passed. No rollout.
+Manager alarm GET requires READ_ALARMS upstream; humans intentionally have only
+read:assets. Upstream catches that refusal (mislabels it as child-assets error).
+Read-only production metadata confirms all five customer Site attributes lack
+readRestricted. Asked owner to approve notes/location read visibility only;
+do not change real attributes or permissions before their answer. Manager D4
+is not closed. Existing release: frontend PR111, backend PR102, docs PR55;
+older source-only notes describe the previous rollout and are superseded.
+БГ: вторият външен тест е прочетен; шестте поправки и сесиите са потвърдени.
+Новите корекции са само в кода, с локални тестове, не са внедрени. Д4 остава:
+нито един атрибут на клиентския Обект не е видим за ограничен човек. Чакаме
+одобрение само за четене на описание/местоположение; без нови права за аларми.
+
 ## 2026-10-08 — audit API/proxy rollout completed, external acceptance pending
 
 Owner explicitly approved restart. API-only rollout used the existing backup,

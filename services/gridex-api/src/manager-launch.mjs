@@ -71,7 +71,8 @@ export class ManagerLaunch {
     // The proxy's route matcher normalises escaped path segments. Reject them
     // instead of interpreting the unnormalised original differently here.
     const fontPath = /^\/shared\/fonts\/(?:[A-Za-z0-9,_-]|%20)+\/\d+-\d+\.pbf$/.test(uri.pathname);
-    if (uri.pathname.includes('%') && !fontPath) throw new ApiError(403, 'manager_path_denied', 'Encoded Manager path is not allowed.');
+    const iconFontPath = /^\/shared\/fonts\/Material%20Design%20Icons\/fonts\/materialdesignicons-webfont\.(?:woff2?|ttf)$/.test(uri.pathname);
+    if (uri.pathname.includes('%') && !fontPath && !iconFontPath) throw new ApiError(403, 'manager_path_denied', 'Encoded Manager path is not allowed.');
     if (!uri.pathname.startsWith('/manager/') && !uri.pathname.startsWith('/shared/')
         && uri.pathname !== '/websocket/events'
         && uri.pathname !== '/api/master/info'

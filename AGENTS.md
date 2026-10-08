@@ -1,5 +1,18 @@
 # GrideX OpenRemote backend — Working rules
 
+## Approved Site attribute visibility — 2026-10-08
+
+For new GrideX Sites, notes (Description) and location have readRestricted=true,
+writeRestricted=false. Only users already linked to the Site may read them.
+Keep internal gridexResourceId/gridexResourceKind/gridexSiteId non-public and
+hidden from restricted humans. Do not change links, roles or alarm permissions.
+Owner also approved the same scoped metadata repair for the existing Novacom
+test Site; this is not authority to bulk-change other existing customer Assets.
+БГ: занапред само описание и местоположение на нов Обект са видими за вече
+свързаните потребители, без редакция. Вътрешните идентификатори остават скрити.
+Без промяна на връзки, роли или аларми. Одобрена е същата поправка само за
+съществуващия тестов Обект на Новаком, не обща миграция на клиентски активи.
+
 ## Confirmed diagnostic scope — 2026-10-08
 
 Platform administrators need no service self-approval on their own authorised
