@@ -118,7 +118,7 @@ export class PostgresRepository {
 
   async getMemberships(subject, realm = null) {
     const { rows } = await this.pool.query(`SELECT m.organisation_id AS "organisationId", m.role,
-      m.all_sites AS "allSites" FROM organisation_memberships m JOIN organisations o
+      m.all_sites AS "allSites", o.name AS "organisationName" FROM organisation_memberships m JOIN organisations o
       ON o.id=m.organisation_id AND o.status='active'
       WHERE m.subject=$1 AND ($2::text IS NULL OR o.openremote_realm=$2)`, [subject, realm]);
     return rows;

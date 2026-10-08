@@ -3265,3 +3265,14 @@ reader няма SELECT на native таблица, има SELECT на BG-only vi
 последен пълен импорт 10:37:23, дата на пълния набор 2026-09-30.
 Grafana dashboard файлът е монтиран от `main` с новия native view; пълен
 външен клиентски browser тест на вградената графика още не е потвърден.
+# 2026-10-08 — membership presentation correction (not deployed)
+
+Existing /me membership query additionally returns organisationName, scoped by
+subject, active organisation and verified realm. No new permission or migration.
+149 tests pass, one skipped. Live read-only probe confirms novacom has two
+members, five services and two organisation grants; foreign realm/viewer admin
+calls denied. No grant, inventory or mail changes.
+OpenRemote Site metadata inspected: internal text attributes plus null location,
+no measurements or restricted-read metadata. Manager empty detail remains
+unresolved pending actual restricted-user response; do not widen rights.
+БГ: име на организацията за одобрения екран; без промени по права и инвентар.
