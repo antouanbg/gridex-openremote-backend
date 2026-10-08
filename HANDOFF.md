@@ -1,5 +1,25 @@
 # Handoff — GrideX OpenRemote backend
 
+## 2026-10-08 — organisation name API rollout completed
+
+Owner explicitly approved restart of gridex-api only. Deployed API source matches
+main e90c1b6; only gridex-mac-gridex-api-1 recreated, no migrations or rights/data
+changes. Image: 7d72dc49b8b129ca5d998f904fbfef9fd36320a53cf7b9462a74541e58e43c41.
+Rollback image retained as gridex-api-rollback:before-org-name-20261008.
+Health is healthy; repository.mjs SHA256 matches local published source.
+Read-only probe: gridex 1 member, novacom 2; five catalogue services each;
+OpenRemote links verified, wrong-realm denied and novacom viewer admin denied.
+Local master issuer/console/fresh login checks passed. Public normal-DNS auth
+checks cannot pass from this network; do not confuse that with application failure.
+Forced local proxy on 14443 returned correct public gridex issuer and 404 for
+master/admin/health/metrics. This is NOT external browser acceptance.
+The other computer/VPN must retest all three roles against approved templates,
+including login/logout, organisation display name and OpenRemote asset detail.
+Deployment tooling note: docker compose plugin absent; installed docker-compose
+used successfully. Initial CLI failure occurred before any API recreation.
+БГ: API корекцията е внедрена след изрично одобрение; само този контейнер е
+рестартиран. Външното приемане с реалните акаунти остава непроверено.
+
 ## Current release — 2026-10-03 / Текущо внедряване
 
 Supersedes earlier “not deployed” notes below. Backend PR #98 merged as
