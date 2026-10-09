@@ -53,3 +53,17 @@ test('Site charts require both current organisation and member visualisations gr
   await assert.rejects(grants.requireSiteVisualisations({...platform,emailVerified:false},organisationId),
     error=>error.code==='service_not_enabled');
 });
+
+test('Site visualisation denial identifies each grant level without granting access',async()=>{
+  for(const [organisationEnabled,memberEnabled] of [[false,false],[false,true],[true,false],[true,true]]){
+    const grants=new ServiceEntitlements({query:async()=>({rows:[{organisationEnabled,memberEnabled}]})},config);
+    if(organisationEnabled&&memberEnabled)await grants.requireSiteVisualisations(member,organisationId);
+    else await assert.rejects(grants.requireSiteVisualisations(member,organisationId),error=>{
+      assert.equal(error.status,403);
+      assert.deepEqual(error.details,{missing:organisationEnabled?'member':'organisation',organisationEnabled,memberEnabled});
+      return true;
+    });
+  }
+  const grants=new ServiceEntitlements({query:async()=>({rows:[]})},config);
+  await assert.rejects(grants.requireSiteVisualisations(member,organisationId),error=>error.details===undefined);
+});
